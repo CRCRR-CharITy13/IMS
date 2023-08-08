@@ -1,0 +1,31 @@
+version: '3.5'
+
+volumes:
+  gik_mysql_data:
+  
+services:
+  api:
+    container_name: gik_api
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3001
+      - DEBUG_MODE=false
+      - MYSQL_URI=root:pass@tcp(gik_mysql:3306)/gik?charset=utf8mb4&parseTime=True&loc=Local
+      - COOKIE_DOMAIN=localexample.com
+      - JWT_SIGNING_PASSWORD=secret
+    restart: always
+
+  mysql:
+    container_name: gik_mysql
+    image: mysql
+    command: --default-authentication-plugin=caching_sha2_password --init-file /data/application/setup.sql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: gik
+    volumes:
+      - gik_mysql_data:/var/lib/mysql
+      - .docker/setup.sql:/data/application/setup.sql
