@@ -1,0 +1,18 @@
+.wrapper {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wrapper.login {
+    background-image: url("../../public/auth_bg.jpg");
+}
+
+.wrapper.register {
+    background-image: url("../../public/register_bg.jpg");
+}

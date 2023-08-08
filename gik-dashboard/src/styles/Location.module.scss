@@ -1,0 +1,6 @@
+.locationComponent {
+    cursor: pointer;
+    &:hover {
+        color: var(--inverted-text) !important;
+    }
+}
