@@ -11,6 +11,7 @@ import Register from "./routes/Register";
 import DashboardRedirect from "./components/dashboard/Redirect";
 import { useEffect } from "react";
 import Landing from "./routes/Landing";
+import PageNotFound from "./routes/PageNotFound";
 
 function App() {
     const isDark = window.localStorage.getItem("dark") === "true";
@@ -50,6 +51,8 @@ function App() {
                             />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
+                            // to handle NOT FOUND cases
+                            <Route path="*" element = {<PageNotFound />} />
                         </Routes>
                     </BrowserRouter>
                 </NotificationsProvider>
