@@ -3,10 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/go-gorm/gorm"
-	"gorm.io/driver/sqlite"
-
 	"gorm.io/gorm"
+
+	"gorm.io/driver/sqlite"
 )
 
 type Item struct {
@@ -16,8 +15,9 @@ type Item struct {
 }
 
 func main() {
+	fmt.Println("Start to connect to the database")
 	// connect to the database
-	db, err := gorm.Open(sqlite.Open(gik-ims-db), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("gik-ims-db"), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect to database")
 	}

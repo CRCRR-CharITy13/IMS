@@ -1,4 +1,4 @@
-module example.com/db-sqlite-test
+module db-sqlite-test
 
 go 1.18
 

@@ -11,8 +11,8 @@ import (
 	"GIK_Web/env"
 	"GIK_Web/src/routers"
 	"fmt"
-
-	"github.com/fvbock/endless"
+	"net/http"
+	//"github.com/fvbock/endless"
 )
 
 // Main function, when run will initialize the server.
@@ -47,10 +47,24 @@ func main() {
 	fmt.Printf("\nServer running at %s:%s\n", env.WebserverHost, env.WebserverPort)
 
 	// Try to run the server
+
+	// if env.HTTPS {
+	// 	endless.ListenAndServeTLS(":"+env.WebserverPort, ".cert/server.crt", ".cert/server.key", routersInit)
+	// } else {
+	// 	endless.ListenAndServe(env.WebserverHost+":"+env.WebserverPort, routersInit)
+	// }
+
+	server := &http.Server{
+		Handler: routersInit,
+		Addr:    env.WebserverHost + ":" + env.WebserverPort,
+	}
+
+	fmt.Printf("\n Server running at %s:%s\n", env.WebserverHost, env.WebserverPort)
+
 	if env.HTTPS {
-		endless.ListenAndServeTLS(":"+env.WebserverPort, ".cert/server.crt", ".cert/server.key", routersInit)
+		server.ListenAndServeTLS(".cert/server.crt", ".cert/server.key")
 	} else {
-		endless.ListenAndServe(env.WebserverHost+":"+env.WebserverPort, routersInit)
+		server.ListenAndServe()
 	}
 
 }
