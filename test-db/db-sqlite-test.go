@@ -12,6 +12,9 @@ type Item struct {
 	ID    uint `gorm: " primaryKey"`
 	Name  string
 	Stock int
+	Size  string
+	Price float32
+	SKU   string
 }
 
 func main() {
@@ -21,13 +24,19 @@ func main() {
 	if err != nil {
 		panic("Failed to connect to database")
 	}
+	//
+	db.AutoMigrate(&Item{})
 	// retrive items from the Items table
+	var item Item
+	db.First(&item, 1)
+	db.Model(&item).Update("Size", "XXL")
+	//
 	var items []Item
 	db.Find(&items)
 
 	//display the list of items
 	for _, item := range items {
-		fmt.Printf("ID: %d, Name: %s, Stock: %d\n", item.ID, item.Name, item.Stock)
+		fmt.Printf("ID: %d, Name: %s, SKU: %s, Size: %s, Stock: %d, Price: %f\n", item.ID, item.Name, item.SKU, item.Size, item.Stock, item.Price)
 	}
 
 }
