@@ -33,7 +33,7 @@ func main() {
 	db.Model(&item).Update("Size", "XL")
 	//
 	// add an item
-	newItem := Item{Name: "Men Long T-Shirt", SKU: "M2233MLT", Size: "L", Stock: 100, Price: 5.0}
+	newItem := Item{Name: "Women Shprt T-Shirt", SKU: "W2234WST", Size: "L", Stock: 500, Price: 5.0}
 	result := db.Create(&newItem)
 	if result.Error != nil {
 		panic("Failed to insert new item to the database")
