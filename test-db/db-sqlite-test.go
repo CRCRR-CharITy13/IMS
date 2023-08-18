@@ -11,7 +11,7 @@ import (
 // Item has and belongs to many locations, `item_locations` is the join table
 type Item struct {
 	gorm.Model
-	ID        uint `gorm: "primaryKey"`
+	// ID        uint `gorm: "primaryKey"`
 	Name      string
 	Stock     int
 	Size      string
@@ -22,7 +22,7 @@ type Item struct {
 
 type Location struct {
 	gorm.Model
-	ID          uint `gorm: "primaryKey"`
+	// ID          uint `gorm: "primaryKey"`
 	Name        string
 	Description string
 }
