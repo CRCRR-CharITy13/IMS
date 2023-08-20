@@ -17,7 +17,7 @@ type Item struct {
 	Size      string
 	Price     float32
 	SKU       string
-	Locations []Location `gorm:"many2many:item_locations`
+	Locations []Location `gorm:"many2many:item_locations;"`
 }
 
 type Location struct {
@@ -27,28 +27,28 @@ type Location struct {
 	Description string
 }
 
-type Client struct {
-	ID           uint `gorm: "primaryKey"`
-	Contact_info string
-	Balance      float32
-}
+// type Client struct {
+// 	ID           uint `gorm: "primaryKey"`
+// 	Contact_info string
+// 	Balance      float32
+// }
 
-type Donor struct {
-	ID           uint `gorm: "primaryKey"`
-	Contact_info string
-}
+// type Donor struct {
+// 	ID           uint `gorm: "primaryKey"`
+// 	Contact_info string
+// }
 
-type Users struct {
-	ID       uint `gorm: "primaryKey"`
-	Username string
-	Password string
-	Is_admin bool
-}
+// type Users struct {
+// 	ID       uint `gorm: "primaryKey"`
+// 	Username string
+// 	Password string
+// 	Is_admin bool
+// }
 
 func main() {
 	fmt.Println("Start to connect to the database")
 	// connect to the database
-	db, err := gorm.Open(sqlite.Open("test-gik-ims-db.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("gik-ims-testdb.sqlite"), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect to database")
 	}
