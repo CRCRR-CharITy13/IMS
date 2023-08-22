@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -83,6 +86,12 @@ type OrderItem struct {
 }
 
 func main() {
+	db, err := gorm.Open(sqlite.Open("gik-ims-newDB-test1.sqlite"), &gorm.Config{})
+	db.AutoMigrate(&Item{}, &Location{}, &Warehouse{}, &User{}, &Client{}, &Donor{}, &Donation{}, &DonationItem{}, &Order{}, &OrderItem{})
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
 	// fmt.Printf("==== To Test The GIK-IMS Database\n")
 	// itemFileName := "data/gik-ims-items.csv"
 	// locationFileName := "data/gik-ims-locations.csv"
