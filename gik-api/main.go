@@ -36,7 +36,7 @@ func main() {
 	// router.Run(":8080")
 
 	// Set up environmental data from .env file
-	fmt.Println("Start to run GIN server")
+	fmt.Println("Start to run GIN server - tu branch")
 
 	env.SetEnv()
 	fmt.Println("IsLocalDB = ", env.IsLocalDB)
