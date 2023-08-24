@@ -2,7 +2,7 @@ package auth
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/types"
+	"GIK_Web/type_news"
 	"time"
 
 	"github.com/alexedwards/argon2id"
@@ -13,7 +13,7 @@ func CreateFirstAdmin(c *gin.Context) {
 
 	// verify that there is no other user
 	var count int64
-	database.Database.Model(&types.User{}).Count(&count)
+	database.Database.Model(&type_news.User{}).Count(&count)
 	if count > 0 {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -42,12 +42,13 @@ func CreateFirstAdmin(c *gin.Context) {
 		return
 	}
 
-	newUser := types.User{
-		Username:        "admin",
-		Password:        hash,
-		TwoFactorSecret: "",
-		RegisteredAt:    time.Now().Unix(),
-		Admin:           true,
+	newUser := type_news.User{
+		Username: "admin",
+		Password: hash,
+		//TwoFactorSecret: "",
+		RegisteredAt: time.Now().Unix(),
+		Admin:        true,
+		Disabled:     false,
 	}
 
 	if err := database.Database.Create(&newUser).Error; err != nil {

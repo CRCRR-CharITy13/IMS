@@ -32,27 +32,27 @@ func ConnectDatabase() {
 		//
 
 		// Get a reference to the underlying database connection
-		sqlDB, err := db.DB()
-		if err != nil {
-			panic("failed to get database connection")
-		}
-		defer sqlDB.Close()
+		// sqlDB, err := db.DB()
+		// if err != nil {
+		// 	panic("failed to get database connection")
+		// }
+		// defer sqlDB.Close()
 
-		// Query the database for table names
-		rows, err := sqlDB.Query("SELECT name FROM sqlite_master WHERE type='table'")
-		if err != nil {
-			panic("failed to query database")
-		}
-		defer rows.Close()
+		// // Query the database for table names
+		// rows, err := sqlDB.Query("SELECT name FROM sqlite_master WHERE type='table'")
+		// if err != nil {
+		// 	panic("failed to query database")
+		// }
+		// defer rows.Close()
 
-		fmt.Println("Tables:")
-		for rows.Next() {
-			var tableName string
-			if err := rows.Scan(&tableName); err != nil {
-				panic("failed to scan row")
-			}
-			fmt.Println(tableName)
-		}
+		// fmt.Println("Tables:")
+		// for rows.Next() {
+		// 	var tableName string
+		// 	if err := rows.Scan(&tableName); err != nil {
+		// 		panic("failed to scan row")
+		// 	}
+		// 	fmt.Println(tableName)
+		// }
 
 		//
 		Database = db
