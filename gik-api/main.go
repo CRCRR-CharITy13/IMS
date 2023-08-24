@@ -36,8 +36,10 @@ func main() {
 	// router.Run(":8080")
 
 	// Set up environmental data from .env file
-	env.SetEnv()
+	fmt.Println("Start to run")
 
+	env.SetEnv()
+	fmt.Println("IsLocalDB = ", env.IsLocalDB)
 	// Initalize the router
 	routersInit := routers.InitRouter()
 

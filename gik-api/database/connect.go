@@ -6,21 +6,57 @@ import (
 	"fmt"
 
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 var Database *gorm.DB
 
 func ConnectDatabase() {
-	dsn := env.MysqlURi
-	fmt.Println("DSN: " + dsn)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("Unable to connect to database: " + err.Error())
+	if !env.IsLocalDB {
+		dsn := env.MysqlURi
+		fmt.Println("DSN: " + dsn)
+		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			panic("Unable to connect to database: " + err.Error())
+		}
+		Database = db
+
+	} else {
+		fmt.Printf("Connect to the local database: %s", env.SqliteURI)
+		db, err := gorm.Open(sqlite.Open(env.SqliteURI), &gorm.Config{})
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		//
+
+		// Get a reference to the underlying database connection
+		sqlDB, err := db.DB()
+		if err != nil {
+			panic("failed to get database connection")
+		}
+		defer sqlDB.Close()
+
+		// Query the database for table names
+		rows, err := sqlDB.Query("SELECT name FROM sqlite_master WHERE type='table'")
+		if err != nil {
+			panic("failed to query database")
+		}
+		defer rows.Close()
+
+		fmt.Println("Tables:")
+		for rows.Next() {
+			var tableName string
+			if err := rows.Scan(&tableName); err != nil {
+				panic("failed to scan row")
+			}
+			fmt.Println(tableName)
+		}
+
+		//
+		Database = db
 	}
-
-	Database = db
-
 	migrations()
 }
 
@@ -30,16 +66,17 @@ func migrations() {
 	if env.SkipMigrations {
 		return
 	}
-
-	Database.AutoMigrate(&types.Item{})
-	Database.AutoMigrate(&types.Tag{})
-	Database.AutoMigrate(&types.User{})
-	Database.AutoMigrate(&types.Client{})
-	Database.AutoMigrate(&types.Transaction{})
-	Database.AutoMigrate(&types.TransactionItem{})
-	Database.AutoMigrate(&types.Session{})
-	Database.AutoMigrate(&types.AdvancedLog{})
-	Database.AutoMigrate(&types.SimpleLog{})
-	Database.AutoMigrate(&types.SignupCode{})
-	Database.AutoMigrate(&types.Location{})
+	if !env.IsLocalDB {
+		Database.AutoMigrate(&types.Item{})
+		Database.AutoMigrate(&types.Tag{})
+		Database.AutoMigrate(&types.User{})
+		Database.AutoMigrate(&types.Client{})
+		Database.AutoMigrate(&types.Transaction{})
+		Database.AutoMigrate(&types.TransactionItem{})
+		Database.AutoMigrate(&types.Session{})
+		Database.AutoMigrate(&types.AdvancedLog{})
+		Database.AutoMigrate(&types.SimpleLog{})
+		Database.AutoMigrate(&types.SignupCode{})
+		Database.AutoMigrate(&types.Location{})
+	}
 }

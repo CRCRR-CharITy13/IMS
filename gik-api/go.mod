@@ -14,6 +14,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	gorm.io/driver/mysql v1.3.5
+	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.23.8
 )
 
@@ -40,6 +41,7 @@ require (
 	github.com/leekchan/accounting v1.0.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect

@@ -21,6 +21,10 @@ var CookieDomain string
 
 var JWTSigningPassword string
 
+var IsLocalDB bool
+
+var SqliteURI string
+
 func SetEnv() {
 	godotenv.Load(".env")
 
@@ -50,4 +54,8 @@ func SetEnv() {
 	if JWTSigningPassword == "" {
 		panic("JWT_SIGNING_PASSWORD is not set")
 	}
+
+	IsLocalDB = os.Getenv("LOCAL_DB") == "true"
+
+	SqliteURI = os.Getenv("SQLITE_URI")
 }
