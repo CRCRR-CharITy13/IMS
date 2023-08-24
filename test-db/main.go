@@ -15,18 +15,20 @@ type Item struct {
 	StockTotal int
 	Price      float32
 	Size       string
+	Warehouses []Warehouse `gorm:"many2many:warehouses;"`
 }
 
 type Location struct {
 	gorm.Model
 	Name        string
 	Description string
+	Warehouses  []Warehouse `gorm:"many2many:warehouses;"`
 }
 
 type Warehouse struct {
 	gorm.Model
-	ItemId     string
-	LocationId string
+	ItemID     uint
+	LocationID uint
 	Stock      int
 }
 
@@ -58,36 +60,39 @@ type Donor struct {
 
 type Donation struct {
 	gorm.Model
-	DonorBy    int
-	SignedBy   int
+	DonorBy    uint `gorm:"foreignKey:DonorID;references:ID"`
+	SignedBy   uint `gorm:"foreignKey:UserID;references:ID"`
 	TotalValue float32
-	TotalItem  int
+	TotalItems []DonationItem
 }
 
 type DonationItem struct {
 	gorm.Model
-	DonationId int
-	ItemId     int
-	count      int
+	DonationId uint
+	ItemID     uint
+	count      uint
 }
 
 type Order struct {
 	gorm.Model
-	ClientId   int
-	SignedBy   int
+	ClientID   uint `gorm:"foreignKey:ClientID;references:ID"`
+	SignedBy   uint `gorm:"foreignKey:UserID;references:ID"`
 	TotalCost  float32
-	TotalItems int
+	TotalItems []OrderItem
 }
 
 type OrderItem struct {
 	gorm.Model
-	ItemId int
-	count  int
+	OrderID uint
+	ItemID  uint
+	count   int
 }
 
 func main() {
 	db, err := gorm.Open(sqlite.Open("gik-ims-newDB-test1.sqlite"), &gorm.Config{})
-	db.AutoMigrate(&Item{}, &Location{}, &Warehouse{}, &User{}, &Client{}, &Donor{}, &Donation{}, &DonationItem{}, &Order{}, &OrderItem{})
+	db.AutoMigrate(&Item{}, &Location{}, &Warehouse{})
+	db.AutoMigrate(&Donor{}, &Donation{}, &DonationItem{})
+	db.AutoMigrate(&User{}, &Client{}, &Order{}, &OrderItem{})
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
