@@ -2,6 +2,7 @@ package database
 
 import (
 	"GIK_Web/env"
+	"GIK_Web/type_news"
 	"GIK_Web/types"
 	"fmt"
 
@@ -78,5 +79,20 @@ func migrations() {
 		Database.AutoMigrate(&types.SimpleLog{})
 		Database.AutoMigrate(&types.SignupCode{})
 		Database.AutoMigrate(&types.Location{})
+	} else {
+		Database.AutoMigrate(&type_news.Item{})
+		Database.AutoMigrate(&type_news.Location{})
+		Database.AutoMigrate(&type_news.Warehouse{})
+		Database.AutoMigrate(&type_news.User{})
+		Database.AutoMigrate(&type_news.Donor{})
+		Database.AutoMigrate(&type_news.Client{})
+		Database.AutoMigrate(&type_news.Donation{})
+		Database.AutoMigrate(&type_news.DonationItem{})
+		Database.AutoMigrate(&type_news.Order{})
+		Database.AutoMigrate(&type_news.OrderItem{})
+		Database.AutoMigrate(&type_news.Session{})
+		Database.AutoMigrate(&type_news.AdvancedLog{})
+		Database.AutoMigrate(&type_news.SimpleLog{})
+		Database.AutoMigrate(&type_news.Tag{})
 	}
 }

@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
+
+	"GIK_Web/type_news"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,7 +36,7 @@ func ListItem(c *gin.Context) {
 	page := c.Query("page")
 	name := c.Query("name")
 	sku := c.Query("sku")
-	tags := strings.Split(c.Query("tags"), ",")
+	//tags := strings.Split(c.Query("tags"), ",")
 
 	if page == "" {
 		page = "1"
@@ -51,15 +52,15 @@ func ListItem(c *gin.Context) {
 	}
 
 	limit := 10 // Number of entries shown per page
-	offset := (pageInt - 1) * limit
+	//offset := (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&types.Item{})
+	baseQuery := database.Database.Model(&type_news.Item{})
 
 	baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
 
-	for _, tag := range tags {
-		baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
-	}
+	// for _, tag := range tags {
+	// 	baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
+	// }
 	if name != "" {
 		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
 	}
@@ -70,9 +71,9 @@ func ListItem(c *gin.Context) {
 	var totalCount int64
 	baseQuery.Count(&totalCount)
 
-	baseQuery = baseQuery.Limit(limit).Offset(offset)
+	//baseQuery = baseQuery.Limit(limit).Offset(offset)
 
-	items := []item{}
+	items := []type_news.Item{}
 
 	baseQuery.Find(&items)
 

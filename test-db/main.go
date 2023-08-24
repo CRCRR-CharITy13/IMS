@@ -88,11 +88,21 @@ type OrderItem struct {
 	count   int
 }
 
+type Session struct {
+	gorm.Model
+	ID        string `json:"id"`
+	UserID    uint   `json:"userId"`
+	User      User   `json:"user" gorm:"foreignKey:UserID;references:ID"`
+	CreatedAt int64  `json:"createdAt"`
+	ExpiresAt int64  `json:"expiresAt"`
+}
+
 func main() {
-	db, err := gorm.Open(sqlite.Open("gik-ims-newDB-test1.sqlite"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("gik-ims-localdb.sqlite"), &gorm.Config{})
 	db.AutoMigrate(&Item{}, &Location{}, &Warehouse{})
 	db.AutoMigrate(&Donor{}, &Donation{}, &DonationItem{})
 	db.AutoMigrate(&User{}, &Client{}, &Order{}, &OrderItem{})
+	db.AutoMigrate(&Session{})
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
