@@ -14,22 +14,22 @@ import (
 )
 
 type item struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	SKU      string  `json:"sku"`
-	Category string  `json:"category"` // Clothes or not
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	SKU  string `json:"sku"`
+	//Category string  `json:"category"` // Clothes or not
 	Price    float32 `json:"price"`
 	Quantity int     `json:"stock"`
 	Size     string  `json:"size"`
 }
 
 type returnedItem struct {
-	Name     string  `json:"name"`
-	SKU      string  `json:"sku"`
-	Category string  `json:"category"` // Clothes or not
-	Price    float32 `json:"price"`
-	Stock    int     `json:"stock"`
-	Size     string  `json:"size"`
+	Name string `json:"name"`
+	SKU  string `json:"sku"`
+	//Category string  `json:"category"` // Clothes or not
+	Price float32 `json:"price"`
+	Stock int     `json:"stock"`
+	Size  string  `json:"size"`
 }
 
 func ListItem(c *gin.Context) {
@@ -56,7 +56,7 @@ func ListItem(c *gin.Context) {
 
 	baseQuery := database.Database.Model(&type_news.Item{})
 
-	baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
+	// baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
 
 	// for _, tag := range tags {
 	// 	baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
@@ -118,7 +118,7 @@ func UpdateItem(c *gin.Context) {
 
 	item.Name = json.Name
 	item.SKU = json.SKU
-	item.Category = json.Category
+	// item.Category = json.Category
 	item.Size = json.Size
 	item.Price = json.Price
 	item.Quantity = json.Quantity
