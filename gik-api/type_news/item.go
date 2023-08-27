@@ -6,10 +6,12 @@ import (
 
 type Item struct {
 	gorm.Model
-	SKU        string
-	Name       string
-	StockTotal int
-	Price      float32
-	Size       string
-	Warehouses []Warehouse `gorm:"many2many:warehouses;"`
+	SKU           string
+	Name          string
+	StockTotal    int
+	Price         float32
+	Size          string
+	Warehouses    []Warehouse `gorm:"many2many:warehouses;"`
+	OrderItems    []OrderItem
+	DonationItems []DonationItem
 }

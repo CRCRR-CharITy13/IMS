@@ -6,15 +6,19 @@ import (
 
 type Donation struct {
 	gorm.Model
-	DonorBy    uint `gorm:"foreignKey:DonorID;references:ID"`
-	SignedBy   uint `gorm:"foreignKey:UserID;references:ID"`
+	DonorID    uint
+	DonorBy    Donor `gorm:"foreignKey:DonorID;references:ID"`
+	UserID     uint
+	SignedBy   User `gorm:"foreignKey:UserID;references:ID"`
 	TotalValue float32
 	TotalItems []DonationItem
 }
 
 type DonationItem struct {
 	gorm.Model
-	DonationId uint
+	DonationID uint
+	Donation   Donation `gorm:"foreignKey:DonationID;references:ID"`
 	ItemID     uint
+	Item       Item `gorm:"foreignKey:ItemID;references:ID"`
 	count      uint
 }

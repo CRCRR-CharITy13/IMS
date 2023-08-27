@@ -8,5 +8,5 @@ type Location struct {
 	gorm.Model
 	Name        string
 	Description string
-	Warehouses  []Warehouse `gorm:"many2many:warehouses;"`
+	Warehouses  []Warehouse `gorm:"many2many:warehouses"`
 }
