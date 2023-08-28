@@ -147,7 +147,6 @@ func AddItem(c *gin.Context) {
 	}
 
 	item := types.Item{}
-
 	item.Name = json.Name
 	item.SKU = json.SKU
 	item.Category = json.Category
