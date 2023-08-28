@@ -231,7 +231,7 @@ return (
         Do not have an account yet?{' '}
         <Anchor size="sm" component="button">
             {/* Link to Register */}
-          <Link to ="IMS-main\gik-dashboard\src\routes\Register.tsx">Create account</Link>
+          <Link to ="/register">Create account</Link>
         </Anchor>
       </Text>
 
