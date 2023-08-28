@@ -13,6 +13,109 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ===== Structs and Methods of GIK version 2.0
+type addNewItemRequest struct {
+	SKU        string  `json:"sku" binding:"required"`
+	Name       string  `json:"name" binding:"required"`
+	Size       string  `json:"size" binding:"required"`
+	Price      float32 `json:"price" binding:"required"`
+	StockTotal int     `json:"stock_total" binding:"required"`
+}
+
+func AddItem(c *gin.Context) {
+	json := addNewItemRequest{}
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		fmt.Println("error in AddItem: ", err)
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	item := type_news.Item{}
+	item.Name = json.Name
+	item.SKU = json.SKU
+	item.Size = json.Size
+	item.Price = json.Price
+	item.StockTotal = int(json.StockTotal)
+
+	err := database.Database.Create(&item).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to create item",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// in case of success
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "new item added to the database",
+	})
+	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
+}
+
+// 2. List items
+
+func ListItem(c *gin.Context) {
+	page := c.Query("page")
+	name := c.Query("name")
+	sku := c.Query("sku")
+
+	if page == "" {
+		page = "1"
+	}
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid page number",
+		})
+		return
+	}
+
+	limit := 10 // Number of entries shown per page
+	offset := (pageInt - 1) * limit
+
+	baseQuery := database.Database.Model(&type_news.Item{})
+
+	if name != "" {
+		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
+	}
+	if sku != "" {
+		baseQuery = baseQuery.Where("sku LIKE ?", "%"+sku+"%")
+	}
+
+	var totalCount int64
+	baseQuery.Count(&totalCount)
+
+	baseQuery = baseQuery.Limit(limit).Offset(offset)
+
+	items := []type_news.Item{}
+
+	baseQuery.Find(&items)
+
+	totalPages := math.Ceil(float64(totalCount) / float64(limit))
+
+	c.JSON(200, gin.H{"success": true, "data": gin.H{
+		"data":        items,
+		"total":       totalCount,
+		"currentPage": pageInt,
+		"totalPages":  totalPages,
+	}})
+
+}
+
+//
+//
+//
+//
+
 type item struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -30,62 +133,6 @@ type returnedItem struct {
 	Price float32 `json:"price"`
 	Stock int     `json:"stock"`
 	Size  string  `json:"size"`
-}
-
-func ListItem(c *gin.Context) {
-	page := c.Query("page")
-	name := c.Query("name")
-	sku := c.Query("sku")
-	//tags := strings.Split(c.Query("tags"), ",")
-
-	if page == "" {
-		page = "1"
-	}
-
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid page number",
-		})
-		return
-	}
-
-	limit := 10 // Number of entries shown per page
-	//offset := (pageInt - 1) * limit
-
-	baseQuery := database.Database.Model(&type_news.Item{})
-
-	// baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
-
-	// for _, tag := range tags {
-	// 	baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
-	// }
-	if name != "" {
-		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
-	}
-	if sku != "" {
-		baseQuery = baseQuery.Where("sku LIKE ?", "%"+sku+"%")
-	}
-
-	var totalCount int64
-	baseQuery.Count(&totalCount)
-
-	//baseQuery = baseQuery.Limit(limit).Offset(offset)
-
-	items := []type_news.Item{}
-
-	baseQuery.Find(&items)
-
-	totalPages := math.Ceil(float64(totalCount) / float64(limit))
-
-	c.JSON(200, gin.H{"success": true, "data": gin.H{
-		"data":        items,
-		"total":       totalCount,
-		"currentPage": pageInt,
-		"totalPages":  totalPages,
-	}})
-
 }
 
 func UpdateItem(c *gin.Context) {
@@ -133,75 +180,6 @@ type newItemRequest struct {
 	Size     string  `json:"size" binding:"required"`
 	Price    float32 `json:"price" binding:"required"`
 	Quantity int     `json:"quantity" binding:"required"`
-}
-
-func AddItem(c *gin.Context) {
-	json := newItemRequest{}
-
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-
-	item := types.Item{}
-	item.Name = json.Name
-	item.SKU = json.SKU
-	item.Category = json.Category
-	item.Size = json.Size
-	item.Price = json.Price
-	item.Quantity = int(json.Quantity)
-
-	err := database.Database.Create(&item).Error
-	if err != nil {
-		c.JSON(500, gin.H{
-			"success": false,
-			"message": "Unable to create item",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
-}
-
-func DeleteItem(c *gin.Context) {
-	id := c.Query("id")
-	ID, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-
-	item := types.Item{}
-	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid Item",
-		})
-		return
-	}
-
-	if err := database.Database.Model(&types.Item{}).Delete(&item).Error; err != nil {
-		c.JSON(500, gin.H{
-			"success": false,
-			"message": "Unable to delete Item",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	utils.CreateSimpleLog(c, "Deleted Item")
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"message": "Item successfully deleted.",
-	})
 }
 
 func AddSize(c *gin.Context) {
@@ -269,4 +247,41 @@ func AddSize(c *gin.Context) {
 	}
 
 	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
+}
+
+func DeleteItem(c *gin.Context) {
+	id := c.Query("id")
+	ID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	item := types.Item{}
+	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid Item",
+		})
+		return
+	}
+
+	if err := database.Database.Model(&types.Item{}).Delete(&item).Error; err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to delete Item",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	utils.CreateSimpleLog(c, "Deleted Item")
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Item successfully deleted.",
+	})
 }
