@@ -14,32 +14,6 @@ body {
     overflow: hidden;
 }
 
-* {
-    color: var(--text);
-}
-
-:root {
-    --theme: #61ce70;
-    --hover: #4ca858;
-    --active: #31783a;
-    --bg: #e0e0e0;
-    --text: black;
-    --inverted-text: white;
-    --neumorphism: #bebebe;
-    --skeleafter: #dee2e6;
-}
-
-[data-theme="dark"] {
-    --theme: #3c8045;
-    --hover: #2a6032;
-    --active: #18371c;
-    --bg: #1f1f1f;
-    --text: white;
-    --inverted-text: black;
-    --neumorphism: #414141;
-    --skeleafter: #211d19;
-}
-
 h1, h2, h3, h4, h5 {
     margin: 0;
 }

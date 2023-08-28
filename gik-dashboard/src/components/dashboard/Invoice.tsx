@@ -4,7 +4,6 @@ import {
     Button,
     Divider,
     Group,
-    InputWrapper,
     Modal,
     Space,
     Table,
@@ -116,73 +115,65 @@ const InvoiceConfiguratorModal = ({
                 opened={opened}
                 onClose={() => setOpened(false)}
             >
-                <InputWrapper label="Customer Name" required>
-                    <TextInput
-                        placeholder="John Doe"
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        required
-                    />
-                </InputWrapper>
+                <TextInput
+                    label="Customer Name"
+                    placeholder="John Doe"
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    required
+                />
                 <Space h="md" />
-                <InputWrapper label="Customer Address" required>
-                    <TextInput
-                        placeholder="123 Main St"
-                        onChange={(e) => setCustomerAddress(e.target.value)}
-                        required
-                    />
-                </InputWrapper>
+                <TextInput
+                    label="Customer Address"
+                    placeholder="123 Main St"
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    required
+                />
                 <Space h="md" />
                 <Divider />
                 <Space h="md" />
-                <InputWrapper label="Item Name" required>
-                    <TextInput
-                        placeholder="Item Name"
-                        onChange={(e) => setItemName(e.target.value)}
-                        required
-                    />
-                </InputWrapper>
+                <TextInput
+                    label="Item Name"
+                    placeholder="Item Name"
+                    onChange={(e) => setItemName(e.target.value)}
+                    required
+                />
                 <Space h="md" />
-                <InputWrapper label="Item Size" required>
-                    <Textarea
+                    <TextInput
+                        label="Item Size"
                         placeholder="Item Size"
                         onChange={(e) => setItemDesc(e.target.value)}
                         required
                     />
-                </InputWrapper>
                 <Space h="md" />
                 <Group grow>
-                    <InputWrapper label="Item SKU" required>
-                        <TextInput
-                            placeholder="Item SKU"
-                            onChange={(e) => setItemSku(e.target.value)}
-                            required
-                        />
-                    </InputWrapper>
-                    <InputWrapper label="Item Price" required>
-                        <TextInput
-                            placeholder="Item Price"
-                            type="number"
-                            onChange={(e) =>
-                                setItemPrice(Number(e.target.value))
-                            }
-                            required
-                        />
-                    </InputWrapper>
-                    <InputWrapper label="Item Quantity" required>
-                        <TextInput
-                            placeholder="Item Quantity"
-                            type="number"
-                            onChange={(e) =>
-                                setItemQuantity(Number(e.target.value))
-                            }
-                            required
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Item SKU"
+                        placeholder="Item SKU"
+                        onChange={(e) => setItemSku(e.target.value)}
+                        required
+                    />
+                    <TextInput
+                        label="Item Price"
+                        placeholder="Item Price"
+                        type="number"
+                        onChange={(e) =>
+                            setItemPrice(Number(e.target.value))
+                        }
+                        required
+                    />
+                    <TextInput
+                        label="Item Quantity"
+                        placeholder="Item Quantity"
+                        type="number"
+                        onChange={(e) =>
+                            setItemQuantity(Number(e.target.value))
+                        }
+                        required
+                    />
                 </Group>
                 <Space h="md" />
                 <Group position="right">
                     <Button
-                        color="green"
                         onClick={() => {
                             setInvoiceItems([
                                 {
@@ -231,7 +222,7 @@ const InvoiceConfiguratorModal = ({
                 <Divider />
                 <Space h="md" />
                 <Group position="right">
-                    <Button color="green" onClick={generateInvoice}>
+                    <Button onClick={generateInvoice}>
                         Generate
                     </Button>
                 </Group>
@@ -250,7 +241,6 @@ const Invoice = () => {
                 <h3>Invoice Generator</h3>
                 <Space h="md" />
                 <Button
-                    color="blue"
                     onClick={() => setShowInvoiceConfigurator(true)}
                 >
                     Configure Invoice

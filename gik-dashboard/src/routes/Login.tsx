@@ -1,7 +1,5 @@
 import {
     Container,
-    Input,
-    InputWrapper,
     Modal,
     PasswordInput,
     Space,
@@ -194,33 +192,18 @@ const Login = () => {
                             label="Password"
                             {...form.getInputProps("password")}
                         />
-                        <Group position="apart">
-                            <Checkbox
-                                label="Remember me"
-                                color="green"
-                                {...form.getInputProps("rememberMe")}
-                            />
-
-                            <Group position="right" mt="md">
-                                {window.location.protocol === "https:" ? (
-                                    <p style={{ color: "green" }}>
-                                        Your connection is secure.
-                                    </p>
-                                ) : (
-                                    <p style={{ color: "red" }}>
-                                        Your connection is insecure. Don't login
-                                        unless you know what you're doing.
-                                    </p>
-                                )}
-                                <Button
-                                    type="submit"
-                                    color="green"
-                                    disabled={!loginEnabled}
-                                >
-                                    Login
-                                </Button>
-                            </Group>
-                        </Group>
+                        <Checkbox
+                            label="Remember me"
+                            color="green"
+                            {...form.getInputProps("rememberMe")}
+                        />
+                        <Button
+                            type="submit"
+                            color="green"
+                            disabled={!loginEnabled}
+                        >
+                            Login
+                        </Button>
                     </form>
                     <Button component={Link} to="/register" compact variant="white">
                         <Text color="blue" size={"xs"}>Not Registered?</Text>
