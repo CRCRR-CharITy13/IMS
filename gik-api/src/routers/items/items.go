@@ -116,12 +116,62 @@ func UpdateItem(c *gin.Context) {
 		return
 	}
 
+	///////////
+	if json.Name != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.Name = json.Name
+
+	if json.SKU != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.SKU = json.SKU
+
+	if json.Category != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.Category = json.Category
+
+	if json.Size != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+
+	}
 	item.Size = json.Size
+
+	if json.Price < 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.Price = json.Price
+
+	if json.Quantity < 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.Quantity = json.Quantity
+	/////////
 
 	database.Database.Save(item)
 }
@@ -148,11 +198,60 @@ func AddItem(c *gin.Context) {
 
 	item := types.Item{}
 
+	if json.Name != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.Name = json.Name
+
+	if json.SKU != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.SKU = json.SKU
+
+	if json.Category != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+
+	}
 	item.Category = json.Category
+
+	if json.Size < "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+
+	}
 	item.Size = json.Size
+
+	if json.Price < 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.Price = json.Price
+
+	if json.Quantity < 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
 	item.Quantity = int(json.Quantity)
 
 	err := database.Database.Create(&item).Error
@@ -270,4 +369,88 @@ func AddSize(c *gin.Context) {
 	}
 
 	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
+}
+
+// Function to edit a single item in terms of name, SKU, size, stock and/or price
+func EditItem(c *gin.Context) {
+	// Get the id of the item
+	id := c.Query("id")
+	ID, err := strconv.Atoi(id)
+	if (err != nil) || (ID < 0) {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	baseQuery := database.Database.Model(&types.Item{}).Where("id = ?", ID)
+
+	// Get any of price (name, SKU, size, stock or price)
+	name := c.Query("name")
+	if name != "" {
+		baseQuery.Update("name", name)
+	}
+
+	sku := c.Query("SKU")
+	if sku != "" {
+		baseQuery.Update("sku", sku)
+	}
+
+	size := c.Query("size")
+	if size != "" {
+		baseQuery.Update("size", size)
+	}
+
+	stock := c.Query("stock")
+	if stock != "" {
+		Stock, err := strconv.Atoi(stock)
+
+		if err != nil || Stock < 0 {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Invalid fields",
+			})
+			return
+		}
+
+		baseQuery.Update("stock", Stock)
+	}
+
+	price := c.Query("price")
+	if price != "" {
+		Price, err := strconv.ParseFloat(price, 32)
+		if err != nil || Price < 0 {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Invalid fields",
+			})
+			return
+		}
+
+		pricef32 := float32(Price)
+
+		baseQuery.Update("price", pricef32)
+	}
+	// Update the item
+	// database.Database.Model(&types.Item{}).Where("id = ?", ID).Updates(types.Item{Price: pricef32, Name: name, SKU: sku, Size: size, Quantity: Stock})
+
+	// items := []types.Item{}
+	// database.Database.Model(&types.Item{}).Select(&types.Item{}).
+	// 	Where("id < ?", 0, "stock < ?", 0, "price < ?", 0, "size < ?",
+	// 		strconv.Itoa(0), "SKU < ?", strconv.Itoa(0)).Find(&items)
+
+	// if items != nil {
+	// 	c.JSON(400, gin.H{
+	// 		"success": false,
+	// 		"message": "Invalid fields",
+	// 	})
+	// 	return
+	// }
+
+	// Return that you have successfully updated the item
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Item successfully edited.",
+	})
 }

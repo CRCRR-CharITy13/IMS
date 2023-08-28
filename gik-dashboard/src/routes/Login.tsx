@@ -5,9 +5,10 @@ import {
     Space,
     Checkbox,
     Text,
+    Paper,
+    Anchor,
+    Title,
 } from "@mantine/core";
-
-import styles from "../styles/Auth.module.scss";
 
 import { TextInput, Button, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -156,63 +157,133 @@ const Login = () => {
         checkAuthStatus();
     }, []);
 
-    return (
-        <>
-            <div className={`${styles.wrapper} ${styles.login}`}>
-                <Container
-                    sx={{
-                        backgroundColor: "var(--inverted-text)",
-                        padding: "2rem",
-                        borderRadius: "5px",
-                        width: "40rem",
-                    }}
-                >
-                    <h1
-                        style={{
-                            marginTop: 0,
-                        }}
-                    >
-                        Login
-                    </h1>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            doPrelogin();
-                        }}
-                    >
-                        <TextInput
-                            required
-                            label="Username"
-                            placeholder="amy"
-                            {...form.getInputProps("username")}
-                        />
-                        <PasswordInput
-                            required
-                            placeholder="Password"
-                            label="Password"
-                            {...form.getInputProps("password")}
-                        />
-                        <Checkbox
-                            label="Remember me"
-                            color="green"
-                            {...form.getInputProps("rememberMe")}
-                        />
-                        <Button
-                            type="submit"
-                            color="green"
-                            disabled={!loginEnabled}
-                        >
-                            Login
-                        </Button>
-                    </form>
-                    <Button component={Link} to="/register" compact variant="white">
-                        <Text color="blue" size={"xs"}>Not Registered?</Text>
-                    </Button>
-                </Container>
+//     return (
+//         <>
+//             <div className={`${styles.wrapper} ${styles.login}`}>
+//                 <Container
+//                     sx={{
+//                         backgroundColor: "var(--inverted-text)",
+//                         padding: "2rem",
+//                         borderRadius: "5px",
+//                         width: "40rem",
+//                     }}
+//                 >
+//                     <h1
+//                         style={{
+//                             marginTop: 0,
+//                         }}
+//                     >
+//                         Login
+//                     </h1>
+//                     <form
+//                         onSubmit={(e) => {
+//                             e.preventDefault();
+//                             doPrelogin();
+//                         }}
+//                     >
+//                         <TextInput
+//                             required
+//                             label="Username"
+//                             placeholder="amy"
+//                             {...form.getInputProps("username")}
+//                         />
+//                         <PasswordInput
+//                             required
+//                             placeholder="Password"
+//                             label="Password"
+//                             {...form.getInputProps("password")}
+//                         />
+//                         <Checkbox
+//                             label="Remember me"
+//                             color="green"
+//                             {...form.getInputProps("rememberMe")}
+//                         />
+//                         <Button
+//                             type="submit"
+//                             color="green"
+//                             disabled={!loginEnabled}
+//                         >
+//                             Login
+//                         </Button>
+//                     </form>
+//                     <Button component={Link} to="/register" compact variant="white">
+//                         <Text color="blue" size={"xs"}>Not Registered?</Text>
+//                     </Button>
+//                 </Container>
 
-            </div>
-        </>
-    );
+//             </div>
+//         </>
+//     );
+// };
+
+// export default Login;
+return (
+    <div>
+    <Container size={420} my={40}>
+      <Title
+        align="center"
+        sx={(theme) => ({ fontFamily: `Greycliff CF, ${theme.fontFamily}`, fontWeight: 900 })}
+      >
+        Gifts in Kind 
+        
+      </Title>
+      <Text color="red" size="sm" align="center" mt={5}>
+        Do not have an account yet?{' '}
+        <Anchor size="sm" component="button">
+            {/* Link to Register */}
+          <Link to ="IMS-main\gik-dashboard\src\routes\Register.tsx">Create account</Link>
+        </Anchor>
+      </Text>
+
+              
+               
+      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+        <form
+            onSubmit={(e) => {
+                e.preventDefault();
+                doPrelogin();
+            }}
+        >
+            <TextInput 
+                label="Username" 
+                placeholder="Enter username" 
+                required 
+                {...form.getInputProps("username")} 
+            />
+            <PasswordInput
+                label="Password" 
+                placeholder="Your password" 
+                required
+                mt="md" 
+                {...form.getInputProps("password")} 
+            />
+            <Group 
+                position="apart" 
+                mt="lg"
+            >
+            <Checkbox
+                label="Remember me"
+                {...form.getInputProps("rememberMe")} 
+            />
+            <Anchor 
+                component="button"
+                size="sm"
+            >
+                Forgot password?
+            </Anchor>
+            </Group>
+            <Button
+                fullWidth mt="xl"
+                type="submit"
+                disabled={!loginEnabled}
+            >
+                Login
+            </Button>
+        </form>
+      </Paper>
+    </Container>
+    </div>
+  );
 };
 
 export default Login;
