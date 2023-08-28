@@ -37,11 +37,6 @@ type listData struct {
 type addRequest struct {
 	Name        string `json:"name" binding: "required"`
 	Description string `json:"description" binding: "required`
-
-	// Name string `json:"name" binding:"required"`
-	// //Letter string `json:"letter" binding:"required"`
-	// //SKU         string `json:"sku" binding:"required"`
-	// ProductName string `json:"productName" binding:"required"`
 }
 
 func AddLocation(c *gin.Context) {
@@ -78,35 +73,21 @@ func AddLocation(c *gin.Context) {
 
 }
 
+// 2. List location: display the list of location (do not include the items within)
 func ListLocation(c *gin.Context) {
 	name := c.Query("name")
-	letter := c.Query("letter")
-	productName := c.Query("productName")
-	sku := c.Query("sku")
+	description := c.Query("description")
 
 	locations := []location{}
 
-	baseQuery := database.Database.Model(&types.Location{})
+	baseQuery := database.Database.Model(&type_news.Location{})
 
 	if name != "" {
-		baseQuery = baseQuery.Where("name = ?", name)
+		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
 	}
 
-	if letter != "" {
-		baseQuery = baseQuery.Where("letter = ?", letter)
-	}
-
-	if productName != "" {
-
-		skuAlt := ""
-
-		database.Database.Model(&types.Item{}).Where("name = ?", productName).Distinct().Pluck("sku", &skuAlt)
-
-		baseQuery = baseQuery.Where("sku = ?", skuAlt)
-	}
-
-	if sku != "" {
-		baseQuery = baseQuery.Where("sku = ?", sku)
+	if description != "" {
+		baseQuery = baseQuery.Where("description LIKE ?", "%"+description+"%")
 	}
 
 	err := baseQuery.Find(&locations).Error
@@ -118,30 +99,62 @@ func ListLocation(c *gin.Context) {
 		return
 	}
 
-	response := []listData{}
+	var totalCount int64
+	baseQuery.Count(&totalCount)
 
-	// for _, location := range locations {
-	// 	// var item types.Item
-	// 	// err := database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).First(&item).Error
+	c.JSON(200, gin.H{
+		"success": true,
+		"data": gin.H{
+			"data":  locations,
+			"total": totalCount,
+		},
+	})
 
-	// 	// if err != nil {
-	// 	// 	continue
-	// 	// }
+}
 
-	// 	// var name string
+// 3. Delete location by id
 
-	// 	// database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).Distinct().Pluck("name", &name)
+func DeleteLocation(c *gin.Context) {
+	id := c.Query("id")
 
-	// 	// response = append(response, listData{
-	// 	// 	location:    location,
-	// 	// 	Item:        item,
-	// 	// 	ProductName: name,
-	// 	// })
+	// conver to integer
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid ID",
+		})
+		return
+	}
 
+	location := types.Location{}
+
+	err = database.Database.Model(&location).Where("id = ?", idInt).Delete(&location).Error
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Unable to delete location",
+		})
+		return
+	}
+
+	// err = database.Database.Delete(&location).Error
+	// if err != nil {
+	// 	c.JSON(400, gin.H{
+	// 		"success": false,
+	// 		"message": "Unable to delete location",
+	// 	})
+	// 	return
 	// }
 
-	c.JSON(200, gin.H{"success": true, "data": response})
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Location deleted",
+	})
+	utils.CreateSimpleLog(c, "Deleted location "+id)
 }
+
+//
 
 func UpdateLocation(c *gin.Context) {
 	json := location{}
@@ -206,48 +219,6 @@ func AddSubLocation(c *gin.Context) {
 	})
 
 	utils.CreateSimpleLog(c, "Added location "+name)
-}
-
-func DeleteLocation(c *gin.Context) {
-	id := c.Query("id")
-
-	// conver to integer
-	idInt, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid ID",
-		})
-		return
-	}
-
-	location := types.Location{}
-
-	err = database.Database.Model(&location).Where("id = ?", idInt).Delete(&location).Error
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Unable to delete location",
-		})
-		return
-	}
-
-	err = database.Database.Delete(&location).Error
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Unable to delete location",
-		})
-		return
-	}
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"message": "Location deleted",
-	})
-
-	utils.CreateSimpleLog(c, "Deleted location "+id)
-
 }
 
 func LookupLocation(c *gin.Context) {
