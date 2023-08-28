@@ -112,31 +112,19 @@ func ListItem(c *gin.Context) {
 }
 
 //
-//
-//
-//
+// 3. Update Items
 
-type item struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	SKU  string `json:"sku"`
-	//Category string  `json:"category"` // Clothes or not
-	Price    float32 `json:"price"`
-	Quantity int     `json:"stock"`
-	Size     string  `json:"size"`
-}
-
-type returnedItem struct {
-	Name string `json:"name"`
-	SKU  string `json:"sku"`
-	//Category string  `json:"category"` // Clothes or not
-	Price float32 `json:"price"`
-	Stock int     `json:"stock"`
-	Size  string  `json:"size"`
+type updateItemRequest struct {
+	ID         string  `json:"id"`
+	SKU        string  `json:"sku" binding:"required"`
+	Name       string  `json:"name" binding:"required"`
+	Size       string  `json:"size" binding:"required"`
+	Price      float32 `json:"price" binding:"required"`
+	StockTotal int     `json:"stock_total" binding:"required"`
 }
 
 func UpdateItem(c *gin.Context) {
-	json := item{}
+	json := updateItemRequest{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -154,23 +142,83 @@ func UpdateItem(c *gin.Context) {
 		return
 	}
 
-	item := types.Item{}
+	item := type_news.Item{}
 	if err := database.Database.Model(&types.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid username or password",
+			"message": "Invalid item ID",
 		})
 		return
 	}
 
 	item.Name = json.Name
 	item.SKU = json.SKU
-	// item.Category = json.Category
 	item.Size = json.Size
 	item.Price = json.Price
-	item.Quantity = json.Quantity
+	item.StockTotal = json.StockTotal
 
 	database.Database.Save(item)
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Item successfully updated",
+	})
+
+	utils.CreateSimpleLog(c, fmt.Sprintf("Updated item with id: %d, name: %s", item.ID, item.Name))
+}
+
+//
+
+// 4. Delete items by id
+func DeleteItem(c *gin.Context) {
+	id := c.Query("id")
+	ID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	item := types.Item{}
+	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid Item",
+		})
+		return
+	}
+
+	if err := database.Database.Model(&types.Item{}).Delete(&item).Error; err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to delete Item",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	utils.CreateSimpleLog(c, "Deleted Item")
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Item successfully deleted.",
+	})
+}
+
+//
+//
+//
+//
+
+type returnedItem struct {
+	Name string `json:"name"`
+	SKU  string `json:"sku"`
+	//Category string  `json:"category"` // Clothes or not
+	Price float32 `json:"price"`
+	Stock int     `json:"stock"`
+	Size  string  `json:"size"`
 }
 
 type newItemRequest struct {
@@ -247,41 +295,4 @@ func AddSize(c *gin.Context) {
 	}
 
 	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
-}
-
-func DeleteItem(c *gin.Context) {
-	id := c.Query("id")
-	ID, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-
-	item := types.Item{}
-	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid Item",
-		})
-		return
-	}
-
-	if err := database.Database.Model(&types.Item{}).Delete(&item).Error; err != nil {
-		c.JSON(500, gin.H{
-			"success": false,
-			"message": "Unable to delete Item",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	utils.CreateSimpleLog(c, "Deleted Item")
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"message": "Item successfully deleted.",
-	})
 }
