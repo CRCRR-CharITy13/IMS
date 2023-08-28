@@ -11,6 +11,7 @@ import Login from "./routes/Login";
 import Register from "./routes/Register";
 import DashboardRedirect from "./components/dashboard/Redirect";
 import Landing from "./routes/Landing";
+import PageNotFound from "./routes/PageNotFound";
 
 function App() {
     // const isDark = window.localStorage.getItem("dark") === "true";
@@ -50,6 +51,7 @@ function App() {
                         />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
+                        <Route path="*" element = {<PageNotFound />} />
                     </Routes>
                 </BrowserRouter>
             </MantineProvider>
