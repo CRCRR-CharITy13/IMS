@@ -3,7 +3,6 @@ import {
     LoadingOverlay,
     Autocomplete,
     Group,
-    InputWrapper,
     TextInput,
     Button,
     ActionIcon,
@@ -135,13 +134,11 @@ export const CreateLocationModal = ({
                 />
                 <Space h="md" />
                 <Group grow>
-                    <InputWrapper label="Name">
-                        <TextInput
-                            placeholder="M15"
-                            onChange={(e) => setLocationName(e.target.value)}
-                        />
-                    </InputWrapper>
-
+                    <TextInput
+                        label="Name"
+                        placeholder="M15"
+                        onChange={(e) => setLocationName(e.target.value)}
+                    />
                 </Group>
                 <Space h="md" />
                 <Group position="right">
@@ -366,7 +363,6 @@ export const LocationsManager = () => {
 
     return (
         <>
-            {/* @ts-ignore */}
             <Box sx={containerStyles}>
                 <Group position="apart">
                     <h3>Locations</h3>
@@ -396,7 +392,6 @@ export const LocationsManager = () => {
                         onChange={(e: any) => setProductTyping(e.target.value)}
                     />
                     <Button
-                        color="green"
                         onClick={() => {
                             setFilterName(nameTyping);
                             setFilterLetter(letterTyping);
@@ -435,7 +430,7 @@ export const LocationsManager = () => {
                     </tbody>
                 </Table>
                 <Group position="right">
-                    <Button onClick={fetchLocations} color="green">
+                    <Button onClick={fetchLocations}>
                         Refresh
                     </Button>
                 </Group>

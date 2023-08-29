@@ -1,6 +1,5 @@
 import {
     Group,
-    InputWrapper,
     TextInput,
     Button,
     Center,
@@ -15,6 +14,8 @@ import {
     Menu,
     Text,
     NumberInput,
+    Global,
+    rem,
 } from "@mantine/core";
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
@@ -145,7 +146,7 @@ const  UploadCSVModal = (
     refresh: () => Promise<void>;
 }) => {
     const importCSV = async (file: File) => {
-        let data = new FormData()
+        const data = new FormData()
         await data.append("file", file)
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/items/import`,
@@ -174,23 +175,19 @@ const  UploadCSVModal = (
                     onDrop={(file) => {importCSV(file[0])}}
                     maxSize={3 * 1024 ** 2}
                     accept={[MIME_TYPES.csv]}
-                    children={() => {
+                >
+                    <Group position="center" spacing="xl" style={{ minHeight: 220, pointerEvents: 'none' }}>
 
-                        return (
-                            <Group position="center" spacing="xl" style={{ minHeight: 220, pointerEvents: 'none' }}>
-
-                                <div>
-                                    <Text size="xl" inline>
-                                        Drag CSV here or click to select files
-                                    </Text>
-                                    <Text size="sm" color="dimmed" inline mt={7}>
-                                        Select CSV file containing you upload data
-                                    </Text>
-                                </div>
-                            </Group>
-                        )
-                    }}
-                />
+                        <div>
+                            <Text size="xl" inline>
+                                Drag CSV here or click to select files
+                            </Text>
+                            <Text size="sm" color="dimmed" inline mt={7}>
+                                Select CSV file containing you upload data
+                            </Text>
+                        </div>
+                    </Group>
+                </Dropzone>
             </Modal>
         </>
     );
@@ -228,7 +225,6 @@ export const AddSizeModal = (
                     onChange={(e) => setSize(e.target.value)}
                 />
                 <Space h="md" />
-                {/* @ts-ignore */}
                 <TextInput
                     required
                     label={"Quantity"}
@@ -322,59 +318,53 @@ const CreateItemModal = ({
                         doCreate();
                     }}
                 >
-                    <InputWrapper label="Name" required>
-                        <TextInput
-                            required
-                            placeholder="Women's All Season Short Pants"
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Name"
+                        required
+                        placeholder="Women's All Season Short Pants"
+                        onChange={(e) => setName(e.target.value)}
+                    />
                     <Space h="md" />
-                    <InputWrapper label="SKU" required>
-                        <TextInput
-                            required
-                            placeholder="XXXXXX"
-                            onChange={(e) => setSku(e.target.value)}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="SKU"
+                        required
+                        placeholder="XXXXXX"
+                        onChange={(e) => setSku(e.target.value)}
+                    />
                     <Space h="md" />
-                    <InputWrapper label="Category" required>
-                        <TextInput
-                            required
-                            placeholder="Men, XL, Summer"
-                            onChange={(e) => setCategory(e.target.value)}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Category"
+                        required
+                        placeholder="Men, XL, Summer"
+                        onChange={(e) => setCategory(e.target.value)}
+                    />
                     <Space h="md" />
-                    <InputWrapper label="Price" required>
-                        <TextInput
-                            required
-                            placeholder="10"
-                            type="number"
-                            onChange={(e) =>
-                                setPrice(Number(e.target.value))
-                            }
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Price"
+                        required
+                        placeholder="10"
+                        type="number"
+                        onChange={(e) =>
+                            setPrice(Number(e.target.value))
+                        }
+                    />
                     <Space h="md" />
-                    <InputWrapper label="Quantity" required>
-                        <TextInput
-                            required
-                            placeholder="10"
-                            type="number"
-                            onChange={(e) =>
-                                setQuantity(Number(e.target.value))
-                            }
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Quantity"
+                        required
+                        placeholder="10"
+                        type="number"
+                        onChange={(e) =>
+                            setQuantity(Number(e.target.value))
+                        }
+                    />
                     <Space h="md" />
-                    <InputWrapper label="Size" required>
-                        <TextInput
-                            required
-                            placeholder="10/XL"
-                            onChange={(e) => setSize(e.target.value)}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Size"
+                        required
+                        placeholder="10/XL"
+                        onChange={(e) => setSize(e.target.value)}
+                    />
                     <Space h="md" />
                     <Group position="right">
                         <Button color="green" type="submit">
@@ -438,16 +428,15 @@ const EditTagsModal = ({
             >
                 <Box sx={containerStyles}>
                     <Group>
-                        <InputWrapper>
-                            <TextInput
-                                placeholder="Search Tags"
-                                onChange={async (e: any) => {
-                                    //await search()
-                                    await refresh(e.target.value)
-                                }
-                                }
-                            />
-                        </InputWrapper>{/*
+                        <TextInput
+                            placeholder="Search Tags"
+                            onChange={async (e: any) => {
+                                //await search()
+                                await refresh(e.target.value)
+                            }
+                            }
+                        />
+                        {/*
                         <Button
                             color="green"
                             onClick={() => {
@@ -502,8 +491,6 @@ export const ItemsManager = () => {
     const [showTagsModal, setShowTagsModal] = useState(false);
 
     const [showImportModal, setShowImportModal] = useState(false);
-
-
 
 
 
@@ -610,7 +597,6 @@ export const ItemsManager = () => {
                 setOpened={setShowImportModal}
                 refresh={fetchItems}
             />
-            {/* @ts-ignore */}
             <Box sx={containerStyles}>
                 <Group position="apart">
                     <h3>Items</h3>
@@ -639,26 +625,22 @@ export const ItemsManager = () => {
 
 
                 <Group>
-                    <InputWrapper>
-                        <TextInput
-                            placeholder="Search Items"
-                            onChange={(e: any) =>
-                                setNameQueryTyping(e.target.value)
-                            }
-                        />
-                    </InputWrapper>
-                    <InputWrapper>
-                        <TextInput
-                            placeholder="Search SKU"
-                            onChange={(e: any) =>
-                                setSkuQueryTyping(e.target.value)
-                            }
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        placeholder="Search Items"
+                        onChange={(e: any) =>
+                            setNameQueryTyping(e.target.value)
+                        }
+                    />
+                    <TextInput
+                        placeholder="Search SKU"
+                        onChange={(e: any) =>
+                            setSkuQueryTyping(e.target.value)
+                        }
+                    />
                     <MultiSelect
                         data={tags}
                         placeholder="Search Tags"
-                        clearButtonLabel="Clear selection"
+                        clearButtonProps={{ 'aria-label': 'Clear selection' }}
                         clearable
                         searchable
                         onChange={(e: any) => {
@@ -667,7 +649,6 @@ export const ItemsManager = () => {
                         }
                     />
                     <Button
-                        color="green"
                         onClick={() => {
                             setNameQuery(nameQueryTyping);
                             setSkuQuery(skuQueryTyping);
@@ -707,7 +688,7 @@ export const ItemsManager = () => {
                         <Pagination
                             boundaries={3}
                             withEdges
-                            page={currentPage}
+                            value={currentPage}
                             total={totalPage}
                             onChange={setCurrentPage}
                         />
@@ -737,7 +718,6 @@ export const ItemsManager = () => {
                     </Group>
                     <Button
                         onClick={fetchItems}
-                        color="green"
                         disabled={loading}
                     >
                         Refresh
@@ -747,3 +727,7 @@ export const ItemsManager = () => {
         </>
     );
 };
+function useStyles(): { classes: any; cx: any; } {
+    throw new Error("Function not implemented.");
+}
+

@@ -13,8 +13,23 @@ import Inventory from "../components/dashboard/Inventory";
 import ClientsDonors from "../components/dashboard/ClientsDonors";
 import Invoice from "../components/dashboard/Invoice";
 import Transactions from "../components/dashboard/Transactions";
-import {Button, Text} from "@mantine/core";
+import {AppShell, Button, ScrollArea, Text, createStyles, rem, useMantineTheme} from "@mantine/core";
 import {openConfirmModal} from "@mantine/modals";
+import { Container } from "tabler-icons-react";
+import { FALSE } from "sass";
+
+const useStyles = createStyles((theme) => ({
+    wrapper: {
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+    },
+    pane: {
+        padding: rem(2),
+        width: '100%',
+        overflowY: 'auto'
+    }
+}));
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -23,6 +38,10 @@ const Dashboard = () => {
     const [showTfaSetup, setShowTfaSetup] = useState<boolean>(false);
 
     const { handle } = useParams();
+
+    const theme = useMantineTheme();
+
+    const { classes, cx } = useStyles();
 
     const checkAuthStatus = async () => {
         const response = await fetch(
@@ -82,12 +101,11 @@ const Dashboard = () => {
 
 
     return (
-        <>
-            <div className={styles.wrapper}>
-                <Sidebar />
-                <div className={styles.pane}>{pane}</div>
-            </div>
-        </>
+        <div className={classes.wrapper}>
+            <Sidebar />
+            <div className={classes.pane}>{pane}</div>
+        </div>
+
     );
 };
 

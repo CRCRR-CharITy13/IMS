@@ -1,72 +1,125 @@
 import styles from "../styles/Sidebar.module.scss";
 
-import { DiGoogleAnalytics } from "react-icons/di";
-import { BsFillBinocularsFill } from "react-icons/bs";
-import { FaWarehouse, FaCog, FaUsers } from "react-icons/fa";
-import { AiOutlineQrcode } from "react-icons/ai";
-import { Burger } from "@mantine/core";
-import { MdAdminPanelSettings } from "react-icons/md";
-import {GrTransaction} from "react-icons/gr"
+import { Burger, createStyles, Navbar, Group, Code, getStylesRef, rem, ActionIcon, useMantineTheme, useMantineColorScheme } from "@mantine/core";
 
 import { useNavigate } from "react-router-dom";
 
 import { ReactElement, useEffect, useState } from "react";
 
-import { FileInvoice } from "tabler-icons-react";
+import { FileInvoice, Qrcode, BuildingWarehouse, Settings, Users, ArrowsRightLeft, Logout, Shield, ReportAnalytics, Notes, Sun, MoonStars} from "tabler-icons-react";
 //import {Item} from "../types/item";
 
 import logo from '../assets/Logo.png';
 
-const SidebarItem = ({
-    label,
-    icon,
-    onClick,
-    selected,
-}: {
-    label: string;
-    icon: ReactElement;
-    onClick?: () => void;
-    selected?: boolean;
-}) => {
-    return (
-        <>
-            <div
-                className={
-                    styles.item + `${selected ? " " + styles.selected : ""}`
-                }
-                onClick={onClick}
-            >
-                <p
-                    style={{
-                        margin: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: ".5rem",
-                    }}
-                >
-                    {icon} {label}
-                </p>
-            </div>
-        </>
-    );
-};
+const useStyles = createStyles((theme) => ({
+  header: {
+    paddingBottom: theme.spacing.md,
+    marginBottom: `calc(${theme.spacing.md} * 1.5)`,
+    borderBottom: `${rem(1)} solid ${
+      theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]
+    }`,
+  },
+
+  footer: {
+    paddingTop: theme.spacing.md,
+    marginTop: theme.spacing.md,
+    borderTop: `${rem(1)} solid ${
+      theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]
+    }`,
+  },
+
+  link: {
+    ...theme.fn.focusStyles(),
+    display: 'flex',
+    alignItems: 'center',
+    textDecoration: 'none',
+    fontSize: theme.fontSizes.sm,
+    color: theme.colorScheme === 'dark' ? theme.colors.dark[1] : theme.colors.gray[7],
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+    borderRadius: theme.radius.sm,
+    fontWeight: 500,
+
+    '&:hover': {
+      backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
+      color: theme.colorScheme === 'dark' ? theme.white : theme.black,
+
+      [`& .${getStylesRef('icon')}`]: {
+        color: theme.colorScheme === 'dark' ? theme.white : theme.black,
+      },
+    },
+  },
+
+  logo: {
+    ...theme.fn.focusStyles(),
+    display: 'flex',
+    alignItems: 'center',
+    textDecoration: 'none',
+    fontSize: theme.fontSizes.sm,
+    color: theme.colorScheme === 'dark' ? theme.colors.dark[1] : theme.colors.gray[7],
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+    borderRadius: theme.radius.sm,
+    fontWeight: 500,
+  },
+
+  linkIcon: {
+    ref: getStylesRef('icon'),
+    color: theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.gray[6],
+    marginRight: theme.spacing.sm,
+  },
+
+  linkActive: {
+    '&, &:hover': {
+      backgroundColor: theme.fn.variant({ variant: 'light', color: theme.primaryColor }).background,
+      color: theme.fn.variant({ variant: 'light', color: theme.primaryColor }).color,
+      [`& .${getStylesRef('icon')}`]: {
+        color: theme.fn.variant({ variant: 'light', color: theme.primaryColor }).color,
+      },
+    },
+  },
+}));
+
+  const data = [
+    { needsAdmin: false, label: 'Analytics', icon: ReportAnalytics, route: 'Analytics' },
+    { needsAdmin: false, label: 'Scanner', icon: Qrcode, route: 'Scanner' },
+    { needsAdmin: false, label: 'Transaction', icon: ArrowsRightLeft, route: 'Transaction' },
+    { needsAdmin: false, label: 'Inventory', icon: BuildingWarehouse, route: 'Inventory' },
+    { needsAdmin: false, label: 'Clients & Donors', icon: Users, route: 'Clientsdonors' },
+    { needsAdmin: false, label: 'Invoice', icon: FileInvoice, route: 'Invoice' },
+    { needsAdmin: true, label: 'Audit Logs', icon: Notes, route: 'Audit' },
+    { needsAdmin: true, label: 'Admin', icon: Shield, route: 'Admin' },
+    { needsAdmin: false, label: 'Settings', icon: Settings, route: 'Settings' },
+  ];
 
 const Sidebar = () => {
+    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+    const theme = useMantineTheme();
+
+    const { classes, cx } = useStyles();
     const navigate = useNavigate();
 
     const [selected, setSelected] = useState<string>("Analytics");
 
     const [username, setUsername] = useState<string>("Analytics");
 
-    const [visible, setVisible] = useState<boolean>(false);
-
-    const [innerWidth, setInnerWidth] = useState<number>(window.innerWidth);
-
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-    window.onresize = () => {
-        setInnerWidth(window.innerWidth);
-    };
+    const links = data.map((item) => (
+      <>
+        {(!item.needsAdmin || isAdmin) && 
+          <div
+            className={cx(classes.link, { [classes.linkActive]: item.route === selected })}
+            key={item.route}
+            onClick={(event) => {
+              event.preventDefault();
+              setSelected(item.route);
+            }}
+          >
+            <item.icon className={classes.linkIcon} strokeWidth={1.5} size={24} stroke="currentColor"/>
+            <span>{item.label}</span>
+          </div>
+        }
+      </>
+    ));
 
     useEffect(() => {
         checkAdminStatus();
@@ -105,112 +158,43 @@ const Sidebar = () => {
         setUsername(data.data);
     };
 
+    const DoLogout = async () => {
+      console.log("LOGGING OUT")
+      await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`,
+          {credentials: "include",});
+      window.location.reload();
+  }
+
     return (
-        <>
-            <div className={styles.container}>
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        paddingRight: "1rem",
-                        boxSizing: "border-box",
-                    }}
-                >
-                    <h1
-                        style={{
-                            margin: "1rem",
-                            marginLeft: "2.4rem"
-                        }}
-                    >
-                        Dashboard
-                    </h1>
-                    {innerWidth < 800 && (
-                        <Burger
-                            opened={visible}
-                            onClick={() => {
-                                setVisible(!visible);
-                            }}
-                        />
-                    )}
-                </div>
-                {(visible || innerWidth >= 800) && (
-                    <>
-                        <SidebarItem
-                            label="Analytics"
-                            selected={selected === "Analytics"}
-                            onClick={() => setSelected("Analytics")}
-                            icon={<DiGoogleAnalytics size={25} />}
-                        />
-                        <SidebarItem
-                            label="Scanner"
-                            onClick={() => setSelected("Scanner")}
-                            icon={<AiOutlineQrcode size={25} />}
-                        />
-
-                        <SidebarItem
-                            label="Transaction"
-                            selected={selected === "transaction"}
-                            onClick={() => setSelected("transaction")}
-                            icon={<GrTransaction size={25} />}
-                        />
-                        <SidebarItem
-                            label="Inventory"
-                            selected={selected === "Inventory"}
-                            onClick={() => setSelected("Inventory")}
-                            icon={<FaWarehouse size={25} />}
-                        />
-                        <SidebarItem
-                            label="Clients & Donors"
-                            selected={selected === "clientsdonors"}
-                            onClick={() => setSelected("clientsdonors")}
-                            icon={<FaUsers size={25} />}
-                        />
-                        <SidebarItem
-                            label="Invoice"
-                            selected={selected === "invoice"}
-                            onClick={() => setSelected("invoice")}
-                            icon={<FileInvoice size={25} />}
-                        />
-
-
-                        {isAdmin && (
-                            <SidebarItem
-                                label="Audit Logs"
-                                selected={selected === "Audit"}
-                                onClick={() => setSelected("Audit")}
-                                icon={<BsFillBinocularsFill size={25} />}
-                            />
-                        )}
-                        {isAdmin && (
-
-                            <SidebarItem
-                                label="Admin"
-                                icon={<MdAdminPanelSettings size={25} />}
-                                selected={selected === "Admin"}
-                                onClick={() => setSelected("Admin")}
-                            />
-                        )}
-                        <SidebarItem
-                            label="Settings"
-                            icon={<FaCog size={25} />}
-                            selected={selected === "Settings"}
-                            onClick={() => setSelected("Settings")}
-                        />
-                    </>
-                )}
-                {(innerWidth >= 800) && (
-                    <>
-                        <div style={{bottom: 0, position: 'relative', width:'100%'}}>
-                            <img src={logo} style={{width: '50%', margin:'5%', marginLeft:'25%'}} alt="Logo" />
-                            <h3 style={{marginTop:'0%',width:'100%', textAlign:'center'}}>
-                                Welcome {username}
-                            </h3>
-                        </div>
-                    </>
-                )}
+      <Navbar width={{ sm: 275 }} p="md" zIndex={0.5}>
+        <Navbar.Section grow>
+          <Group className={classes.header} position="apart">
+            <div className={classes.logo}>
+              <img src={logo} style={{height:'34px'}} alt="Logo" />
             </div>
-        </>
+
+            <ActionIcon
+                onClick={() => toggleColorScheme()}
+                size="lg"
+                sx={(theme) => ({
+                backgroundColor:
+                    theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
+                    color: theme.colorScheme === 'dark' ? theme.colors.teal[4] : theme.colors.teal[6],
+                })}
+            >
+                {colorScheme === 'dark' ? <Sun size="1.2rem" /> : <MoonStars size="1.2rem" />}
+            </ActionIcon>
+          </Group>
+          {links}
+        </Navbar.Section>
+  
+        <Navbar.Section className={classes.footer}>
+          <div className={classes.link} onClick={DoLogout}>
+            <Logout className={classes.linkIcon} strokeWidth={1.5} />
+            <span>Logout</span>
+          </div>
+        </Navbar.Section>
+      </Navbar>
     );
 };
 

@@ -3,8 +3,7 @@ import {
     Box,
     Button,
     Center,
-    Group, Input,
-    InputWrapper,
+    Group,
     Modal,
     Pagination,
     Select,
@@ -14,7 +13,7 @@ import {
     SegmentedControl,
     Tooltip,
 } from "@mantine/core";
-import { DateRangePicker } from "@mantine/dates";
+import { DatePickerInput } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
@@ -173,15 +172,15 @@ const CreateTransactionModal = ({
 
             setSuggestData([])
 
-            let clients = data.data
+            const clients = data.data
 
             let temp: any[]
 
             temp = []
 
             for (let i = 0; i < data.data.length; i++) {
-                let name = clients[i].name
-                let id = clients[i].ID
+                const name = clients[i].name
+                const id = clients[i].ID
                 temp = [...temp, {value: id,label:name},]
             }
 
@@ -245,30 +244,27 @@ const CreateTransactionModal = ({
                             alignItems: "flex-end",
                         }}
                     >
-                        <InputWrapper label="Product ID" required>
-                            <TextInput
-                                required
-                                placeholder="19281"
-                                type="number"
-                                value={productId}
-                                onChange={(e) =>
-                                    setProductId(Number(e.target.value))
-                                }
-                            />
-                        </InputWrapper>
-                        <InputWrapper label="Quantity" required>
-                            <TextInput
-                                required
-                                placeholder="6"
-                                type="number"
-                                value={quantity}
-                                onChange={(e) =>
-                                    setQuantity(Number(e.target.value))
-                                }
-                            />
-                        </InputWrapper>
+                        <TextInput
+                            label="Product ID"
+                            required
+                            placeholder="19281"
+                            type="number"
+                            value={productId}
+                            onChange={(e) =>
+                                setProductId(Number(e.target.value))
+                            }
+                        />
+                        <TextInput
+                            label="Quantity"
+                            required
+                            placeholder="6"
+                            type="number"
+                            value={quantity}
+                            onChange={(e) =>
+                                setQuantity(Number(e.target.value))
+                            }
+                        />
                         <Button
-                            color="green"
                             onClick={() => {
                                 // check if product exists in transaction items already
                                 const existingItem = transactionItems.find(
@@ -335,7 +331,7 @@ const CreateTransactionModal = ({
                     </Table>
                     <Space h="md" />
                     <Group position="right">
-                        <Button color="green" type="submit">
+                        <Button type="submit">
                             Submit
                         </Button>
                     </Group>
@@ -608,15 +604,15 @@ export const TransactionManager = () => {
 
             setSuggestData([])
 
-            let clients = data.data
+            const clients = data.data
 
             let temp: any[]
 
             temp = []
 
             for (let i = 0; i < data.data.length; i++) {
-                let name = clients[i].name
-                let id = clients[i].ID
+                const name = clients[i].name
+                const id = clients[i].ID
                 temp = [...temp, {value: id,label:name},]
             }
 
@@ -663,7 +659,6 @@ export const TransactionManager = () => {
 
     return (
         <>
-            {/* @ts-ignore */}
             <Box sx={containerStyles}>
                 <Group position="apart">
                     <h3>Transactions</h3>{" "}
@@ -679,9 +674,9 @@ export const TransactionManager = () => {
                 </Group>
                 <Space h="md" />
                 <Group>
-                    <DateRangePicker
+                    <DatePickerInput
+                        type="range"
                         placeholder="Pick Date Range"
-                        //label="Date Range"
                         onChange={setDateFilterEditing}
                     />
                     <Select
@@ -721,7 +716,7 @@ export const TransactionManager = () => {
                                 ), value: "import" },
                         ]}
                     /></>
-                    <Button color="green" onClick={doFilter}>
+                    <Button onClick={doFilter}>
                         Filter
                     </Button>
                 </Group>
@@ -750,13 +745,13 @@ export const TransactionManager = () => {
                 <Space h="md" />
                 <Center>
                     <Pagination
-                        page={currentPage}
+                        value={currentPage}
                         total={totalPages}
                         onChange={setCurrentPage}
                     />
                 </Center>
                 <Group position="right">
-                    <Button color="green" onClick={fetchTransactions}>
+                    <Button onClick={fetchTransactions}>
                         Refresh
                     </Button>
                 </Group>

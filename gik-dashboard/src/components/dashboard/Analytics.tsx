@@ -50,9 +50,8 @@ const last7Days = () => {
     return "0123456"
         .split("")
         .map(function (n) {
-            var d = new Date();
-            // @ts-ignore
-            d.setDate(d.getDate() - n);
+            const d = new Date();
+            d.setDate(d.getDate() - parseInt(n));
 
             return (function (day, month, year) {
                 return [
@@ -141,7 +140,6 @@ const TrendingItems = () => {
                     width: "25rem",
                     height: "20rem",
                     borderRadius: "15px",
-                    background: "white",
                     boxShadow: ` 5px 5px 10px var(--neumorphism),
             -5px -5px 10px var(--inverted-text)`,
                     padding: "1rem",
@@ -154,8 +152,6 @@ const TrendingItems = () => {
                 <Skeleton
                     height={"90%"}
                     width={"100%"}
-                    // @ts-ignore
-                    sx={skeletonStyles}
                     visible={items.length === 0}
                 >
                     <Table>
@@ -229,7 +225,6 @@ const AttentionRequired = () => {
                     width: "25rem",
                     height: "20rem",
                     borderRadius: "15px",
-                    background: "white",
                     padding: "1rem",
                     display: "flex",
                     flexDirection: "column",
@@ -240,8 +235,6 @@ const AttentionRequired = () => {
                 <Skeleton
                     height={"90%"}
                     width={"100%"}
-                    // @ts-ignore
-                    sx={skeletonStyles}
                     visible={attentionLoading}
                 >
                     <Table>
@@ -262,7 +255,7 @@ const AttentionRequired = () => {
                     <Center>
                         <Pagination
                             total={totalPages}
-                            page={currentPage}
+                            value={currentPage}
                             onChange={setCurrentPage}
                         />
                     </Center>
@@ -347,7 +340,6 @@ const RecentActivity = () => {
                     width: "25rem",
                     height: "20rem",
                     borderRadius: "15px",
-                    background: "white",
                     padding: "1rem",
                     display: "flex",
                     flexDirection: "column",
@@ -358,8 +350,6 @@ const RecentActivity = () => {
                 <Skeleton
                     height={"90%"}
                     width={"100%"}
-                    // @ts-ignore
-                    sx={skeletonStyles}
                     visible={logs.length === 0}
                 >
                     {logs.map((log) => (
@@ -481,7 +471,6 @@ const Analytics = () => {
                         width: "25rem",
                         height: "20rem",
                         borderRadius: "15px",
-                        background: "white",
                         padding: "1rem",
                         display: "flex",
                         flexDirection: "column",
@@ -492,8 +481,6 @@ const Analytics = () => {
                     <Skeleton
                         height={"90%"}
                         width={"100%"}
-                        // @ts-ignore
-                        sx={skeletonStyles}
                         visible={totalStockLoading}
                     >
                         {importData.length && (
@@ -520,7 +507,6 @@ const Analytics = () => {
                         width: "30rem",
                         height: "20rem",
                         borderRadius: "15px",
-                        background: "white",
                         padding: "1rem",
                         display: "flex",
                         flexDirection: "column",
@@ -531,8 +517,6 @@ const Analytics = () => {
                     <Skeleton
                         height={"90%"}
                         width={"100%"}
-                        // @ts-ignore
-                        sx={skeletonStyles}
                         visible={importLoading}
                     >
                         {importData.length && (
@@ -561,7 +545,6 @@ const Analytics = () => {
                         width: "30rem",
                         height: "20rem",
                         borderRadius: "15px",
-                        background: "white",
                         padding: "1rem",
                         display: "flex",
                         flexDirection: "column",
@@ -572,8 +555,6 @@ const Analytics = () => {
                     <Skeleton
                         height={"90%"}
                         width={"100%"}
-                        // @ts-ignore
-                        sx={skeletonStyles}
                         visible={exportLoading}
                     >
                         {importData.length && (

@@ -6,12 +6,11 @@ import {
     Button,
     TextInput,
     Modal,
-    InputWrapper,
     ActionIcon, Text,
 
 } from "@mantine/core";
 import { openConfirmModal } from '@mantine/modals';
-import { useForm } from "@mantine/hooks";
+import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {CirclePlus, Refresh, TableExport, TableImport, Trash} from "tabler-icons-react";
@@ -33,7 +32,7 @@ const  UploadCSVModal = (
         refresh: () => Promise<void>;
     }) => {
     const importCSV = async (file: File) => {
-        let data = new FormData()
+        const data = new FormData()
         await data.append("file", file)
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/client/import`,
@@ -62,23 +61,19 @@ const  UploadCSVModal = (
                     onDrop={(file) => {importCSV(file[0])}}
                     maxSize={3 * 1024 ** 2}
                     accept={[MIME_TYPES.csv]}
-                    children={() => {
+                >
+                    <Group position="center" spacing="xl" style={{ minHeight: 220, pointerEvents: 'none' }}>
 
-                        return (
-                            <Group position="center" spacing="xl" style={{ minHeight: 220, pointerEvents: 'none' }}>
-
-                                <div>
-                                    <Text size="xl" inline>
-                                        Drag CSV here or click to select files
-                                    </Text>
-                                    <Text size="sm" color="dimmed" inline mt={7}>
-                                        Select CSV file containing you upload data
-                                    </Text>
-                                </div>
-                            </Group>
-                        )
-                    }}
-                />
+                        <div>
+                            <Text size="xl" inline>
+                                Drag CSV here or click to select files
+                            </Text>
+                            <Text size="sm" color="dimmed" inline mt={7}>
+                                Select CSV file containing you upload data
+                            </Text>
+                        </div>
+                    </Group>
+                </Dropzone>
             </Modal>
         </>
     );
@@ -218,60 +213,54 @@ const CreateClientModal = ({
                         doCreate();
                     }}
                 >
-                    <InputWrapper label="Name" required>
-                        <TextInput
-                            required
-                            placeholder="Gifts In Kind"
-                            {...form.getInputProps("name")}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Name"
+                        required
+                        placeholder="Gifts In Kind"
+                        {...form.getInputProps("name")}
+                    />
                     <Space h="md" />
-                    <InputWrapper label="Contact Person" required>
-                        <TextInput
-                            required
-                            placeholder="Mr. John Doe"
-                            {...form.getInputProps("contact")}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Contact Person"
+                        required
+                        placeholder="Mr. John Doe"
+                        {...form.getInputProps("contact")}
+                    />
                     <Space h="md" />
                     <Group grow>
-                        <InputWrapper label="Phone" required>
-                            <TextInput
-                                required
-                                type="tel"
-                                placeholder="+1 (555) 555-5555"
-                                {...form.getInputProps("phone")}
-                            />
-                        </InputWrapper>
-                        <InputWrapper label="Email" required>
-                            <TextInput
-                                required
-                                placeholder="john@giftsinkindottawa.ca"
-                                type="email"
-                                {...form.getInputProps("email")}
-                            />
-                        </InputWrapper>
+                        <TextInput
+                            label="Phone"
+                            required
+                            type="tel"
+                            placeholder="+1 (555) 555-5555"
+                            {...form.getInputProps("phone")}
+                        />
+                        <TextInput
+                            label="Email"
+                            required
+                            placeholder="john@giftsinkindottawa.ca"
+                            type="email"
+                            {...form.getInputProps("email")}
+                        />
                     </Group>
                     <Space h="md" />
-                    <InputWrapper label="Address" required>
-                        <TextInput
-                            required
-                            placeholder="123 Main St"
-                            {...form.getInputProps("address")}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Address"
+                        required
+                        placeholder="123 Main St"
+                        {...form.getInputProps("address")}
+                    />
                     <Space h="md" />
-                    <InputWrapper label="Balance" required>
-                        <TextInput
-                            required
-                            placeholder="50"
-                            type="number"
-                            {...form.getInputProps("balance")}
-                        />
-                    </InputWrapper>
+                    <TextInput
+                        label="Balance"
+                        required
+                        placeholder="50"
+                        type="number"
+                        {...form.getInputProps("balance")}
+                    />
                     <Space h="md" />
                     <Group position="right">
-                        <Button color="green" type="submit">
+                        <Button type="submit">
                             Create
                         </Button>
                     </Group>
@@ -387,7 +376,6 @@ const Clients = () => {
                         onChange={(e) => setAddressQuery(e.target.value)}
                     />
                     <Button
-                        color="green"
                         disabled={loading}
                         onClick={() => fetchClients()}
                     >

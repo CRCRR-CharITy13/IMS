@@ -1,0 +1,15 @@
+gik-dashboard/node_modules/
+
+gik-dashboard/build/
+
+.git
+
+*.md
+
+.gitignore
+
+.env
+
+*.log
+
+.idea/
