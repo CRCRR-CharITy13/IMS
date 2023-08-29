@@ -13,30 +13,100 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type item struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	SKU      string  `json:"sku"`
-	Category string  `json:"category"` // Clothes or not
-	Price    float32 `json:"price"`
-	Quantity int     `json:"stock"`
-	Size     string  `json:"size"`
+// ===== Structs and Methods of GIK version 2.0
+type addNewItemRequest struct {
+	SKU        string  `json:"sku" binding:"required"`
+	Name       string  `json:"name" binding:"required"`
+	Size       string  `json:"size" binding:"required"`
+	Price      float32 `json:"price" binding:"required"`
+	StockTotal int     `json:"stock_total" binding:"required"`
 }
 
-type returnedItem struct {
-	Name     string  `json:"name"`
-	SKU      string  `json:"sku"`
-	Category string  `json:"category"` // Clothes or not
-	Price    float32 `json:"price"`
-	Stock    int     `json:"stock"`
-	Size     string  `json:"size"`
+func AddItem(c *gin.Context) {
+	json := addNewItemRequest{}
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		fmt.Println("error in AddItem: ", err)
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	item := type_news.Item{}
+  
+	if json.Name != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+	item.Name = json.Name
+
+	if json.SKU != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+	item.SKU = json.SKU
+
+	if json.Size != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+
+	}
+  
+	item.Size = json.Size
+
+	if json.Price < 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+	item.Price = json.Price
+
+	if json.StockTotal < 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+	item.StockTotal = json.StockTotal
+
+	err := database.Database.Create(&item).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to create item",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// in case of success
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "new item added to the database",
+	})
+	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
 }
+
+// 2. List items
 
 func ListItem(c *gin.Context) {
 	page := c.Query("page")
 	name := c.Query("name")
 	sku := c.Query("sku")
-	//tags := strings.Split(c.Query("tags"), ",")
 
 	if page == "" {
 		page = "1"
@@ -52,15 +122,10 @@ func ListItem(c *gin.Context) {
 	}
 
 	limit := 10 // Number of entries shown per page
-	//offset := (pageInt - 1) * limit
+	offset := (pageInt - 1) * limit
 
 	baseQuery := database.Database.Model(&type_news.Item{})
 
-	baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
-
-	// for _, tag := range tags {
-	// 	baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
-	// }
 	if name != "" {
 		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
 	}
@@ -71,7 +136,7 @@ func ListItem(c *gin.Context) {
 	var totalCount int64
 	baseQuery.Count(&totalCount)
 
-	//baseQuery = baseQuery.Limit(limit).Offset(offset)
+	baseQuery = baseQuery.Limit(limit).Offset(offset)
 
 	items := []type_news.Item{}
 
@@ -88,8 +153,20 @@ func ListItem(c *gin.Context) {
 
 }
 
+//
+// 3. Update Items
+
+type updateItemRequest struct {
+	ID         string  `json:"id"`
+	SKU        string  `json:"sku" binding:"required"`
+	Name       string  `json:"name" binding:"required"`
+	Size       string  `json:"size" binding:"required"`
+	Price      float32 `json:"price" binding:"required"`
+	StockTotal int     `json:"stock_total" binding:"required"`
+}
+
 func UpdateItem(c *gin.Context) {
-	json := item{}
+	json := updateItemRequest{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -107,11 +184,11 @@ func UpdateItem(c *gin.Context) {
 		return
 	}
 
-	item := types.Item{}
+	item := type_news.Item{}
 	if err := database.Database.Model(&types.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid username or password",
+			"message": "Invalid item ID",
 		})
 		return
 	}
@@ -135,15 +212,6 @@ func UpdateItem(c *gin.Context) {
 	}
 	item.SKU = json.SKU
 
-	if json.Category != "" {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-	item.Category = json.Category
-
 	if json.Size != "" {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -152,6 +220,7 @@ func UpdateItem(c *gin.Context) {
 		return
 
 	}
+  
 	item.Size = json.Size
 
 	if json.Price < 0 {
@@ -163,110 +232,29 @@ func UpdateItem(c *gin.Context) {
 	}
 	item.Price = json.Price
 
-	if json.Quantity < 0 {
+	if json.StockTotal < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
 		})
 		return
 	}
-	item.Quantity = json.Quantity
+	item.StockTotal = json.StockTotal
 	/////////
 
 	database.Database.Save(item)
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Item successfully updated",
+	})
+
+	utils.CreateSimpleLog(c, fmt.Sprintf("Updated item with id: %d, name: %s", item.ID, item.Name))
 }
 
-type newItemRequest struct {
-	Name     string  `json:"name" binding:"required"`
-	SKU      string  `json:"sku" binding:"required"`
-	Category string  `json:"category" binding:"required"`
-	Size     string  `json:"size" binding:"required"`
-	Price    float32 `json:"price" binding:"required"`
-	Quantity int     `json:"quantity" binding:"required"`
-}
+//
 
-func AddItem(c *gin.Context) {
-	json := newItemRequest{}
-
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-
-	item := types.Item{}
-
-	if json.Name != "" {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-	item.Name = json.Name
-
-	if json.SKU != "" {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-	item.SKU = json.SKU
-
-	if json.Category != "" {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-
-	}
-	item.Category = json.Category
-
-	if json.Size < "" {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-
-	}
-	item.Size = json.Size
-
-	if json.Price < 0 {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-	item.Price = json.Price
-
-	if json.Quantity < 0 {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-	item.Quantity = int(json.Quantity)
-
-	err := database.Database.Create(&item).Error
-	if err != nil {
-		c.JSON(500, gin.H{
-			"success": false,
-			"message": "Unable to create item",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
-}
-
+// 4. Delete items by id
 func DeleteItem(c *gin.Context) {
 	id := c.Query("id")
 	ID, err := strconv.Atoi(id)
@@ -302,6 +290,29 @@ func DeleteItem(c *gin.Context) {
 		"success": true,
 		"message": "Item successfully deleted.",
 	})
+}
+
+//
+//
+//
+//
+
+type returnedItem struct {
+	Name string `json:"name"`
+	SKU  string `json:"sku"`
+	//Category string  `json:"category"` // Clothes or not
+	Price float32 `json:"price"`
+	Stock int     `json:"stock"`
+	Size  string  `json:"size"`
+}
+
+type newItemRequest struct {
+	Name     string  `json:"name" binding:"required"`
+	SKU      string  `json:"sku" binding:"required"`
+	Category string  `json:"category" binding:"required"`
+	Size     string  `json:"size" binding:"required"`
+	Price    float32 `json:"price" binding:"required"`
+	Quantity int     `json:"quantity" binding:"required"`
 }
 
 func AddSize(c *gin.Context) {

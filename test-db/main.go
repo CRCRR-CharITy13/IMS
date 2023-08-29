@@ -10,35 +10,39 @@ import (
 // Item has and belongs to many locations, `item_locations` is the join table
 type Item struct {
 	gorm.Model
-	SKU        string
-	Name       string
-	StockTotal int
-	Price      float32
-	Size       string
-	Warehouses []Warehouse `gorm:"many2many:warehouses;"`
+	SKU           string
+	Name          string
+	StockTotal    int
+	Price         float32
+	Size          string
+	Warehouses    []Warehouse `gorm:"many2many:warehouses;"`
+	OrderItems    []OrderItem
+	DonationItems []DonationItem
 }
 
 type Location struct {
 	gorm.Model
 	Name        string
 	Description string
-	Warehouses  []Warehouse `gorm:"many2many:warehouses;"`
+	Warehouses  []Warehouse `gorm:"many2many:warehouses"`
 }
 
 type Warehouse struct {
 	gorm.Model
-	ItemID     uint
-	LocationID uint
+	ItemID     uint `gorm:"foreignKey:ItemID, references:ID"`
+	LocationID uint `gorm:"foreignKey:LocationID, references:ID"`
 	Stock      int
 }
 
 type User struct {
 	gorm.Model
-	Username     string
-	Password     string
-	RegisteredAt int64
-	Admin        bool
-	Disabled     bool
+	Username        string
+	Password        string
+	RegisteredAt    int64
+	Admin           bool
+	Disabled        bool
+	SignedOrders    []Order
+	SignedDonations []Donation
 }
 type Client struct {
 	gorm.Model
@@ -60,23 +64,29 @@ type Donor struct {
 
 type Donation struct {
 	gorm.Model
-	DonorBy    uint `gorm:"foreignKey:DonorID;references:ID"`
-	SignedBy   uint `gorm:"foreignKey:UserID;references:ID"`
+	DonorID    uint
+	DonorBy    Donor `gorm:"foreignKey:DonorID;references:ID"`
+	UserID     uint
+	SignedBy   User `gorm:"foreignKey:UserID;references:ID"`
 	TotalValue float32
 	TotalItems []DonationItem
 }
 
 type DonationItem struct {
 	gorm.Model
-	DonationId uint
+	DonationID uint
+	Donation   Donation `gorm:"foreignKey:DonationID;references:ID"`
 	ItemID     uint
+	Item       Item `gorm:"foreignKey:ItemID;references:ID"`
 	count      uint
 }
 
 type Order struct {
 	gorm.Model
-	ClientID   uint `gorm:"foreignKey:ClientID;references:ID"`
-	SignedBy   uint `gorm:"foreignKey:UserID;references:ID"`
+	ClientID   uint
+	Client     Client `gorm:"foreignKey:ClientID;references:ID"`
+	UserID     uint
+	SignedBy   User `gorm:"foreignKey:UserID;references:ID"`
 	TotalCost  float32
 	TotalItems []OrderItem
 }
@@ -84,17 +94,18 @@ type Order struct {
 type OrderItem struct {
 	gorm.Model
 	OrderID uint
+	Order   Order `gorm:"foreignKey:OrderID;references:ID"`
 	ItemID  uint
+	Item    Item `gorm:"foreignKey:ItemID;references:ID"`
 	count   int
 }
 
 type Session struct {
 	gorm.Model
-	ID        string `json:"id"`
-	UserID    uint   `json:"userId"`
-	User      User   `json:"user" gorm:"foreignKey:UserID;references:ID"`
-	CreatedAt int64  `json:"createdAt"`
-	ExpiresAt int64  `json:"expiresAt"`
+	UserID    uint  `json:"id"`
+	User      User  `json:"user" gorm:"foreignKey:UserID; references:ID"`
+	CreatedAt int64 `json:"createdAt"`
+	ExpiresAt int64 `json:"expiresAt"`
 }
 
 func main() {
@@ -149,5 +160,5 @@ func main() {
 	// 	db.Create(&itemLocation_item)
 	// }
 	//
-
+	//
 }

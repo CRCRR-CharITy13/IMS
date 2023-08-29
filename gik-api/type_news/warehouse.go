@@ -6,7 +6,7 @@ import (
 
 type Warehouse struct {
 	gorm.Model
-	ItemID     uint
-	LocationID uint
+	ItemID     uint `gorm:"foreignKey:ItemID, references:ID"`
+	LocationID uint `gorm:"foreignKey:LocationID, references:ID"`
 	Stock      int
 }
