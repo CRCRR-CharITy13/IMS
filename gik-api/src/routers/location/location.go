@@ -236,9 +236,7 @@ func ListItemInLocation(c *gin.Context) {
 	//fmt.Println(string(jsonReturn))
 	c.JSON(200, gin.H{
 		"success": true,
-		"data": gin.H{
-			"data": itemsInLocation,
-		},
+		"data":    itemsInLocation,
 	})
 }
 

@@ -35,7 +35,7 @@ func AddItem(c *gin.Context) {
 	}
 
 	item := type_news.Item{}
-  
+
 	if json.Name != "" {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -62,7 +62,7 @@ func AddItem(c *gin.Context) {
 		return
 
 	}
-  
+
 	item.Size = json.Size
 
 	if json.Price < 0 {
@@ -220,7 +220,7 @@ func UpdateItem(c *gin.Context) {
 		return
 
 	}
-  
+
 	item.Size = json.Size
 
 	if json.Price < 0 {
@@ -293,7 +293,46 @@ func DeleteItem(c *gin.Context) {
 }
 
 //
-//
+// 5. List locations for an item, by id
+
+type ListLocationForItemResponse struct {
+	LocationName string `json:"location-name" binding: "required"`
+	Stock        int    `json: "stock" binding : "required"`
+}
+
+func ListLocationForItem(c *gin.Context) {
+	id := c.Query("id")
+
+	// conver to integer
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid ID",
+		})
+		return
+	}
+
+	var item type_news.Item
+	database.Database.Preload("Warehouses").Where("item_id = ?", idInt).Find(&item.Warehouses)
+	// fmt.Print(location)
+	locationsForItem := make([]ListLocationForItemResponse, len(item.Warehouses))
+	for i, warehouse := range item.Warehouses {
+		var location type_news.Location
+		database.Database.First(&location, warehouse.LocationID)
+		locationsForItem[i] = ListLocationForItemResponse{
+			LocationName: location.Name,
+			Stock:        warehouse.Stock,
+		}
+		fmt.Printf("location: %s : %d\n", location.Name, warehouse.Stock)
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    locationsForItem,
+	},
+	)
+}
+
 //
 //
 

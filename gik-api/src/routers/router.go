@@ -90,6 +90,7 @@ func InitRouter() *gin.Engine {
 		itemsApi.PUT("/add/size", items.AddSize)
 		itemsApi.PATCH("/update", items.UpdateItem)
 		itemsApi.DELETE("/delete", items.DeleteItem)
+		itemsApi.GET("/list-location-for-item", items.ListLocationForItem)
 	}
 
 	// Set up tags router

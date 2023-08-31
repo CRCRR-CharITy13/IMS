@@ -116,38 +116,63 @@ type ListItemInLocationResponse struct {
 	Stock    int    `json: "stock" binding : "required"`
 }
 
+type ListLocationForItemResponse struct {
+	LocationName string `json:"location-name" binding: "required"`
+	Stock        int    `json: "stock" binding : "required"`
+}
+
 func main() {
 	db, err := gorm.Open(sqlite.Open("../gik-api/assets/gik-ims-localdb.sqlite"), &gorm.Config{})
 
-	db.AutoMigrate(&Item{}, &Location{}, &Warehouse{})
-	db.AutoMigrate(&Donor{}, &Donation{}, &DonationItem{})
-	db.AutoMigrate(&User{}, &Client{}, &Order{}, &OrderItem{})
-	db.AutoMigrate(&Session{})
+	// db.AutoMigrate(&Item{}, &Location{}, &Warehouse{})
+	// db.AutoMigrate(&Donor{}, &Donation{}, &DonationItem{})
+	// db.AutoMigrate(&User{}, &Client{}, &Order{}, &OrderItem{})
+	// db.AutoMigrate(&Session{})
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
 	}
 
-	locationID := 3
-	var location Location
+	// locationID := 3
+	// var location Location
 
-	db.Preload("Warehouses").Where("location_id = ?", locationID).Find(&location.Warehouses)
+	// db.Preload("Warehouses").Where("location_id = ?", locationID).Find(&location.Warehouses)
+	// // fmt.Print(location)
+	// itemsInLocation := make([]ListItemInLocationResponse, len(location.Warehouses))
+	// for i, warehouse := range location.Warehouses {
+	// 	var item Item
+	// 	db.First(&item, warehouse.ItemID)
+	// 	itemsInLocation[i] = ListItemInLocationResponse{
+	// 		ItemName: item.Name,
+	// 		Stock:    warehouse.Stock,
+	// 	}
+	// 	fmt.Printf("item id: %s : %d\n", item.Name, warehouse.Stock)
+	// }
+	// jsonReturn, err := json.MarshalIndent(itemsInLocation, "", " ")
+	// if err != nil {
+	// 	fmt.Println("Cannot convert the result to json")
+	// }
+	// fmt.Println(string(jsonReturn))
+	itemID := 2
+	var item Item
+	db.Preload("Warehouses").Where("item_id = ?", itemID).Find(&item.Warehouses)
 	// fmt.Print(location)
-	itemsInLocation := make([]ListItemInLocationResponse, len(location.Warehouses))
-	for i, warehouse := range location.Warehouses {
-		var item Item
-		db.First(&item, warehouse.ItemID)
-		itemsInLocation[i] = ListItemInLocationResponse{
-			ItemName: item.Name,
-			Stock:    warehouse.Stock,
+	locationsForItem := make([]ListLocationForItemResponse, len(item.Warehouses))
+	for i, warehouse := range item.Warehouses {
+		var location Location
+		db.First(&location, warehouse.LocationID)
+		locationsForItem[i] = ListLocationForItemResponse{
+			LocationName: location.Name,
+			Stock:        warehouse.Stock,
 		}
-		fmt.Printf("item id: %s : %d\n", item.Name, warehouse.Stock)
+		fmt.Printf("location: %s : %d\n", location.Name, warehouse.Stock)
 	}
-	jsonReturn, err := json.MarshalIndent(itemsInLocation, "", " ")
+	jsonReturn, err := json.MarshalIndent(locationsForItem, "", " ")
 	if err != nil {
 		fmt.Println("Cannot convert the result to json")
 	}
 	fmt.Println(string(jsonReturn))
+
 	// fmt.Printf("==== To Test The GIK-IMS Database\n")
 	// itemFileName := "data/gik-ims-items.csv"
 	// locationFileName := "data/gik-ims-locations.csv"
