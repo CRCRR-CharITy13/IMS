@@ -29,8 +29,10 @@ type Location struct {
 
 type Warehouse struct {
 	gorm.Model
-	ItemID     uint `gorm:"foreignKey:ItemID, references:ID"`
-	LocationID uint `gorm:"foreignKey:LocationID, references:ID"`
+	ItemID     uint
+	Item       Item `gorm:"foreignKey:ItemID;references:ID"`
+	LocationID uint
+	Location   Location `gorm:"foreignKey:LocationID;references:ID"`
 	Stock      int
 }
 
@@ -109,7 +111,7 @@ type Session struct {
 }
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("gik-ims-localdb.sqlite"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("gik-ims-localdb5.sqlite"), &gorm.Config{})
 	db.AutoMigrate(&Item{}, &Location{}, &Warehouse{})
 	db.AutoMigrate(&Donor{}, &Donation{}, &DonationItem{})
 	db.AutoMigrate(&User{}, &Client{}, &Order{}, &OrderItem{})

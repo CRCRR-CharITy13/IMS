@@ -5,6 +5,7 @@ import (
 	"GIK_Web/type_news"
 	"GIK_Web/types"
 	"GIK_Web/utils"
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -127,7 +128,7 @@ func DeleteLocation(c *gin.Context) {
 		return
 	}
 
-	location := types.Location{}
+	location := type_news.Location{}
 
 	err = database.Database.Model(&location).Where("id = ?", idInt).Delete(&location).Error
 	if err != nil {
@@ -152,6 +153,79 @@ func DeleteLocation(c *gin.Context) {
 		"message": "Location deleted",
 	})
 	utils.CreateSimpleLog(c, "Deleted location "+id)
+}
+
+type addItemToLocationRequest struct {
+	ItemID     uint `json:"item-id" binding: "required"`
+	LocationID uint `json:"location-id" binding: "required`
+	Stock      int  `json:"stock" binding: "required`
+}
+
+// 4. Add item to location
+func AddItemToLocation(c *gin.Context) {
+	json := addItemToLocationRequest{}
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	newWarehouse := type_news.Warehouse{
+		ItemID:     json.ItemID,
+		LocationID: json.LocationID,
+		Stock:      json.Stock,
+	}
+
+	err := database.Database.Create(&newWarehouse).Error
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Unable to add item to location",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Successfully add an item to location",
+	})
+
+	utils.CreateSimpleLog(c, "Added item to location")
+
+}
+
+//
+// 5. List items within location
+func ListItemInLocation(c *gin.Context) {
+	id := c.Query("id")
+
+	// conver to integer
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid ID",
+		})
+		return
+	}
+
+	returnLocation := type_news.Location{}
+	database.Database.Preload("warehouses", "id = ?", idInt).Where("id = ?", idInt).First(&returnLocation)
+	//database.Database.Preload("warehouses").Where("id = ?", idInt).First(&location)
+	fmt.Println(returnLocation.Name)
+	fmt.Println(returnLocation.Warehouses)
+	// err = database.Database.Model(&location).Where("id = ?", idInt)
+	// if err != nil {
+	// 	c.JSON(400, gin.H{
+	// 		"success": false,
+	// 		"message": "Unable to delete location",
+	// 	})
+	// 	return
+	// }
 }
 
 //

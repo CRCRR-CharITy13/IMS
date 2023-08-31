@@ -131,6 +131,8 @@ func InitRouter() *gin.Engine {
 		locationsApi.DELETE("/delete", location.DeleteLocation)
 		locationsApi.PATCH("/update", location.UpdateLocation)
 		locationsApi.GET("/scan", location.GetScannedData)
+		locationsApi.PUT("/add-item-to-location", location.AddItemToLocation)
+		locationsApi.GET("/list-item-in-location", location.ListItemInLocation)
 	}
 
 	// Set up transactions router
