@@ -198,8 +198,12 @@ func AddItemToLocation(c *gin.Context) {
 
 }
 
-//
 // 5. List items within location
+type ListItemInLocationResponse struct {
+	ItemName string `json:"item-name" binding: "required"`
+	Stock    int    `json: "stock" binding : "required"`
+}
+
 func ListItemInLocation(c *gin.Context) {
 	id := c.Query("id")
 
@@ -212,20 +216,30 @@ func ListItemInLocation(c *gin.Context) {
 		})
 		return
 	}
-
-	returnLocation := type_news.Location{}
-	database.Database.Preload("warehouses", "id = ?", idInt).Where("id = ?", idInt).First(&returnLocation)
-	//database.Database.Preload("warehouses").Where("id = ?", idInt).First(&location)
-	fmt.Println(returnLocation.Name)
-	fmt.Println(returnLocation.Warehouses)
-	// err = database.Database.Model(&location).Where("id = ?", idInt)
+	var location type_news.Location
+	database.Database.Preload("Warehouses").Where("location_id = ?", idInt).Find(&location.Warehouses)
+	// fmt.Print(location)
+	itemsInLocation := make([]ListItemInLocationResponse, len(location.Warehouses))
+	for i, warehouse := range location.Warehouses {
+		var item type_news.Item
+		database.Database.First(&item, warehouse.ItemID)
+		itemsInLocation[i] = ListItemInLocationResponse{
+			ItemName: item.Name,
+			Stock:    warehouse.Stock,
+		}
+		fmt.Printf("item id: %s : %d\n", item.Name, warehouse.Stock)
+	}
+	// jsonReturn, err := json.MarshalIndent(itemsInLocation, "", " ")
 	// if err != nil {
-	// 	c.JSON(400, gin.H{
-	// 		"success": false,
-	// 		"message": "Unable to delete location",
-	// 	})
-	// 	return
+	// 	fmt.Println("Cannot convert the result to json")
 	// }
+	//fmt.Println(string(jsonReturn))
+	c.JSON(200, gin.H{
+		"success": true,
+		"data": gin.H{
+			"data": itemsInLocation,
+		},
+	})
 }
 
 //

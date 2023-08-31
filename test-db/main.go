@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"gorm.io/driver/sqlite"
@@ -110,8 +111,14 @@ type Session struct {
 	ExpiresAt int64 `json:"expiresAt"`
 }
 
+type ListItemInLocationResponse struct {
+	ItemName string `json:"item-name" binding: "required"`
+	Stock    int    `json: "stock" binding : "required"`
+}
+
 func main() {
-	db, err := gorm.Open(sqlite.Open("gik-ims-localdb5.sqlite"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("../gik-api/assets/gik-ims-localdb.sqlite"), &gorm.Config{})
+
 	db.AutoMigrate(&Item{}, &Location{}, &Warehouse{})
 	db.AutoMigrate(&Donor{}, &Donation{}, &DonationItem{})
 	db.AutoMigrate(&User{}, &Client{}, &Order{}, &OrderItem{})
@@ -120,6 +127,27 @@ func main() {
 		fmt.Println("Error: ", err)
 		return
 	}
+
+	locationID := 3
+	var location Location
+
+	db.Preload("Warehouses").Where("location_id = ?", locationID).Find(&location.Warehouses)
+	// fmt.Print(location)
+	itemsInLocation := make([]ListItemInLocationResponse, len(location.Warehouses))
+	for i, warehouse := range location.Warehouses {
+		var item Item
+		db.First(&item, warehouse.ItemID)
+		itemsInLocation[i] = ListItemInLocationResponse{
+			ItemName: item.Name,
+			Stock:    warehouse.Stock,
+		}
+		fmt.Printf("item id: %s : %d\n", item.Name, warehouse.Stock)
+	}
+	jsonReturn, err := json.MarshalIndent(itemsInLocation, "", " ")
+	if err != nil {
+		fmt.Println("Cannot convert the result to json")
+	}
+	fmt.Println(string(jsonReturn))
 	// fmt.Printf("==== To Test The GIK-IMS Database\n")
 	// itemFileName := "data/gik-ims-items.csv"
 	// locationFileName := "data/gik-ims-locations.csv"

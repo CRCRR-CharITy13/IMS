@@ -58,7 +58,7 @@ func ConnectDatabase() {
 		//
 		Database = db
 	}
-	migrations()
+	//migrations()
 }
 
 func migrations() {
