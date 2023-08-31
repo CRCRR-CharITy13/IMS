@@ -4,7 +4,6 @@ import {
     Container,
     Button,
     Group,
-    InputWrapper,
     TextInput,
     NumberInput, NumberInputHandlers,
     Space, Table, ActionIcon, Select,

@@ -1,7 +1,8 @@
 import "./App.css";
 
-import { MantineProvider, Global } from "@mantine/core";
-import { NotificationsProvider } from "@mantine/notifications";
+import { MantineProvider, ColorSchemeProvider, ColorScheme, GlobalStyles, Global } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
+import { useLocalStorage } from '@mantine/hooks';
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -9,55 +10,52 @@ import Dashboard from "./routes/Dashboard";
 import Login from "./routes/Login";
 import Register from "./routes/Register";
 import DashboardRedirect from "./components/dashboard/Redirect";
-import { useEffect } from "react";
 import Landing from "./routes/Landing";
 import PageNotFound from "./routes/PageNotFound";
 
 function App() {
-    const isDark = window.localStorage.getItem("dark") === "true";
+    // const isDark = window.localStorage.getItem("dark") === "true";
 
-    useEffect(() => {
-        document.documentElement.setAttribute(
-            "data-theme",
-            isDark ? "dark" : "light"
-        );
-    }, [isDark]);
+    const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
+        key: 'mantine-color-scheme',
+        defaultValue: 'light',
+        getInitialValueInEffect: true,
+    });
+    
+    document.documentElement.setAttribute('data-theme', colorScheme)
+
+
+    const toggleColorScheme = (value?: ColorScheme) => {
+        setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
+        document.documentElement.setAttribute('data-theme', colorScheme)
+    }
 
     return (
-        <>
-            <Global
-                styles={() => ({
-                    body: {
-                        color: "var(--text-color)",
-                    },
-                })}
-            />
-            <MantineProvider
+        <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
+            <MantineProvider 
                 theme={{
-                    colorScheme: isDark ? "dark" : "light",
-                }}
+                    colorScheme, primaryColor: 'teal'}}
+                withGlobalStyles
             >
-                <NotificationsProvider>
-                    <BrowserRouter>
-                        <Routes>
-                            <Route path="/" element={<Landing />} />
-                            <Route
-                                path="/dashboard"
-                                element={<DashboardRedirect />}
-                            />
-                            <Route
-                                path="/dashboard/:handle"
-                                element={<Dashboard />}
-                            />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<Register />} />
-                            // to handle NOT FOUND cases
-                            <Route path="*" element = {<PageNotFound />} />
-                        </Routes>
-                    </BrowserRouter>
-                </NotificationsProvider>
+                <Notifications />
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/" element={<Landing />} />
+                        <Route
+                            path="/dashboard"
+                            element={<DashboardRedirect />}
+                        />
+                        <Route
+                            path="/dashboard/:handle"
+                            element={<Dashboard />}
+                        />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="*" element = {<PageNotFound />} />
+                    </Routes>
+                </BrowserRouter>
             </MantineProvider>
-        </>
+        </ColorSchemeProvider>
     );
 }
 

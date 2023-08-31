@@ -3,14 +3,15 @@ import {
     Box,
     Button,
     Center,
+    Divider,
     Group,
     Input,
-    InputWrapper,
     Loader,
     Pagination,
     Space,
     Switch,
     Table,
+    TextInput,
 } from "@mantine/core";
 
 import { TransferList, TransferListData } from "@mantine/core";
@@ -149,7 +150,6 @@ const UserManagement = () => {
                                 <tr key={user.ID}>
                                     <td>
                                         <Switch
-                                            color={"green"}
                                             checked={!user.disabled}
                                             onChange={() => {
                                                 toggleUser(user.ID);
@@ -175,7 +175,7 @@ const UserManagement = () => {
                     </Table>
                 )}
                 <Group position="right">
-                    <Button color="green" disabled={loading} onClick={getUsers}>
+                    <Button disabled={loading} onClick={getUsers}>
                         Refresh
                     </Button>
                 </Group>
@@ -332,7 +332,6 @@ const SignupCodesManager = () => {
                             <tr key={code.ID}>
                                 <td>
                                     <Switch
-                                        color="green"
                                         checked={!code.expired}
                                         onChange={() => {
                                             toggleCode(code.code);
@@ -362,13 +361,13 @@ const SignupCodesManager = () => {
                     </tbody>
                 </Table>
                 <Space h="xl" />
-                <Group position="right">
+                <Group position="center">
                     <Pagination
-                        page={currentPage}
+                        value={currentPage}
                         onChange={setCurrentPage}
                         total={totalPages}
                     />
-                    <Button color="green" disabled={loading} onClick={getCodes}>
+                    <Button disabled={loading} onClick={getCodes}>
                         Refresh
                     </Button>
                 </Group>
@@ -462,7 +461,6 @@ const AdminManager = () => {
                 <Group position="right">
                     <Button
                         onClick={doSave}
-                        color="green"
                         sx={{
                             marginTop: "1rem",
                         }}
@@ -531,11 +529,10 @@ const SignupCodeGenerator = () => {
             <Box sx={containerStyles}>
                 <h3>Signup Code Generator</h3>
                 <Space h="md" />
-                <InputWrapper label="New Account Username">
-                    <Input
-                        onChange={(e) => setNewUsername(e.target.value.toLowerCase())}
-                    />
-                </InputWrapper>
+                <TextInput
+                    label="New Account Username"
+                    onChange={(e) => setNewUsername(e.target.value.toLowerCase())}
+                />
                 <Space h="md" />
                 {newCode ? (
                     <p>
@@ -548,7 +545,6 @@ const SignupCodeGenerator = () => {
                 )}
                 <Group position="right">
                     <Button
-                        color="green"
                         onClick={doGeneration}
                         disabled={loading}
                     >
@@ -568,8 +564,12 @@ const Admin = () => {
                 <h2>Manage users, registration and more.</h2>
             </Box>
             <SignupCodeGenerator />
+            <Divider />
             <SignupCodesManager />
+            <Divider />
+            <Space h="md" />
             <AdminManager />
+            <Divider />
             <UserManagement />
         </>
     );

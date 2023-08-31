@@ -3,21 +3,21 @@ import {
     Button,
     Center,
     Input,
-    InputWrapper,
     Table,
     SegmentedControl,
     Accordion,
-    Tab,
     Pagination,
     Space,
     LoadingOverlay,
+    TextInput,
 } from "@mantine/core";
 
-import { DateRangePicker } from "@mantine/dates";
+import { DatePickerInput } from "@mantine/dates";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { AdvancedLog } from "../../types/logs";
 
 import styles from "../../styles/AuditLog.module.scss";
+import { containerStyles } from "../../styles/container";
 
 const exampleData = [
     {
@@ -112,7 +112,7 @@ const AdvancedLogs = ({
         <>
             <Accordion multiple>
                 {data.map((log) => (
-                    <Accordion.Item label={`${log.path}`}>
+                    <Accordion.Item value={`${log.path}`}>
                         {Object.entries(log).map((entry) => {
                             const key = entry[0];
                             const value = entry[1];
@@ -153,7 +153,7 @@ const AdvancedLogs = ({
                 }}
             >
                 <Pagination
-                    page={currentPage}
+                    value={currentPage}
                     onChange={setCurrentPage}
                     total={totalPages}
                 />
@@ -284,7 +284,7 @@ const SimpleLogs = ({
                 }}
             >
                 <Pagination
-                    page={currentPage}
+                    value={currentPage}
                     onChange={setCurrentPage}
                     total={totalPages}
                 />
@@ -320,28 +320,11 @@ const AuditLog = () => {
     return (
         <>
             <div
-                style={{
-                    display: "flex",
-                    width: "100%",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    flexDirection: "column",
-                    height: "100%",
-                }}
+                style={containerStyles}
             >
                 <LoadingOverlay visible={visible} />
                 <Box
-                    sx={{
-                        borderRadius: "5px",
-                        border: "1px solid gray",
-                        width: "100%",
-                        padding: "1rem",
-                        boxSizing: "border-box",
-                        backgroundColor: "var(--inverted-text)",
-                        "@media only screen and (max-width: 800px)": {
-                            width: "100%",
-                        },
-                    }}
+                    sx={containerStyles}
                 >
                     <SegmentedControl
                         data={[
@@ -366,39 +349,35 @@ const AuditLog = () => {
                             justifyContent: "space-between",
                             gap: ".5rem",
                             alignItems: "flex-end",
+                            marginTop: "1rem",
                             marginBottom: "1rem",
                         }}
                     >
-                        <DateRangePicker
+                        <DatePickerInput
+                            type="range"
                             placeholder="Pick Date Range"
-                            label="Date Range"
                             onChange={setDateFilterEditing}
                         />
-                        <InputWrapper label="User">
-                            <Input
-                                sx={{
-                                    display: "flex",
-                                    flexGrow: 1,
-                                }}
-                                placeholder="amy"
-                                onChange={(e: any) =>
-                                    setUserFilterEditing(e.target.value)
-                                }
-                            />
-                        </InputWrapper>
-                        <InputWrapper label="Action">
-                            <Input
-                                placeholder="add"
-                                sx={{
-                                    display: "flex",
-                                    flexGrow: 1,
-                                }}
-                                onChange={(e: any) =>
-                                    setActionFilterEditing(e.target.value)
-                                }
-                            />
-                        </InputWrapper>
-                        <Button color="green" onClick={doFilter}>
+                        <TextInput
+                            sx={{
+                                display: "flex",
+                            }}
+                            placeholder="User"
+                            onChange={(e: any) =>
+                                setUserFilterEditing(e.target.value)
+                            }
+                        />
+                        <TextInput
+                            placeholder="Action"
+                            sx={{
+                                display: "flex",
+                                flexGrow: 1,
+                            }}
+                            onChange={(e: any) =>
+                                setActionFilterEditing(e.target.value)
+                            }
+                        />
+                        <Button color="teal" onClick={doFilter}>
                             Filter
                         </Button>
                     </Center>
