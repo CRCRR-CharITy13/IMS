@@ -247,7 +247,9 @@ const SimpleLogs = ({
         } = await response.json();
 
         if (data.success) {
+            console.log("Simple log, success")
             setData(data.data.data);
+            console.log(data)
             setTotalPages(data.data.totalPages);
         }
     };

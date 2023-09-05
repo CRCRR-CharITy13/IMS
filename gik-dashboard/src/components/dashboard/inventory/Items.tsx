@@ -29,10 +29,10 @@ import {ConfirmationModal} from "../../confirmation";
 export const ItemRow = (
     {
         item,
-        refresh,
+        refresh
     }: {
-        item: Item;
-        refresh: () => Promise<void>;
+        item: Item,
+        refresh: () => Promise<void>
     }
 ) => {
 
@@ -98,7 +98,6 @@ export const ItemRow = (
             <tr>
                 <td>{item.name}</td>
                 <td>{item.sku || "None"}</td>
-                <td>{item.category || "None"}</td>
                 <td>{item.price || "undefined"}</td>
                 <td>{item.quantity}</td>
                 <td>{item.size}</td>
@@ -564,7 +563,9 @@ export const ItemsManager = () => {
 
         if (data.success) {
             console.log("Success loading item data");
+            //console.log(data.data.data)
             setItems(data.data.data);
+            console.log(data.data.data);
             setTotalPage(data.data.totalPages);
         }
     };
@@ -668,7 +669,6 @@ export const ItemsManager = () => {
                         <tr>
                             <th>Name</th>
                             <th>SKU</th>
-                            <th>Category</th>
                             <th>Price</th>
                             <th>Quantity</th>
                             <th>Size</th>
@@ -678,7 +678,8 @@ export const ItemsManager = () => {
                     <tbody>
                         {items.map((item) => (
                             <ItemRow key={item.id} item={item} refresh={fetchItems} />
-                        ))}
+                        ))
+                        }
                     </tbody>
                 </Table>
                 <Space h="md" />
