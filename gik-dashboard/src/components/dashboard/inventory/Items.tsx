@@ -563,6 +563,7 @@ export const ItemsManager = () => {
         } = await response.json();
 
         if (data.success) {
+            console.log("Success loading item data");
             setItems(data.data.data);
             setTotalPage(data.data.totalPages);
         }
