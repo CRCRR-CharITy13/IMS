@@ -96,10 +96,10 @@ export const ItemRow = (
     return (
         <>
             <tr>
-                <td>{item.name}</td>
-                <td>{item.sku || "None"}</td>
-                <td>{item.price || "undefined"}</td>
-                <td>{item.quantity}</td>
+                <td>{item.Name}</td>
+                <td>{item.Sku || "None"}</td>
+                <td>{item.Price || "undefined"}</td>
+                <td>{item.Quantity}</td>
                 <td>{item.size}</td>
                 <td>
                     <Group>
@@ -427,14 +427,14 @@ const EditTagsModal = ({
             >
                 <Box sx={containerStyles}>
                     <Group>
-                        <TextInput
+                        {/* <TextInput
                             placeholder="Search Tags"
                             onChange={async (e: any) => {
                                 //await search()
                                 await refresh(e.target.value)
                             }
                             }
-                        />
+                        /> */}
                         {/*
                         <Button
                             color="green"
@@ -639,7 +639,7 @@ export const ItemsManager = () => {
                             setSkuQueryTyping(e.target.value)
                         }
                     />
-                    <MultiSelect
+                    {/* <MultiSelect
                         data={tags}
                         placeholder="Search Tags"
                         clearButtonProps={{ 'aria-label': 'Clear selection' }}
@@ -649,12 +649,12 @@ export const ItemsManager = () => {
                                 setTagsQueryTyping(e)
                             }
                         }
-                    />
+                    /> */}
                     <Button
                         onClick={() => {
                             setNameQuery(nameQueryTyping);
                             setSkuQuery(skuQueryTyping);
-                            setTagsQuery(tagsQueryTyping);
+                            //setTagsQuery(tagsQueryTyping);
                         }}
                         disabled={loading}
                     >

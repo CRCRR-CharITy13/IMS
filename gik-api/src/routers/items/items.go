@@ -103,6 +103,15 @@ func AddItem(c *gin.Context) {
 
 // 2. List items
 
+type ListItemResponse struct {
+	Id       int     `json:"id" binding: "required"`
+	Name     string  `json: "name" binding : "required"`
+	Sku      string  `json: "sku" binding : "required"`
+	Size     string  `json:"size" binding: "required"`
+	Quantity int     `json: "quantity" binding : "required"`
+	Price    float32 `json: "price" binding : "required"`
+}
+
 func ListItem(c *gin.Context) {
 	page := c.Query("page")
 	name := c.Query("name")
@@ -144,8 +153,20 @@ func ListItem(c *gin.Context) {
 
 	totalPages := math.Ceil(float64(totalCount) / float64(limit))
 
+	itemResponse := make([]ListItemResponse, len(items))
+	for i, item := range items {
+		itemResponse[i] = ListItemResponse{
+			Id:       int(item.ID),
+			Name:     item.Name,
+			Sku:      item.SKU,
+			Size:     item.Size,
+			Quantity: item.StockTotal,
+			Price:    item.Price,
+		}
+	}
+
 	c.JSON(200, gin.H{"success": true, "data": gin.H{
-		"data":        items,
+		"data":        itemResponse,
 		"total":       totalCount,
 		"currentPage": pageInt,
 		"totalPages":  totalPages,
