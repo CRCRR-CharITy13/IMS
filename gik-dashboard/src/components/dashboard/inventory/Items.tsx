@@ -29,10 +29,10 @@ import {ConfirmationModal} from "../../confirmation";
 export const ItemRow = (
     {
         item,
-        refresh,
+        refresh
     }: {
-        item: Item;
-        refresh: () => Promise<void>;
+        item: Item,
+        refresh: () => Promise<void>
     }
 ) => {
 
@@ -96,11 +96,10 @@ export const ItemRow = (
     return (
         <>
             <tr>
-                <td>{item.name}</td>
-                <td>{item.sku || "None"}</td>
-                <td>{item.category || "None"}</td>
-                <td>{item.price || "undefined"}</td>
-                <td>{item.quantity}</td>
+                <td>{item.Name}</td>
+                <td>{item.Sku || "None"}</td>
+                <td>{item.Price || "undefined"}</td>
+                <td>{item.Quantity}</td>
                 <td>{item.size}</td>
                 <td>
                     <Group>
@@ -428,14 +427,14 @@ const EditTagsModal = ({
             >
                 <Box sx={containerStyles}>
                     <Group>
-                        <TextInput
+                        {/* <TextInput
                             placeholder="Search Tags"
                             onChange={async (e: any) => {
                                 //await search()
                                 await refresh(e.target.value)
                             }
                             }
-                        />
+                        /> */}
                         {/*
                         <Button
                             color="green"
@@ -563,7 +562,10 @@ export const ItemsManager = () => {
         } = await response.json();
 
         if (data.success) {
+            console.log("Success loading item data");
+            //console.log(data.data.data)
             setItems(data.data.data);
+            console.log(data.data.data);
             setTotalPage(data.data.totalPages);
         }
     };
@@ -637,7 +639,7 @@ export const ItemsManager = () => {
                             setSkuQueryTyping(e.target.value)
                         }
                     />
-                    <MultiSelect
+                    {/* <MultiSelect
                         data={tags}
                         placeholder="Search Tags"
                         clearButtonProps={{ 'aria-label': 'Clear selection' }}
@@ -647,12 +649,12 @@ export const ItemsManager = () => {
                                 setTagsQueryTyping(e)
                             }
                         }
-                    />
+                    /> */}
                     <Button
                         onClick={() => {
                             setNameQuery(nameQueryTyping);
                             setSkuQuery(skuQueryTyping);
-                            setTagsQuery(tagsQueryTyping);
+                            //setTagsQuery(tagsQueryTyping);
                         }}
                         disabled={loading}
                     >
@@ -667,7 +669,6 @@ export const ItemsManager = () => {
                         <tr>
                             <th>Name</th>
                             <th>SKU</th>
-                            <th>Category</th>
                             <th>Price</th>
                             <th>Quantity</th>
                             <th>Size</th>
@@ -677,7 +678,8 @@ export const ItemsManager = () => {
                     <tbody>
                         {items.map((item) => (
                             <ItemRow key={item.id} item={item} refresh={fetchItems} />
-                        ))}
+                        ))
+                        }
                     </tbody>
                 </Table>
                 <Space h="md" />
