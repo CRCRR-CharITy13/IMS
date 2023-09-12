@@ -23,8 +23,7 @@ import { BsDash } from "react-icons/bs"
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
 import { Transaction, TransactionItem } from "../../types/transaction";
-import {TagRow} from "./inventory/Items";
-import {ConfirmationModal} from "../confirmation";
+import { ConfirmationModal } from "../confirmation";
 
 
 interface editingTransactionItem {

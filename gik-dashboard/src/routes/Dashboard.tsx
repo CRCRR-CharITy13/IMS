@@ -6,7 +6,8 @@ import styles from "../styles/Dashboard.module.scss";
 
 import { useNavigate, useParams } from "react-router-dom";
 import AuditLog from "../components/dashboard/AuditLog";
-import Scanner from "../components/dashboard/Scanner";
+// TEMPORARY COMMENTED BY TUAN IN 12 SEPT 2023
+// import Scanner from "../components/dashboard/Scanner";
 import Admin from "../components/dashboard/Admin";
 import Settings from "../components/dashboard/Settings";
 import Inventory from "../components/dashboard/Inventory";
@@ -73,9 +74,10 @@ const Dashboard = () => {
             case "audit":
                 requiredPane = <AuditLog />;
                 break;
-            case "scanner":
-                requiredPane = <Scanner />;
-                break;
+            // TEMPORARY COMMENTED BY TUAN IN 12 SEPT 2023
+            // case "scanner":
+            //     requiredPane = <Scanner />;
+            //     break;
             case "admin":
                 requiredPane = <Admin />;
                 break;

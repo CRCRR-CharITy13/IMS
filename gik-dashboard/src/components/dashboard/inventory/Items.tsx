@@ -10,6 +10,7 @@ import {
     Table,
     Modal,
     ActionIcon,
+    HoverCard,
     MultiSelect,
     Menu,
     Text,
@@ -20,7 +21,7 @@ import {
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
+import { CirclePlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
 import {Client} from "../../../types/client";
@@ -62,7 +63,9 @@ export const ItemRow = (
         });
     };
 
-    const addSize = async (size: string, quantity: number) => {
+//    const addSize = async (size: string, quantity: number) => {
+
+const addSize = async (size: string, quantity: number) => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.ID}&size=${size}&quantity=${quantity}`,
             {
@@ -90,7 +93,7 @@ export const ItemRow = (
 
     const [showConfirmationModal, setShowConfirmationModal] =
         useState<boolean>(false);
-    const [showSizeModal, setShowSizeModal] =
+    const [editItemModal, setEditItemModal] =
         useState<boolean>(false);
 
     return (
@@ -103,35 +106,40 @@ export const ItemRow = (
                 <td>{item.size}</td>
                 <td>
                     <Group>
-                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
+                    <HoverCard>
+                        <HoverCard.Target>
+                            <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                             <Trash />
+                            </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Delete this item
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>
+
+                    <HoverCard>
+                        <HoverCard.Target>
+                        <ActionIcon variant="default" onClick={() => setEditItemModal(true)}>
+                            <Edit />
                         </ActionIcon>
-                        <ActionIcon variant="default" onClick={() => setShowSizeModal(true)}>
-                            <CirclePlus />
-                        </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Edit this item
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>    
+                        
                     </Group>
                 </td>
             </tr>
-            <AddSizeModal opened={showSizeModal} setOpened={setShowSizeModal} command={addSize}/>
+            <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={addSize}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
         </>
     );
 };
-
-export const TagRow = ({ tag }: { tag: string }) => {
-    return (
-        <>
-            <tr>
-                <td>{tag}</td>
-                <ActionIcon variant="default" /*onClick={}*/>
-                    <Trash />
-                </ActionIcon>
-            </tr>
-        </>
-    );
-};
-
-
 
 const  UploadCSVModal = (
 {
@@ -192,7 +200,7 @@ const  UploadCSVModal = (
     );
 }
 
-export const AddSizeModal = (
+export const EditItemModal = (
     {
         opened,
         setOpened,
@@ -204,6 +212,9 @@ export const AddSizeModal = (
         command: (size: string, quantity: number)=>void;
     }) => {
 
+    const [name, setName] = useState('');
+    const [sku, setSku] = useState('');
+    const [price, setPrice] = useState(0);
     const [size, setSize] = useState('');
     const [quantity, setQuantity] = useState(0);
 
@@ -211,12 +222,36 @@ export const AddSizeModal = (
     return (
         <>
             <Modal
-                title={"Add Size"}
+                title={"Edit Item"}
                 opened={opened}
                 onClose={() => {
                     setOpened(false);
                 }}
             >
+                <TextInput
+                    required
+                    label={"Name"}
+                    placeholder="The Name of the Item"
+                    onChange={(e) => setSize(e.target.value)}
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"SKU"}
+                    placeholder="XXXXXXXXX"
+                    onChange={(e) =>
+                        setQuantity(Number(e.target.value))
+                    }
+                />
+                <TextInput
+                    label="Price"
+                    required
+                    placeholder="10"
+                    type="number"
+                    onChange={(e) =>
+                        setPrice(Number(e.target.value))
+                    }
+                />
                 <TextInput
                     required
                     label={"Size"}
@@ -318,14 +353,14 @@ const CreateItemModal = ({
                     <TextInput
                         label="Name"
                         required
-                        placeholder="Women's All Season Short Pants"
+                        placeholder="The name of the item"
                         onChange={(e) => setName(e.target.value)}
                     />
                     <Space h="md" />
                     <TextInput
                         label="SKU"
                         required
-                        placeholder="XXXXXX"
+                        placeholder="XXXXXXXXX"
                         onChange={(e) => setSku(e.target.value)}
                     />
                     <Space h="md" />
@@ -368,101 +403,9 @@ const CreateItemModal = ({
 };
 
 
-const EditTagsModal = ({
-    opened,
-    setOpened,
-    refresh,
-    tags,
-      }: {
-    opened: boolean;
-    setOpened: Dispatch<SetStateAction<boolean>>;
-    refresh: (search: string) => Promise<void>;
-    tags: string[];
-}) => {
-    const [name, setName] = useState("");
-
-    //const [tags, setTags] = useState<string[]>([]);
-/*
-    const fetchTags = async () => {
-
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/tags/list?name=${name}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            data: string[];
-        } = await response.json();
-
-        if (data.success) {
-            setTags(data.data);
-        }
-    };
-
-    useEffect(() => {
-        fetchTags();
-    })*/
-
-    return (
-        <>
-            <Modal
-                opened={opened}
-                onClose={() => {
-                    refresh("");
-                    setOpened(false);
-                }}
-                title="Edit Tags"
-            >
-                <Box sx={containerStyles}>
-                    <Group>
-                        {/* <TextInput
-                            placeholder="Search Tags"
-                            onChange={async (e: any) => {
-                                //await search()
-                                await refresh(e.target.value)
-                            }
-                            }
-                        /> */}
-                        {/*
-                        <Button
-                            color="green"
-                            onClick={() => {
-                                setSearchQuery(searchQueryTyping);
-                            }}
-                            disabled={loading}
-                        >
-                            Search
-                        </Button>*/}
-                    </Group>
-                    <Space h="md" />
-                    <Table>
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {tags.length != 0 && (
-                            tags.map((tag) => (
-                            <TagRow tag={tag} />
-                        )))}
-                        </tbody>
-                    </Table>
-
-                </Box>
-            </Modal>
-        </>
-    );
-};
 
 export const ItemsManager = () => {
     const [items, setItems] = useState<Item[]>([]);
-    const [tags, setTags] = useState<string[]>([]);
-
     const [loading, setLoading] = useState<boolean>(false);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -474,19 +417,16 @@ export const ItemsManager = () => {
     const [skuQuery, setSkuQuery] = useState("");
     const [skuQueryTyping, setSkuQueryTyping] = useState("");
 
-    const [tagsQuery, setTagsQuery] = useState("");
-    const [tagsQueryTyping, setTagsQueryTyping] = useState("");
+    
 
     const [showCreationModal, setShowCreationModal] = useState(false);
-    const [showTagsModal, setShowTagsModal] = useState(false);
-
     const [showImportModal, setShowImportModal] = useState(false);
 
 
 
     const exportCSV = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/export?&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
+            `${process.env.REACT_APP_API_URL}/items/export?&name=${nameQuery}&sku=${skuQuery}`,
             {
                 credentials: "include",
             }
@@ -505,36 +445,12 @@ export const ItemsManager = () => {
         window.open(url, "_blank");
     };
 
-    const fetchTags = async (search: string) => {
-
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/tags/list?name=${search}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            data: string[];
-        } = await response.json();
-
-        if (data.success) {
-            // setTags(data.data); 
-            if (data.data != null) { // hacky workaround from type error caused by data.data after a few cycles of running ItemsManager
-                setTags(data.data); 
-            } else {
-                setTags(["Tags Unavailable"]);
-            }
-        }
-    };
-
 
     const fetchItems = async () => {
         setLoading(true);
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
+            `${process.env.REACT_APP_API_URL}/items/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}`,
             {
                 credentials: "include",
             }
@@ -563,14 +479,12 @@ export const ItemsManager = () => {
 
     useEffect(() => {
         fetchItems();
-        fetchTags("");
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
         fetchItems();
-        fetchTags("");
-    }, [nameQuery, tagsQuery, skuQuery]);
+    }, [nameQuery, skuQuery]);
 
     return (
         <>
@@ -578,12 +492,6 @@ export const ItemsManager = () => {
                 opened={showCreationModal}
                 setOpened={setShowCreationModal}
                 refresh={fetchItems}
-            />
-            <EditTagsModal
-                opened={showTagsModal}
-                setOpened={setShowTagsModal}
-                refresh={fetchTags}
-                tags={tags}
             />
             <UploadCSVModal
                 opened={showImportModal}
@@ -594,24 +502,25 @@ export const ItemsManager = () => {
                 <Group position="apart">
                     <h3>Items</h3>
                     <Group spacing={0}>
-                        <ActionIcon
-                            sx={{
-                                height: "4rem",
-                                width: "4rem",
-                            }}
-                            onClick={() => setShowCreationModal(true)}
-                        >
-                            <CirclePlus />
-                        </ActionIcon>
-                        <ActionIcon
-                            sx={{
-                                height: "4rem",
-                                width: "4rem",
-                            }}
-                            onClick={() => setShowTagsModal(true)}
-                        >
-                            <Tags />
-                        </ActionIcon>
+                        <HoverCard>
+                            <HoverCard.Target>
+                                <ActionIcon
+                                    sx={{
+                                        height: "4rem",
+                                        width: "4rem",
+                                    }}
+                                    onClick={() => setShowCreationModal(true)}
+                                >
+                                    <CirclePlus />
+                                </ActionIcon>
+                            </HoverCard.Target>
+                            <HoverCard.Dropdown>
+                                <Text size="sm">
+                                    Add a new item
+                                </Text>
+                            </HoverCard.Dropdown>
+                        </HoverCard>
+
                     </Group>
                 </Group>
                 <Space h="md" />
@@ -645,7 +554,6 @@ export const ItemsManager = () => {
                         onClick={() => {
                             setNameQuery(nameQueryTyping);
                             setSkuQuery(skuQueryTyping);
-                            //setTagsQuery(tagsQueryTyping);
                         }}
                         disabled={loading}
                     >
@@ -655,7 +563,7 @@ export const ItemsManager = () => {
 
 
                 <Space h="md" />
-                <Table>
+                <Table striped highlightOnHover>
                     <thead>
                         <tr>
                             <th>Name</th>
