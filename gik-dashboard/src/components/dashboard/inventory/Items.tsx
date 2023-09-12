@@ -140,7 +140,7 @@ const addSize = async (size: string, quantity: number) => {
         </>
     );
 };
-
+    
 const  UploadCSVModal = (
 {
     opened,

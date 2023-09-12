@@ -1,6 +1,6 @@
-// import { Divider, Space } from "@mantine/core";
+import { Divider, Space } from "@mantine/core";
 import { ItemsManager } from "./inventory/Items";
-// import { LocationsManager } from "./inventory/Locations";
+//import { LocationsManager } from "./inventory/Locations";
 
 const Inventory = () => {
     return (
@@ -10,7 +10,6 @@ const Inventory = () => {
     );
 };
 
-export default Inventory;
 
 
 // const Inventory = () => {
@@ -24,3 +23,4 @@ export default Inventory;
 //         </>
 //     );
 // };
+export default Inventory;
