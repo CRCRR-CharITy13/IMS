@@ -291,7 +291,7 @@ const TransactionItemRow = (
 
         if (itemInfo == undefined) {return (<></>)}
         return (
-            <tr key={itemInfo.id}>
+            <tr key={itemInfo.ID}>
                 <td>{itemInfo.name}</td>
                 <td>{itemInfo.sku}</td>
                 <td>{itemInfo.size}</td>
@@ -338,7 +338,7 @@ const LocationItemModal =
             temp = []
 
             for (let i = 0; i < items.length; i++) {
-                temp = [...temp, [items[i].id, 0]]
+                temp = [...temp, [items[i].ID, 0]]
             }
             setStock(temp)
         }
@@ -369,7 +369,7 @@ const LocationItemModal =
                             <tbody>
                             {items.map((item, i) => (
 
-                                <tr key={item.id}>
+                                <tr key={item.ID}>
                                     <td>{item.name}</td>
                                     <td>{item.sku}</td>
                                     <td>{item.size}</td>

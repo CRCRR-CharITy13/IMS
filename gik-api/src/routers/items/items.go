@@ -19,7 +19,7 @@ type addNewItemRequest struct {
 	Name       string  `json:"name" binding:"required"`
 	Size       string  `json:"size" binding:"required"`
 	Price      float32 `json:"price" binding:"required"`
-	StockTotal int     `json:"stock_total" binding:"required"`
+	StockTotal int     `json:"quantity" binding:"required"`
 }
 
 func AddItem(c *gin.Context) {
@@ -36,28 +36,28 @@ func AddItem(c *gin.Context) {
 
 	item := type_news.Item{}
 
-	if json.Name != "" {
+	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item name",
 		})
 		return
 	}
 	item.Name = json.Name
 
-	if json.SKU != "" {
+	if json.SKU == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item SKU",
 		})
 		return
 	}
 	item.SKU = json.SKU
 
-	if json.Size != "" {
+	if json.Size == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item size",
 		})
 		return
 
@@ -68,7 +68,7 @@ func AddItem(c *gin.Context) {
 	if json.Price < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item price",
 		})
 		return
 	}
@@ -77,7 +77,7 @@ func AddItem(c *gin.Context) {
 	if json.StockTotal < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item stock total",
 		})
 		return
 	}
@@ -104,12 +104,12 @@ func AddItem(c *gin.Context) {
 // 2. List items
 
 type ListItemResponse struct {
-	Id       int     `json:"id" binding: "required"`
-	Name     string  `json: "name" binding : "required"`
-	Sku      string  `json: "sku" binding : "required"`
-	Size     string  `json:"size" binding: "required"`
-	Quantity int     `json: "quantity" binding : "required"`
-	Price    float32 `json: "price" binding : "required"`
+	Id       int     `json:"ID" binding:"required"`
+	Name     string  `json:"name" binding:"required"`
+	Sku      string  `json:"sku" binding:"required"`
+	Size     string  `json:"size" binding:"required"`
+	Quantity int     `json:"quantity" binding:"required"`
+	Price    float32 `json:"price" binding:"required"`
 }
 
 func ListItem(c *gin.Context) {

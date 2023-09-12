@@ -36,7 +36,7 @@ ChartJS.register(
 const ItemRow = ({ item }: { item: Item }) => {
     return (
         <>
-            <tr id={String(item.id)}>
+            <tr id={String(item.ID)}>
                 <td>{item.name}</td>
                 <td>{item.sku || "None"}</td>
                 <td>{item.size}</td>
@@ -165,7 +165,7 @@ const TrendingItems = () => {
                         </thead>
                         <tbody>
                             {items.map((item) => (
-                                <ItemRow key={item.id} item={item} />
+                                <ItemRow key={item.ID} item={item} />
                             ))}
                         </tbody>
                     </Table>
@@ -248,7 +248,7 @@ const AttentionRequired = () => {
                         </thead>
                         <tbody>
                             {attentionData.map((item) => (
-                                <ItemRow key={item.id} item={item} />
+                                <ItemRow key={item.ID} item={item} />
                             ))}
                         </tbody>
                     </Table>

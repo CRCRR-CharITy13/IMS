@@ -38,7 +38,7 @@ export const ItemRow = (
 
     const doDelete = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/delete?id=${item.id}`,
+            `${process.env.REACT_APP_API_URL}/items/delete?id=${item.ID}`,
             {
                 method: "DELETE",
                 credentials: "include",
@@ -64,7 +64,7 @@ export const ItemRow = (
 
     const addSize = async (size: string, quantity: number) => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.id}&size=${size}&quantity=${quantity}`,
+            `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.ID}&size=${size}&quantity=${quantity}`,
             {
                 method: "PUT",
                 credentials: "include",
@@ -96,10 +96,10 @@ export const ItemRow = (
     return (
         <>
             <tr>
-                <td>{item.Name}</td>
-                <td>{item.Sku || "None"}</td>
-                <td>{item.Price || "undefined"}</td>
-                <td>{item.Quantity}</td>
+                <td>{item.name}</td>
+                <td>{item.sku || "None"}</td>
+                <td>{item.price || "undefined"}</td>
+                <td>{item.quantity}</td>
                 <td>{item.size}</td>
                 <td>
                     <Group>
@@ -254,7 +254,6 @@ const CreateItemModal = ({
 }) => {
     const [name, setName] = useState("");
     const [sku, setSku] = useState("");
-    const [category, setCategory] = useState("");
     const [price, setPrice] = useState(0);
     const [quantity, setQuantity] = useState(0);
     const [size, setSize] = useState("");
@@ -272,7 +271,6 @@ const CreateItemModal = ({
                 body: JSON.stringify({
                     name,
                     sku,
-                    category,
                     price,
                     quantity,
                     size,
@@ -329,13 +327,6 @@ const CreateItemModal = ({
                         required
                         placeholder="XXXXXX"
                         onChange={(e) => setSku(e.target.value)}
-                    />
-                    <Space h="md" />
-                    <TextInput
-                        label="Category"
-                        required
-                        placeholder="Men, XL, Summer"
-                        onChange={(e) => setCategory(e.target.value)}
                     />
                     <Space h="md" />
                     <TextInput
@@ -677,7 +668,7 @@ export const ItemsManager = () => {
                     </thead>
                     <tbody>
                         {items.map((item) => (
-                            <ItemRow key={item.id} item={item} refresh={fetchItems} />
+                            <ItemRow key={item.ID} item={item} refresh={fetchItems} />
                         ))
                         }
                     </tbody>

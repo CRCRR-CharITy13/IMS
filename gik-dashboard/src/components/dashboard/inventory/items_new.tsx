@@ -26,7 +26,7 @@ const SimpleItemRow = ({ item } : {item: Item}) => {
     return (
         <>
             <tr>
-                <td>{item.id}</td>
+                <td>{item.ID}</td>
                 <td>{item.name}</td>
                 <td>{item.sku}</td>
                 <td>{item.size}</td>
@@ -51,9 +51,9 @@ return (
         </tr>
     </thead>
     <tbody>
-        {exampleData.map((item) => (
-            <SimpleItemRow key = {item.id } item = {item} />
-        ))}
+        {/* {exampleData.map((item) => (
+            //<SimpleItemRow key = {item.id } item = {item} />
+        ))} */}
     </tbody>
 </Table>
 </>
