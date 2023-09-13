@@ -539,17 +539,6 @@ export const ItemsManager = () => {
                             setSkuQueryTyping(e.target.value)
                         }
                     />
-                    {/* <MultiSelect
-                        data={tags}
-                        placeholder="Search Tags"
-                        clearButtonProps={{ 'aria-label': 'Clear selection' }}
-                        clearable
-                        searchable
-                        onChange={(e: any) => {
-                                setTagsQueryTyping(e)
-                            }
-                        }
-                    /> */}
                     <Button
                         onClick={() => {
                             setNameQuery(nameQueryTyping);

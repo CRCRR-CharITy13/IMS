@@ -24,10 +24,10 @@ import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { CirclePlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
-import {Client} from "../../../types/client";
-import {ConfirmationModal} from "../../confirmation";
+import { Client } from "../../../types/client";
+import { ConfirmationModal } from "../../confirmation";
 
-import type { Location } from "../../../types/location";
+import { Location } from "../../../types/location";
 
 export const LocationRow = (
     {
@@ -80,7 +80,7 @@ export const LocationRow = (
     );
 };
 
-export const LocationManager = () => {
+export const LocationsManager = () => {
     const [locations, setLocations] = useState<Location[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -100,7 +100,7 @@ export const LocationManager = () => {
         setLoading(true);
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/location/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}`,
+            `${process.env.REACT_APP_API_URL}/location/list?page=${currentPage}&name=${nameQuery}&description=${descriptionQuery}`,
             {
                 credentials: "include",
             }
@@ -120,7 +120,6 @@ export const LocationManager = () => {
 
         if (data.success) {
             console.log("Success loading item data");
-            //console.log(data.data.data)
             setLocations(data.data.data);
             console.log(data.data.data);
             setTotalPage(data.data.totalPages);
@@ -138,10 +137,7 @@ export const LocationManager = () => {
 
     return (
         <>
-            
             <Box sx={containerStyles}>
-                
-
                 <Group>
                     <TextInput
                         placeholder="Search Name"
@@ -152,20 +148,9 @@ export const LocationManager = () => {
                     <TextInput
                         placeholder="Search Description"
                         onChange={(e: any) =>
-                            setDescriptionQuery(e.target.value)
+                            setDescriptionQueryTyping(e.target.value)
                         }
                     />
-                    {/* <MultiSelect
-                        data={tags}
-                        placeholder="Search Tags"
-                        clearButtonProps={{ 'aria-label': 'Clear selection' }}
-                        clearable
-                        searchable
-                        onChange={(e: any) => {
-                                setTagsQueryTyping(e)
-                            }
-                        }
-                    /> */}
                     <Button
                         onClick={() => {
                             setNameQuery(nameQueryTyping);
@@ -173,11 +158,9 @@ export const LocationManager = () => {
                         }}
                         disabled={loading}
                     >
-                        Search
+                    Search
                     </Button>
                 </Group>
-
-
                 <Space h="md" />
                 <Table striped highlightOnHover>
                     <thead>
@@ -187,7 +170,7 @@ export const LocationManager = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {locations.map((locaton) => (
+                        {locations.map((location) => (
                             <LocationRow key={location.ID} location={location} refresh={fetchLocations} />
                         ))
                         }
@@ -207,35 +190,14 @@ export const LocationManager = () => {
                         />
                     )}
                 </Center>
-                <Space h="md" />
-                <Group position="apart">
-                    <Group spacing={0}>
-                        <ActionIcon
-                            sx={{
-                                height: "2.5rem",
-                                width: "2.5rem",
-                            }}
-                            onClick={exportCSV}
-                        >
-                            <TableExport size={"1.5rem"}/>
-                        </ActionIcon>
-                        <ActionIcon
-                            sx={{
-                                height: "2.5rem",
-                                width: "2.5rem",
-                            }}
-                            onClick={() => {setShowImportModal(true)}}
-                        >
-                            <TableImport size={"1.5rem"}/>
-                        </ActionIcon>
-                    </Group>
+                
                     <Button
-                        onClick={fetchItems}
+                        onClick={fetchLocations}
                         disabled={loading}
                     >
                         Refresh
                     </Button>
-                </Group>
+                
             </Box>
         </>
     );
