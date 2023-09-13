@@ -126,7 +126,7 @@ func InitRouter() *gin.Engine {
 		locationsApi.Use(middleware.AdvancedLoggingMiddleware())
 		locationsApi.GET("/list", location.ListLocation)
 		locationsApi.GET("/list/sku", location.ListLocationSKU)
-		locationsApi.GET("/lookup", location.LookupLocation)
+		// locationsApi.GET("/lookup", location.LookupLocation)
 		locationsApi.PUT("/add", location.AddLocation)
 		locationsApi.PUT("/add/sub", location.AddSubLocation)
 		locationsApi.DELETE("/delete", location.DeleteLocation)

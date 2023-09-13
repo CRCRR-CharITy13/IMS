@@ -6,29 +6,30 @@ import (
 	"GIK_Web/types"
 	"GIK_Web/utils"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-type location struct {
-	ID          int
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// Letter string `json:"letter"`
-	// SKU    string `json:"sku"`
-}
+// type location struct {
+// 	ID          int
+// 	Name        string `json:"name"`
+// 	Description string `json:"description"`
+// 	// Letter string `json:"letter"`
+// 	// SKU    string `json:"sku"`
+// }
 
-type lookupData struct {
-	location
-	Item types.Item `json:"product"`
-}
+// type lookupData struct {
+// 	location
+// 	Item types.Item `json:"product"`
+// }
 
-type listData struct {
-	location
-	Item        types.Item `json:"product"`
-	ProductName string     `json:"productName"`
-}
+// type listData struct {
+// 	location
+// 	Item        types.Item `json:"product"`
+// 	ProductName string     `json:"productName"`
+// }
 
 // start to implement methods
 
@@ -78,8 +79,24 @@ func AddLocation(c *gin.Context) {
 func ListLocation(c *gin.Context) {
 	name := c.Query("name")
 	description := c.Query("description")
+	page := c.Query("page")
 
-	locations := []location{}
+	if page == "" {
+		page = "1"
+	}
+
+	pageInt, err := strconv.Atoi(page)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid page number",
+		})
+		return
+	}
+
+	limit := 10 // Number of entries shown per page
+	offset := (pageInt - 1) * limit
 
 	baseQuery := database.Database.Model(&type_news.Location{})
 
@@ -91,7 +108,14 @@ func ListLocation(c *gin.Context) {
 		baseQuery = baseQuery.Where("description LIKE ?", "%"+description+"%")
 	}
 
-	err := baseQuery.Find(&locations).Error
+	var totalCount int64
+	baseQuery.Count(&totalCount)
+
+	baseQuery = baseQuery.Limit(limit).Offset(offset)
+
+	locations := []type_news.Location{}
+
+	err = baseQuery.Find(&locations).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
@@ -100,14 +124,14 @@ func ListLocation(c *gin.Context) {
 		return
 	}
 
-	var totalCount int64
-	baseQuery.Count(&totalCount)
-
+	totalPages := math.Ceil(float64(totalCount) / float64(limit))
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
-			"data":  locations,
-			"total": totalCount,
+			"data":        locations,
+			"total":       totalCount,
+			"currentPage": pageInt,
+			"totalPages":  totalPages,
 		},
 	})
 
@@ -243,7 +267,7 @@ func ListItemInLocation(c *gin.Context) {
 //
 
 func UpdateLocation(c *gin.Context) {
-	json := location{}
+	json := type_news.Location{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -307,47 +331,47 @@ func AddSubLocation(c *gin.Context) {
 	utils.CreateSimpleLog(c, "Added location "+name)
 }
 
-func LookupLocation(c *gin.Context) {
-	// product id
-	// name := c.Query("name")
-	// letter := c.Query("letter")
+// func LookupLocation(c *gin.Context) {
+// 	// product id
+// 	// name := c.Query("name")
+// 	// letter := c.Query("letter")
 
-	//could remove check and use function also for list
+// 	//could remove check and use function also for list
 
-	// if name == "" && letter == "" && itemID == 0 {
-	// 	c.JSON(400, gin.H{
-	// 		"success": false,
-	// 		"message": "No fields provided",
-	// 	})
-	// 	return
-	// }
+// 	// if name == "" && letter == "" && itemID == 0 {
+// 	// 	c.JSON(400, gin.H{
+// 	// 		"success": false,
+// 	// 		"message": "No fields provided",
+// 	// 	})
+// 	// 	return
+// 	// }
 
-	// var postData []location
-	// database.Database.Model(&location{}).Where(&location{Name: name, Letter: letter}).Scan(&postData)
+// 	// var postData []location
+// 	// database.Database.Model(&location{}).Where(&location{Name: name, Letter: letter}).Scan(&postData)
 
-	response := []lookupData{}
+// 	// response := []lookupData{}
 
-	// for _, location := range postData {
-	// 	var item types.Item
-	// 	err := database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).Scan(&item).Error
+// 	// for _, location := range postData {
+// 	// 	var item types.Item
+// 	// 	err := database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).Scan(&item).Error
 
-	// 	if err != nil {
-	// 		continue
-	// 	}
+// 	// 	if err != nil {
+// 	// 		continue
+// 	// 	}
 
-	// 	response = append(response, lookupData{
-	// 		location: location,
-	// 		Item:     item,
-	// 	})
+// 	// 	response = append(response, lookupData{
+// 	// 		location: location,
+// 	// 		Item:     item,
+// 	// 	})
 
-	// }
+// 	// }
 
-	c.JSON(200, gin.H{
-		"success": true,
-		"data":    response,
-	})
+// 	c.JSON(200, gin.H{
+// 		"success": true,
+// 		"data":    response,
+// 	})
 
-}
+// }
 
 func GetScannedData(c *gin.Context) {
 	name := c.Query("name")

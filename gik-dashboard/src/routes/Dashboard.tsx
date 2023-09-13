@@ -11,6 +11,7 @@ import AuditLog from "../components/dashboard/AuditLog";
 import Admin from "../components/dashboard/Admin";
 import Settings from "../components/dashboard/Settings";
 import Inventory from "../components/dashboard/Inventory";
+import LocationsManager  from "../components/dashboard/inventory/Locations";
 import ClientsDonors from "../components/dashboard/ClientsDonors";
 import Invoice from "../components/dashboard/Invoice";
 import Transactions from "../components/dashboard/Transactions";
@@ -68,6 +69,9 @@ const Dashboard = () => {
         let requiredPane: JSX.Element = <></>;
 
         switch (handle) {
+            case "location":
+                requiredPane = <LocationsManager />;
+                break;
             case "analytics":
                 requiredPane = <Analytics />;
                 break;

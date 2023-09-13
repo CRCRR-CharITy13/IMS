@@ -24,7 +24,6 @@ import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { CirclePlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
-import { Client } from "../../../types/client";
 import { ConfirmationModal } from "../../confirmation";
 
 import { Location } from "../../../types/location";
@@ -44,7 +43,6 @@ export const LocationRow = (
             <tr>
                 <td>{location.name || "None"}</td>
                 <td>{location.description || "None"}</td>
-                
                 <td>
                     <Group>
                     <HoverCard>
@@ -167,6 +165,7 @@ export const LocationsManager = () => {
                         <tr>
                             <th>Name</th>
                             <th>Description</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -205,3 +204,5 @@ export const LocationsManager = () => {
 function useStyles(): { classes: any; cx: any; } {
     throw new Error("Function not implemented.");
 }
+
+export default LocationsManager;
