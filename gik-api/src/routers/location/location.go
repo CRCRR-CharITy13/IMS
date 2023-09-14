@@ -12,25 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// type location struct {
-// 	ID          int
-// 	Name        string `json:"name"`
-// 	Description string `json:"description"`
-// 	// Letter string `json:"letter"`
-// 	// SKU    string `json:"sku"`
-// }
-
-// type lookupData struct {
-// 	location
-// 	Item types.Item `json:"product"`
-// }
-
-// type listData struct {
-// 	location
-// 	Item        types.Item `json:"product"`
-// 	ProductName string     `json:"productName"`
-// }
-
 // start to implement methods
 
 // 1. Add location
@@ -79,6 +60,7 @@ type ListLocationResponse struct {
 	Id          int    `json:"ID" binding:"required"`
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description" binding:"required"`
+	TotalItem   int    `json:"total_item" binding:"required"`
 }
 
 // 2. List location: display the list of location (do not include the items within)
@@ -135,10 +117,17 @@ func ListLocation(c *gin.Context) {
 	locationResponse := make([]ListLocationResponse, len(locations))
 
 	for i, location := range locations {
+		itemCount := 0
+		var tmpLocation type_news.Location
+		database.Database.Preload("Warehouses").Where("location_id = ?", location.ID).Find(&tmpLocation.Warehouses)
+		for _, warehouse := range tmpLocation.Warehouses {
+			itemCount += warehouse.Stock
+		}
 		locationResponse[i] = ListLocationResponse{
 			Id:          int(location.ID),
 			Name:        location.Name,
 			Description: location.Description,
+			TotalItem:   itemCount,
 		}
 	}
 	c.JSON(200, gin.H{
@@ -196,9 +185,10 @@ func DeleteLocation(c *gin.Context) {
 }
 
 type addItemToLocationRequest struct {
-	ItemID     uint `json:"item-id" binding: "required"`
-	LocationID uint `json:"location-id" binding: "required`
-	Stock      int  `json:"stock" binding: "required`
+	//ItemID     uint `json:"item-id" binding: "required"`
+	ItemSKU    string `json:"itemSKU" binding:"required"`
+	LocationID uint   `json:"locationID" binding:"required"`
+	Stock      int    `json:"quantity" binding:"required"`
 }
 
 // 4. Add item to location
@@ -212,9 +202,16 @@ func AddItemToLocation(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println(json)
+	var item type_news.Item
+
+	database.Database.First(&item, "sku=?", json.ItemSKU)
+
+	// locationIDInt, _ := strconv.Atoi(json.LocationID)
+	// stockInt, _ := strconv.Atoi(json.Stock)
 
 	newWarehouse := type_news.Warehouse{
-		ItemID:     json.ItemID,
+		ItemID:     item.ID,
 		LocationID: json.LocationID,
 		Stock:      json.Stock,
 	}

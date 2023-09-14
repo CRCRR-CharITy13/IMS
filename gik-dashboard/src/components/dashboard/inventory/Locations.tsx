@@ -21,7 +21,7 @@ import {
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
+import { CirclePlus, ClipboardPlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
 import { ConfirmationModal } from "../../confirmation";
@@ -78,6 +78,56 @@ export const EditLocationModal = (
     );
 }
 
+export const AddItemToLocationModal = (
+    {
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (size: string, quantity: number)=>void;
+    }) => {
+
+    const [itemSKU, setItemSKU] = useState('');
+    const [quantity, setQuantity] = useState(0);
+
+
+    return (
+        <>
+            <Modal
+                title={"Add Item to Location"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <TextInput
+                    required
+                    label={"Item SKU"}
+                    placeholder="XXXXXXXXX"
+                    onChange={(e) => setItemSKU(e.target.value)}
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"Quantity"}
+                    placeholder="10"
+                    type="number"
+                    onChange={(e) =>
+                        setQuantity(Number(e.target.value))
+                    }
+                />
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(itemSKU, quantity); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}
+
 export const LocationRow = (
     {
         location,
@@ -87,6 +137,48 @@ export const LocationRow = (
         refresh: () => Promise<void>
     }
 ) => {
+    const addItemToLocation = async (itemSKU: string, quantity: number) => {
+        // const response = await fetch(
+        //     `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.ID}&size=${size}&quantity=${quantity}`,
+        //     {
+        //         method: "PUT",
+        //         credentials: "include",
+        //     }
+        // );
+        const locationID = location.ID
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/add-item-to-location`,
+            {
+                credentials: "include",
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    itemSKU,
+                    locationID,
+                    quantity,
+                }),
+            }
+        );
+        if (response.ok) {
+            showNotification({
+                message: "item added to location",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+        console.log("add %d items with SKU = %s to box id %d", quantity, itemSKU, location.ID)
+        
+        
+        showNotification({
+            message: "Failed to add size",
+            color: "red",
+            title: "Error",
+        });
+    };
     const doDelete = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/delete?id=${location.ID}`,
@@ -118,11 +210,13 @@ export const LocationRow = (
     }
     const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
     const [editLocationModal, setEditLocationModal] = useState<boolean>(false);
+    const [addItemToLocationModal, setAddItemToLocationModal] = useState<boolean>(false);
     return (
         <>
             <tr>
                 <td>{location.name || "None"}</td>
                 <td>{location.description || "None"}</td>
+                <td>{location.total_item || 0} </td>
                 <td>
                     <Group>
                     <HoverCard>
@@ -149,12 +243,27 @@ export const LocationRow = (
                                 Edit this location
                             </Text>
                         </HoverCard.Dropdown>
-                    </HoverCard>    
+                    </HoverCard>
+
+                    <HoverCard>
+                        <HoverCard.Target>
+                        <ActionIcon variant="default" onClick={() => setAddItemToLocationModal(true)}>
+                            <ClipboardPlus />
+                            </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Add item to this location
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>
+
                     </Group>
                 </td>
             </tr>
             <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} />
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Location beyond recovery."}/>
+            <AddItemToLocationModal opened={addItemToLocationModal} setOpened={setAddItemToLocationModal} command={addItemToLocation}/>
         </>
     );
 };
@@ -367,6 +476,7 @@ export const LocationsManager = () => {
                     <tr>
                         <th>Name</th>
                         <th>Description</th>
+                        <th>Nb of Items</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
