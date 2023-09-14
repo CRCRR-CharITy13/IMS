@@ -65,7 +65,7 @@ export const ItemRow = (
 
 //    const addSize = async (size: string, quantity: number) => {
 
-const addSize = async (size: string, quantity: number) => {
+    const addSize = async (size: string, quantity: number) => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.ID}&size=${size}&quantity=${quantity}`,
             {

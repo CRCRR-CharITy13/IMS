@@ -75,6 +75,12 @@ func AddLocation(c *gin.Context) {
 
 }
 
+type ListLocationResponse struct {
+	Id          int    `json:"ID" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
+}
+
 // 2. List location: display the list of location (do not include the items within)
 func ListLocation(c *gin.Context) {
 	name := c.Query("name")
@@ -125,10 +131,20 @@ func ListLocation(c *gin.Context) {
 	}
 
 	totalPages := math.Ceil(float64(totalCount) / float64(limit))
+
+	locationResponse := make([]ListLocationResponse, len(locations))
+
+	for i, location := range locations {
+		locationResponse[i] = ListLocationResponse{
+			Id:          int(location.ID),
+			Name:        location.Name,
+			Description: location.Description,
+		}
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
-			"data":        locations,
+			"data":        locationResponse,
 			"total":       totalCount,
 			"currentPage": pageInt,
 			"totalPages":  totalPages,

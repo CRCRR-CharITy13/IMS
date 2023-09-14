@@ -28,6 +28,56 @@ import { ConfirmationModal } from "../../confirmation";
 
 import { Location } from "../../../types/location";
 
+export const EditLocationModal = (
+    {
+        opened,
+        setOpened,
+        // command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        //command: (location : Location)=>void;
+    }) => {
+
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [locationInstance, setLocationInstance] = useState();
+    
+
+    return (
+        <>
+            <Modal
+                title={"Edit Location"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <TextInput
+                    required
+                    label={"Name"}
+                    placeholder="The name of the location"
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"Description"}
+                    placeholder="The description of the location"
+                    onChange={(e) =>
+                        setDescription(e.target.value)}
+                />
+
+                <Space h="md" />
+                {/* <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(location); setOpened(false);}}>Confirm</Button>
+                </Group> */}
+            </Modal>
+        </>
+    );
+}
+
 export const LocationRow = (
     {
         location,
@@ -38,6 +88,11 @@ export const LocationRow = (
     }
 ) => {
 
+    const editLocation = async(location : Location) => {
+        console.log("Run edit location id = %d", location.ID);
+    }
+
+    const [editLocationModal, setEditLocationModal] = useState<boolean>(false);
     return (
         <>
             <tr>
@@ -53,27 +108,27 @@ export const LocationRow = (
                         </HoverCard.Target>
                         <HoverCard.Dropdown>
                             <Text size="sm">
-                                Delete this item
+                                Delete this location
                             </Text>
                         </HoverCard.Dropdown>
                     </HoverCard>
 
                     <HoverCard>
                         <HoverCard.Target>
-                        <ActionIcon>
+                        <ActionIcon variant = "default" onClick={() => setEditLocationModal(true)}>
                             <Edit />
                         </ActionIcon>
                         </HoverCard.Target>
                         <HoverCard.Dropdown>
                             <Text size="sm">
-                                Edit this item
+                                Edit this location
                             </Text>
                         </HoverCard.Dropdown>
                     </HoverCard>    
-                        
                     </Group>
                 </td>
             </tr>
+            <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} />
         </>
     );
 };
