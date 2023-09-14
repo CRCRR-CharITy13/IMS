@@ -87,11 +87,36 @@ export const LocationRow = (
         refresh: () => Promise<void>
     }
 ) => {
+    const doDelete = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/delete?id=${location.ID}`,
+            {
+                method: "DELETE",
+                credentials: "include",
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                message: "Item deleted",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to delete item",
+            color: "red",
+            title: "Error",
+        });
+    };
 
     const editLocation = async(location : Location) => {
         console.log("Run edit location id = %d", location.ID);
     }
-
+    const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
     const [editLocationModal, setEditLocationModal] = useState<boolean>(false);
     return (
         <>
@@ -102,7 +127,7 @@ export const LocationRow = (
                     <Group>
                     <HoverCard>
                         <HoverCard.Target>
-                            <ActionIcon>
+                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                             <Trash />
                             </ActionIcon>
                         </HoverCard.Target>
@@ -129,6 +154,7 @@ export const LocationRow = (
                 </td>
             </tr>
             <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} />
+            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Location beyond recovery."}/>
         </>
     );
 };

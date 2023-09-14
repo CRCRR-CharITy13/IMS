@@ -524,8 +524,6 @@ export const ItemsManager = () => {
                     </Group>
                 </Group>
                 <Space h="md" />
-
-
                 <Group>
                     <TextInput
                         placeholder="Search Items"
