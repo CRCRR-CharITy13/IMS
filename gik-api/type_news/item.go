@@ -11,7 +11,7 @@ type Item struct {
 	StockTotal    int
 	Price         float32
 	Size          string
-	Warehouses    []Warehouse `gorm:"many2many:warehouses;"`
+	Warehouses    []Warehouse //`gorm:"many2many:warehouses;"`
 	OrderItems    []OrderItem
 	DonationItems []DonationItem
 }

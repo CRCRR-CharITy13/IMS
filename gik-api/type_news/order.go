@@ -20,5 +20,5 @@ type OrderItem struct {
 	Order   Order `gorm:"foreignKey:OrderID;references:ID"`
 	ItemID  uint
 	Item    Item `gorm:"foreignKey:ItemID;references:ID"`
-	count   int
+	Count   int
 }
