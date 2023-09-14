@@ -133,6 +133,95 @@ export const LocationRow = (
     );
 };
 
+const CreateLocationModal = ({
+    opened,
+    setOpened,
+    refresh,
+}: {
+    opened: boolean;
+    setOpened: Dispatch<SetStateAction<boolean>>;
+    refresh: () => Promise<void>;
+}) => {
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const doCreate = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/add`,
+            {
+                credentials: "include",
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name,
+                    description,
+                }),
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                color: "green",
+                title: "Location created",
+                message: "Location created successfully",
+            });
+
+            await refresh();
+            setOpened(false);
+            return;
+        }
+
+        const data = await response.json();
+
+        showNotification({
+            color: "red",
+            title: "Error",
+            message: data.message,
+        });
+    };
+
+    return (
+        <>
+            <Modal
+                opened={opened}
+                onClose={() => {
+                    refresh();
+                    setOpened(false);
+                }}
+                title="Create Location"
+            >
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        doCreate();
+                    }}
+                >
+                    <TextInput
+                        label="Name"
+                        required
+                        placeholder="The name of the location"
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                    <Space h="md" />
+                    <TextInput
+                        label="Description"
+                        required
+                        placeholder="The description of the location"
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
+                    <Space h="md" />
+                    <Group position="right">
+                        <Button color="green" type="submit">
+                            Submit
+                        </Button>
+                    </Group>
+                </form>
+            </Modal>
+        </>
+    );
+};
+
 export const LocationsManager = () => {
     const [locations, setLocations] = useState<Location[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -146,6 +235,7 @@ export const LocationsManager = () => {
     const [descriptionQuery, setDescriptionQuery] = useState("");
     const [descriptionQueryTyping, setDescriptionQueryTyping] = useState("");
 
+    const [showCreationModal, setShowCreationModal] = useState(false);
 
     
 
@@ -190,7 +280,37 @@ export const LocationsManager = () => {
 
     return (
         <>
+            <CreateLocationModal
+                opened={showCreationModal}
+                setOpened={setShowCreationModal}
+                refresh={fetchLocations}
+            />
             <Box sx={containerStyles}>
+                <Group>
+                <Group position="apart">
+                    <h3>Locations</h3>
+                    <Group spacing={0}>
+                        <HoverCard>
+                            <HoverCard.Target>
+                                <ActionIcon
+                                    sx={{
+                                        height: "4rem",
+                                        width: "4rem",
+                                    }}
+                                    onClick={() => setShowCreationModal(true)}
+                                >
+                                    <CirclePlus />
+                                </ActionIcon>
+                            </HoverCard.Target>
+                            <HoverCard.Dropdown>
+                                <Text size="sm">
+                                    Add a new location
+                                </Text>
+                            </HoverCard.Dropdown>
+                        </HoverCard>
+                    </Group>
+                </Group>
+                <Space h="md" />
                 <Group>
                     <TextInput
                         placeholder="Search Name"
@@ -214,44 +334,44 @@ export const LocationsManager = () => {
                     Search
                     </Button>
                 </Group>
-                <Space h="md" />
-                <Table striped highlightOnHover>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {locations.map((location) => (
-                            <LocationRow key={location.ID} location={location} refresh={fetchLocations} />
-                        ))
-                        }
-                    </tbody>
-                </Table>
-                <Space h="md" />
-                <Center>
-                    {loading ? (
-                        <Loader variant="dots" />
-                    ) : (
-                        <Pagination
-                            boundaries={3}
-                            withEdges
-                            value={currentPage}
-                            total={totalPage}
-                            onChange={setCurrentPage}
-                        />
-                    )}
-                </Center>
-                
-                    <Button
-                        onClick={fetchLocations}
-                        disabled={loading}
-                    >
-                        Refresh
-                    </Button>
-                
+            </Group>
+            <Space h="md" />
+            <Table striped highlightOnHover>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {locations.map((location) => (
+                        <LocationRow key={location.ID} location={location} refresh={fetchLocations} />
+                    ))
+                    }
+                </tbody>
+            </Table>
+            <Space h="md" />
+            <Center>
+                {loading ? (
+                    <Loader variant="dots" />
+                ) : (
+                    <Pagination
+                        boundaries={3}
+                        withEdges
+                        value={currentPage}
+                        total={totalPage}
+                        onChange={setCurrentPage}
+                    />
+                )}
+            </Center>
+            
+                <Button
+                    onClick={fetchLocations}
+                    disabled={loading}
+                >
+                    Refresh
+                </Button>
             </Box>
         </>
     );
