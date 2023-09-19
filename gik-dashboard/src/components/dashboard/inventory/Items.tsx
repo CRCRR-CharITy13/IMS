@@ -23,8 +23,7 @@ import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { CirclePlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
-import { Item } from "../../../types/item";
-import {Client} from "../../../types/client";
+import { Item, Location_Item } from "../../../types/item";
 import {ConfirmationModal} from "../../confirmation";
 
 export const ItemRow = (
@@ -117,6 +116,64 @@ export const ItemRow = (
         });
     }
 
+    const handleItemLocationDetailClick = async() => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/list-location-for-item?id=${item.ID}`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: Location_Item[];
+        } = await response.json();
+        
+        
+        console.log(data.data);
+        let locationItemMessage = "";
+        let totalStored = 0;
+        locationItemMessage = locationItemMessage + "List of locations which store: " + item.name + "\n";
+        locationItemMessage += "----------\n";
+        let idx = 0;
+        for (idx=0; idx<data.data.length; idx++){
+            locationItemMessage = locationItemMessage + (idx+1) + "." + data.data[idx].location_name + ": " +  data.data[idx].stock + "\n";
+            totalStored += data.data[idx].stock;
+        }
+        const nonStored = item.quantity - totalStored;
+        locationItemMessage += "-----\nTotal Stored: ";
+        locationItemMessage += totalStored;
+        locationItemMessage += "/";
+        locationItemMessage += item.quantity;
+        locationItemMessage += "\nNot Stored: "
+        locationItemMessage += nonStored;
+        locationItemMessage += "/";
+        locationItemMessage += item.quantity;
+
+        alert(locationItemMessage);
+        
+        return (
+                <Table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.data?.map((location_item) => (
+                        <p>
+                            <span>{location_item.location_name}</span>
+                            <span>{location_item.stock}</span>
+                        </p>
+                    ))}
+                </tbody>
+            </Table>
+        )
+
+    }
+
     const [showConfirmationModal, setShowConfirmationModal] =
         useState<boolean>(false);
     const [editItemModal, setEditItemModal] =
@@ -127,9 +184,13 @@ export const ItemRow = (
             <tr>
                 <td>{item.name}</td>
                 <td>{item.sku || "None"}</td>
-                <td>{item.price || "undefined"}</td>
-                <td>{item.quantity}</td>
-                <td>{item.size}</td>
+                <td>{item.price || "0"}</td>
+                <td>
+                    <Button onClick = {handleItemLocationDetailClick}>
+                        {item.quantity || "0"}
+                    </Button>
+                </td>
+                <td>{item.size || "None"}</td>
                 <td>
                     <Group>
                     <HoverCard>

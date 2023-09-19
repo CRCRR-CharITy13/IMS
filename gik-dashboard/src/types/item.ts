@@ -6,3 +6,8 @@ export interface Item {
     quantity: number;
     size: string;
 }
+
+export interface Location_Item {
+    location_name : string;
+    stock : number;
+}

@@ -317,8 +317,8 @@ func DeleteItem(c *gin.Context) {
 // 5. List locations for an item, by id
 
 type ListLocationForItemResponse struct {
-	LocationName string `json:"location-name" binding: "required"`
-	Stock        int    `json: "stock" binding : "required"`
+	LocationName string `json:"location_name" binding:"required"`
+	Stock        int    `json:"stock" binding	:"required"`
 }
 
 func ListLocationForItem(c *gin.Context) {
