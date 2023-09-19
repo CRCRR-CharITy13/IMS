@@ -57,14 +57,14 @@ export const EditLocationModal = (
                 <TextInput
                     required
                     label={"Name"}
-                    placeholder="The name of the location"
+                    placeholder="Left blank to use the current value"
                     onChange={(e) => setName(e.target.value)}
                 />
                 <Space h="md" />
                 <TextInput
                     required
                     label={"Description"}
-                    placeholder="The description of the location"
+                    placeholder="Left blank to use the current value"
                     onChange={(e) =>
                         setDescription(e.target.value)}
                 />
@@ -250,7 +250,7 @@ export const LocationRow = (
         if(description == ""){
             description = location.description;
         }
-        const locationID = location.ID;
+        const id = location.ID.toString();
         console.log("Run edit location id = %d, with name = %s, description = %s", location.ID, name, description);
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/update`,
@@ -261,12 +261,27 @@ export const LocationRow = (
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    locationID,
+                    id,
                     name,
                     description,
                 }),
             }
         );
+        if (response.ok) {
+            showNotification({
+                message: "Location changed",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to change the location",
+            color: "red",
+            title: "Error",
+        });
     }
 
     const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);

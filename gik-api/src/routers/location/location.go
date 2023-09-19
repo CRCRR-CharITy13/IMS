@@ -284,7 +284,7 @@ func UpdateLocation(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid json fields",
 		})
 		return
 	}
@@ -308,7 +308,7 @@ func UpdateLocation(c *gin.Context) {
 	}
 
 	///////////
-	if json.Name != "" {
+	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid name",
@@ -317,7 +317,7 @@ func UpdateLocation(c *gin.Context) {
 	}
 	location.Name = json.Name
 
-	if json.Description != "" {
+	if json.Description == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid description",

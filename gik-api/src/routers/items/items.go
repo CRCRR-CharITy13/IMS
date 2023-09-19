@@ -215,7 +215,7 @@ func UpdateItem(c *gin.Context) {
 	}
 
 	///////////
-	if json.Name != "" {
+	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
@@ -224,7 +224,7 @@ func UpdateItem(c *gin.Context) {
 	}
 	item.Name = json.Name
 
-	if json.SKU != "" {
+	if json.SKU == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
@@ -233,7 +233,7 @@ func UpdateItem(c *gin.Context) {
 	}
 	item.SKU = json.SKU
 
-	if json.Size != "" {
+	if json.Size == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
