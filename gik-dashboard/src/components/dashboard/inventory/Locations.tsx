@@ -28,6 +28,8 @@ import { ConfirmationModal } from "../../confirmation";
 
 import { Location } from "../../../types/location";
 
+import { Item_Location } from "../../../types/location";
+
 export const EditLocationModal = (
     {
         opened,
@@ -179,6 +181,26 @@ export const LocationRow = (
             title: "Error",
         });
     };
+    const handleLocationDetailClick = async() => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/list-item-in-location?id=${location.ID}`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            message: string;
+            data: {
+                data: Item_Location[];
+            };
+        } = await response.json();
+        alert(data);
+        console.log(data);
+
+    }
     const doDelete = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/delete?id=${location.ID}`,
@@ -216,7 +238,18 @@ export const LocationRow = (
             <tr>
                 <td>{location.name || "None"}</td>
                 <td>{location.description || "None"}</td>
-                <td>{location.total_item || 0} </td>
+                <td>
+                        <Button onClick = {handleLocationDetailClick}>
+                        {location.total_item || 0}
+                    </Button>
+                    {/* <Button onClick = {() => {
+                            const message = 'Detail of ' + location.name;
+                            alert(message)
+                            }
+                        }>
+                        {location.total_item || 0}
+                    </Button> */}
+                </td>
                 <td>
                     <Group>
                     <HoverCard>

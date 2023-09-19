@@ -4,3 +4,8 @@ export interface Location {
     description: string;
     total_item : number;
 }
+
+export interface Item_Location {
+    item_name : string;
+    Stock : number;
+}
