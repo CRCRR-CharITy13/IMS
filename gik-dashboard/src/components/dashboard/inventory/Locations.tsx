@@ -57,14 +57,14 @@ export const EditLocationModal = (
                 <TextInput
                     required
                     label={"Name"}
-                    placeholder="Left blank to use the current value"
+                    placeholder="Left blank to use the current name"
                     onChange={(e) => setName(e.target.value)}
                 />
                 <Space h="md" />
                 <TextInput
                     required
                     label={"Description"}
-                    placeholder="Left blank to use the current value"
+                    placeholder="Left blank to use the current description"
                     onChange={(e) =>
                         setDescription(e.target.value)}
                 />
@@ -269,7 +269,7 @@ export const LocationRow = (
         );
         if (response.ok) {
             showNotification({
-                message: "Location changed",
+                message: "Location updated",
                 color: "green",
                 title: "Success",
             });
@@ -278,7 +278,7 @@ export const LocationRow = (
         }
 
         showNotification({
-            message: "Failed to change the location",
+            message: "Failed to update the location",
             color: "red",
             title: "Error",
         });

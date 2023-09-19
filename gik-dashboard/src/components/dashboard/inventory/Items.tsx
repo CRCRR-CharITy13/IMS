@@ -63,20 +63,46 @@ export const ItemRow = (
         });
     };
 
-//    const addSize = async (size: string, quantity: number) => {
-
-    const addSize = async (size: string, quantity: number) => {
+    const editItem = async(name: string, sku: string, price: number, size: string, quantity: number) => {
+        if(name == ""){
+            name = item.name;
+        }
+        if(sku == ""){
+            sku = item.sku;
+        }
+        if(price == -1){
+            price = item.price;
+        }
+        if(size == ""){
+            size = item.size;
+        }
+        if(quantity == -1){
+            quantity = item.quantity;
+        }
+        const id = item.ID.toString();
+        const stock_total = quantity;
+        console.log("Run edit item id = %d, with name = %s, sku = %s, price = %d, size = %s, quantity = %d", item.ID, name, sku, price, size, quantity);
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.ID}&size=${size}&quantity=${quantity}`,
+            `${process.env.REACT_APP_API_URL}/items/update`,
             {
-                method: "PUT",
                 credentials: "include",
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id,
+                    name,
+                    sku,
+                    price,
+                    size,
+                    stock_total,
+                }),
             }
         );
-
         if (response.ok) {
             showNotification({
-                message: "Size added",
+                message: "Itemu updated",
                 color: "green",
                 title: "Success",
             });
@@ -85,11 +111,11 @@ export const ItemRow = (
         }
 
         showNotification({
-            message: "Failed to add size",
+            message: "Failed to update the location",
             color: "red",
             title: "Error",
         });
-    };
+    }
 
     const [showConfirmationModal, setShowConfirmationModal] =
         useState<boolean>(false);
@@ -135,7 +161,7 @@ export const ItemRow = (
                     </Group>
                 </td>
             </tr>
-            <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={addSize}/>
+            <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={editItem}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
         </>
     );
@@ -209,14 +235,14 @@ export const EditItemModal = (
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
-        command: (size: string, quantity: number)=>void;
+        command: (name: string, sku: string, price: number, size: string, quantity: number)=>void;
     }) => {
 
     const [name, setName] = useState('');
     const [sku, setSku] = useState('');
-    const [price, setPrice] = useState(0);
+    const [price, setPrice] = useState(-1);
     const [size, setSize] = useState('');
-    const [quantity, setQuantity] = useState(0);
+    const [quantity, setQuantity] = useState(-1);
 
 
     return (
@@ -231,14 +257,14 @@ export const EditItemModal = (
                 <TextInput
                     required
                     label={"Name"}
-                    placeholder="The Name of the Item"
+                    placeholder="Left blank to use the curent name"
                     onChange={(e) => setSize(e.target.value)}
                 />
                 <Space h="md" />
                 <TextInput
                     required
                     label={"SKU"}
-                    placeholder="XXXXXXXXX"
+                    placeholder="Left blank to use the curent SKU"
                     onChange={(e) =>
                         setQuantity(Number(e.target.value))
                     }
@@ -246,7 +272,7 @@ export const EditItemModal = (
                 <TextInput
                     label="Price"
                     required
-                    placeholder="10"
+                    placeholder="Left blank to use the curent price"
                     type="number"
                     onChange={(e) =>
                         setPrice(Number(e.target.value))
@@ -255,14 +281,14 @@ export const EditItemModal = (
                 <TextInput
                     required
                     label={"Size"}
-                    placeholder="10/XL"
+                    placeholder="Left blank to use the curent size"
                     onChange={(e) => setSize(e.target.value)}
                 />
                 <Space h="md" />
                 <TextInput
                     required
                     label={"Quantity"}
-                    placeholder="10"
+                    placeholder="Left blank to use the curent quantity"
                     type="number"
                     onChange={(e) =>
                         setQuantity(Number(e.target.value))
@@ -270,7 +296,7 @@ export const EditItemModal = (
                 />
                 <Space h="md" />
                 <Group position={"right"}>
-                    <Button color="green" onClick={() => {command(size, quantity); setOpened(false);}}>Confirm</Button>
+                    <Button color="green" onClick={() => {command(name, sku, price, size, quantity); setOpened(false);}}>Confirm</Button>
                 </Group>
             </Modal>
         </>

@@ -178,7 +178,7 @@ func ListItem(c *gin.Context) {
 // 3. Update Items
 
 type updateItemRequest struct {
-	ID         string  `json:"id"`
+	ID         string  `json:"id" binding:"required"`
 	SKU        string  `json:"sku" binding:"required"`
 	Name       string  `json:"name" binding:"required"`
 	Size       string  `json:"size" binding:"required"`
