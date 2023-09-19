@@ -206,7 +206,7 @@ func UpdateItem(c *gin.Context) {
 	}
 
 	item := type_news.Item{}
-	if err := database.Database.Model(&types.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
+	if err := database.Database.Model(&type_news.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid item ID",

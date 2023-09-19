@@ -237,8 +237,8 @@ func AddItemToLocation(c *gin.Context) {
 
 // 5. List items within location
 type ListItemInLocationResponse struct {
-	ItemName string `json:"item-name" binding: "required"`
-	Stock    int    `json: "stock" binding : "required"`
+	ItemName string `json:"item_name" binding:"required"`
+	Stock    int    `json:"stock" binding:"required"`
 }
 
 func ListItemInLocation(c *gin.Context) {
@@ -266,21 +266,21 @@ func ListItemInLocation(c *gin.Context) {
 		}
 		fmt.Printf("item id: %s : %d\n", item.Name, warehouse.Stock)
 	}
-	// jsonReturn, err := json.MarshalIndent(itemsInLocation, "", " ")
-	// if err != nil {
-	// 	fmt.Println("Cannot convert the result to json")
-	// }
-	//fmt.Println(string(jsonReturn))
+
 	c.JSON(200, gin.H{
 		"success": true,
 		"data":    itemsInLocation,
 	})
 }
 
-//
+type updateLocationRequest struct {
+	ID          string `json:"id"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
+}
 
 func UpdateLocation(c *gin.Context) {
-	json := type_news.Location{}
+	json := updateLocationRequest{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -289,15 +289,51 @@ func UpdateLocation(c *gin.Context) {
 		return
 	}
 
-	// database.Database.Model(&location{}).Where("name = ?", json.Name).Update("sku", json.SKU)
+	jsonIdInt, err := strconv.Atoi(json.ID)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid ID",
+		})
+		return
+	}
+
+	location := type_news.Location{}
+	if err := database.Database.Model(&type_news.Location{}).Where("ID = ?", jsonIdInt).First(&location).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid location ID",
+		})
+		return
+	}
+
+	///////////
+	if json.Name != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid name",
+		})
+		return
+	}
+	location.Name = json.Name
+
+	if json.Description != "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid description",
+		})
+		return
+	}
+	location.Description = json.Description
+
+	database.Database.Save(location)
 
 	c.JSON(200, gin.H{
 		"success": true,
-		"message": "Updated location",
+		"message": "Location successfully updated",
 	})
 
-	utils.CreateSimpleLog(c, "Updated location "+json.Name)
-
+	utils.CreateSimpleLog(c, fmt.Sprintf("Updated location id: %d with name: %s and description: ", location.ID, location.Name, location.Description))
 }
 
 func AddSubLocation(c *gin.Context) {

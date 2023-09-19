@@ -7,5 +7,5 @@ export interface Location {
 
 export interface Item_Location {
     item_name : string;
-    Stock : number;
+    stock : number;
 }

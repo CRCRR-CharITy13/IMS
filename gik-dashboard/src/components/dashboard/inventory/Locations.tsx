@@ -34,19 +34,17 @@ export const EditLocationModal = (
     {
         opened,
         setOpened,
-        // command,
+        command,
 
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
-        //command: (location : Location)=>void;
+        command: (name : string, description : string)=>void;
     }) => {
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [locationInstance, setLocationInstance] = useState();
     
-
     return (
         <>
             <Modal
@@ -72,9 +70,9 @@ export const EditLocationModal = (
                 />
 
                 <Space h="md" />
-                {/* <Group position={"right"}>
-                    <Button color="green" onClick={() => {command(location); setOpened(false);}}>Confirm</Button>
-                </Group> */}
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(name, description); setOpened(false);}}>Confirm</Button>
+                </Group>
             </Modal>
         </>
     );
@@ -140,13 +138,6 @@ export const LocationRow = (
     }
 ) => {
     const addItemToLocation = async (itemSKU: string, quantity: number) => {
-        // const response = await fetch(
-        //     `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.ID}&size=${size}&quantity=${quantity}`,
-        //     {
-        //         method: "PUT",
-        //         credentials: "include",
-        //     }
-        // );
         const locationID = location.ID
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/add-item-to-location`,
@@ -182,6 +173,7 @@ export const LocationRow = (
         });
     };
     const handleLocationDetailClick = async() => {
+
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/list-item-in-location?id=${location.ID}`,
             {
@@ -192,13 +184,37 @@ export const LocationRow = (
 
         const data: {
             success: boolean;
-            message: string;
-            data: {
-                data: Item_Location[];
-            };
+            data: Item_Location[];
         } = await response.json();
-        alert(data);
-        console.log(data);
+        
+        
+        console.log(data.data);
+        let itemLocationMessage = "";
+        itemLocationMessage = itemLocationMessage + "List of items in " + location.name + "\n";
+        itemLocationMessage += "----------\n";
+        let idx = 0;
+        for (idx=0; idx<data.data.length; idx++){
+            itemLocationMessage = itemLocationMessage + (idx+1) + "." + data.data[idx].item_name + ": " +  data.data[idx].stock + "\n";
+        }
+        alert(itemLocationMessage);
+        return (
+                <Table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.data?.map((item_location) => (
+                        <p>
+                            <span>{item_location.item_name}</span>
+                            <span>{item_location.stock}</span>
+                        </p>
+                    ))}
+                </tbody>
+            </Table>
+        )
 
     }
     const doDelete = async () => {
@@ -227,9 +243,32 @@ export const LocationRow = (
         });
     };
 
-    const editLocation = async(location : Location) => {
-        console.log("Run edit location id = %d", location.ID);
+    const editLocation = async(name: string, description : string) => {
+        if(name == ""){
+            name = location.name;
+        }
+        if(description == ""){
+            description = location.description;
+        }
+        const locationID = location.ID;
+        console.log("Run edit location id = %d, with name = %s, description = %s", location.ID, name, description);
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/update`,
+            {
+                credentials: "include",
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    locationID,
+                    name,
+                    description,
+                }),
+            }
+        );
     }
+
     const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
     const [editLocationModal, setEditLocationModal] = useState<boolean>(false);
     const [addItemToLocationModal, setAddItemToLocationModal] = useState<boolean>(false);
@@ -239,16 +278,9 @@ export const LocationRow = (
                 <td>{location.name || "None"}</td>
                 <td>{location.description || "None"}</td>
                 <td>
-                        <Button onClick = {handleLocationDetailClick}>
+                    <Button onClick = {handleLocationDetailClick}>
                         {location.total_item || 0}
                     </Button>
-                    {/* <Button onClick = {() => {
-                            const message = 'Detail of ' + location.name;
-                            alert(message)
-                            }
-                        }>
-                        {location.total_item || 0}
-                    </Button> */}
                 </td>
                 <td>
                     <Group>
@@ -294,7 +326,7 @@ export const LocationRow = (
                     </Group>
                 </td>
             </tr>
-            <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} />
+            <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} command={editLocation}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Location beyond recovery."}/>
             <AddItemToLocationModal opened={addItemToLocationModal} setOpened={setAddItemToLocationModal} command={addItemToLocation}/>
         </>
