@@ -21,31 +21,30 @@ import { containerStyles } from "../../styles/container";
 
 const exampleData = [
     {
-        id: 1,
+        id: "1",
         date: "2022-07-04",
         user: "amy",
         action: "Added 10 credits to joe",
     },
     {
-        id: 2,
+        id: "2",
         date: "2022-07-04",
         user: "joe",
         action: "Added 1,000,000 credits to joe",
     },
     {
-        id: 3,
+        id: "3",
         date: "2022-07-04",
         user: "amy",
         action: "Subtracted 1,000,000 credits from joe",
     },
     {
-        id: 4,
+        id: "4",
         date: "2022-07-04",
         user: "amy",
         action: "Deleted the entire database",
     },
 ];
-
 const AdvancedLogs = ({
     actionFilter,
     dateFilter,
@@ -108,57 +107,75 @@ const AdvancedLogs = ({
         getData();
     }, [actionFilter, dateFilter, userFilter]);
 
+    const advancedLogItems = data.map((log) => (
+        <Accordion.Item key={log.ID} value={log.ID.toString()}>
+            <Accordion.Control>{log.timestamp}</Accordion.Control>
+            <Accordion.Panel>{log.method}</Accordion.Panel>
+        </Accordion.Item>
+    ));
+
+    // // 
+    // const advancedLogItems = exampleData.map((log) => (
+    //     <Accordion.Item key={log.id} value = {log.id}>
+    //         <Accordion.Control>{log.id}</Accordion.Control>
+    //         <Accordion.Panel>{log.action}</Accordion.Panel>
+    //     </Accordion.Item>
+    // ));
+    console.log(advancedLogItems);
     return (
-        <>
-            <Accordion multiple>
-                {data.map((log) => (
-                    <Accordion.Item value={`${log.path}`}>
-                        {Object.entries(log).map((entry) => {
-                            const key = entry[0];
-                            const value = entry[1];
+        <Accordion>
+            {advancedLogItems}
+        </Accordion>
+        // <>
+        //     <Accordion multiple>
+        //         {data.map((log) => (
+        //             <Accordion.Item value={`${log.path}`}>
+        //                 {Object.entries(log).map((entry) => {
+        //                     const key = entry[0];
+        //                     const value = entry[1];
 
-                            const excludedKeys = [
-                                "CreatedAt",
-                                "UpdatedAt",
-                                "DeletedAt",
-                            ];
+        //                     const excludedKeys = [
+        //                         "CreatedAt",
+        //                         "UpdatedAt",
+        //                         "DeletedAt",
+        //                     ];
 
-                            if (excludedKeys.includes(key)) return;
+        //                     if (excludedKeys.includes(key)) return;
 
-                            return (
-                                <>
-                                    <div className={styles.log}>
-                                        <p>
-                                            <b>{key}</b>:{" "}
-                                            {key === "timestamp" ? (
-                                                <span>
-                                                    {new Date(
-                                                        value * 1000
-                                                    ).toLocaleString()}
-                                                </span>
-                                            ) : (
-                                                <span>{value}</span>
-                                            )}
-                                        </p>
-                                    </div>
-                                </>
-                            );
-                        })}
-                    </Accordion.Item>
-                ))}
-            </Accordion>
-            <Center
-                sx={{
-                    marginTop: "1rem",
-                }}
-            >
-                <Pagination
-                    value={currentPage}
-                    onChange={setCurrentPage}
-                    total={totalPages}
-                />
-            </Center>
-        </>
+        //                     return (
+        //                         <>
+        //                             <div className={styles.log}>
+        //                                 <p>
+        //                                     <b>{key}</b>:{" "}
+        //                                     {key === "timestamp" ? (
+        //                                         <span>
+        //                                             {new Date(
+        //                                                 value * 1000
+        //                                             ).toLocaleString()}
+        //                                         </span>
+        //                                     ) : (
+        //                                         <span>{value}</span>
+        //                                     )}
+        //                                 </p>
+        //                             </div>
+        //                         </>
+        //                     );
+        //                 })}
+        //             </Accordion.Item>
+        //         ))}
+        //     </Accordion>
+        //     <Center
+        //         sx={{
+        //             marginTop: "1rem",
+        //         }}
+        //     >
+        //         <Pagination
+        //             value={currentPage}
+        //             onChange={setCurrentPage}
+        //             total={totalPages}
+        //         />
+        //     </Center>
+        // </>
     );
 };
 
@@ -383,19 +400,6 @@ const AuditLog = () => {
                             Filter
                         </Button>
                     </Center>
-                    {/* <Table>
-                        {" "}
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Date</th>
-                                <th>User</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>{rows}</tbody>
-                    </Table> */}
-                    {/* <Accordion> */}
                     {viewMode === "smp" ? (
                         <SimpleLogs
                             actionFilter={actionFilter}
@@ -411,7 +415,6 @@ const AuditLog = () => {
                             userFilter={userFilter}
                         />
                     )}
-                    {/* </Accordion> */}
                 </Box>
             </div>
         </>
