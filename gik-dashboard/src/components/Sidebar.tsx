@@ -79,7 +79,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
   const data = [
-    { needsAdmin: false, label: 'Location', icon: BuildingBank, route: 'Location' },
+    // { needsAdmin: false, label: 'Location', icon: BuildingBank, route: 'Location' },
     { needsAdmin: false, label: 'Analytics', icon: ReportAnalytics, route: 'Analytics' },
     //{ needsAdmin: false, label: 'Scanner', icon: Qrcode, route: 'Scanner' },
     { needsAdmin: false, label: 'Transaction', icon: ArrowsRightLeft, route: 'Transaction' },

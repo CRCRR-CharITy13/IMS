@@ -69,9 +69,9 @@ const Dashboard = () => {
         let requiredPane: JSX.Element = <></>;
 
         switch (handle) {
-            case "location":
-                requiredPane = <LocationsManager />;
-                break;
+            // case "location":
+            //     requiredPane = <LocationsManager />;
+            //     break;
             case "analytics":
                 requiredPane = <Analytics />;
                 break;

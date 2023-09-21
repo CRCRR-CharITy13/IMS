@@ -3,7 +3,6 @@ package location
 import (
 	"GIK_Web/database"
 	"GIK_Web/type_news"
-	"GIK_Web/types"
 	"GIK_Web/utils"
 	"fmt"
 	"math"
@@ -18,8 +17,8 @@ import (
 // To add a new, empty location to the list
 
 type addRequest struct {
-	Name        string `json:"name" binding: "required"`
-	Description string `json:"description" binding: "required`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
 }
 
 func AddLocation(c *gin.Context) {
@@ -159,6 +158,17 @@ func DeleteLocation(c *gin.Context) {
 
 	location := type_news.Location{}
 
+	if err := database.Database.Model(&type_news.Location{}).Where("id = ?", idInt).First(&location).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid Location",
+		})
+		return
+	}
+
+	locationName := location.Name
+	locationDescription := location.Description
+
 	err = database.Database.Model(&location).Where("id = ?", idInt).Delete(&location).Error
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -168,24 +178,14 @@ func DeleteLocation(c *gin.Context) {
 		return
 	}
 
-	// err = database.Database.Delete(&location).Error
-	// if err != nil {
-	// 	c.JSON(400, gin.H{
-	// 		"success": false,
-	// 		"message": "Unable to delete location",
-	// 	})
-	// 	return
-	// }
-
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "Location deleted",
 	})
-	utils.CreateSimpleLog(c, "Deleted location "+id)
+	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted location, ID = %d, Name =  %s, Description = %s", idInt, locationName, locationDescription))
 }
 
 type addItemToLocationRequest struct {
-	//ItemID     uint `json:"item-id" binding: "required"`
 	ItemSKU    string `json:"itemSKU" binding:"required"`
 	LocationID uint   `json:"locationID" binding:"required"`
 	Stock      int    `json:"quantity" binding:"required"`
@@ -206,9 +206,6 @@ func AddItemToLocation(c *gin.Context) {
 	var item type_news.Item
 
 	database.Database.First(&item, "sku=?", json.ItemSKU)
-
-	// locationIDInt, _ := strconv.Atoi(json.LocationID)
-	// stockInt, _ := strconv.Atoi(json.Stock)
 
 	newWarehouse := type_news.Warehouse{
 		ItemID:     item.ID,
@@ -333,142 +330,5 @@ func UpdateLocation(c *gin.Context) {
 		"message": "Location successfully updated",
 	})
 
-	utils.CreateSimpleLog(c, fmt.Sprintf("Updated location id: %d with name: %s and description: ", location.ID, location.Name, location.Description))
-}
-
-func AddSubLocation(c *gin.Context) {
-
-	name := c.Query("name")
-
-	data := types.Location{}
-
-	database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).First(&data)
-
-	var count int64
-
-	database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).Count(&count)
-
-	var letter string
-
-	LETTERS := [...]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
-
-	if count == 0 {
-		letter = ""
-	} else if count == 1 {
-		database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).Update("letter", "A")
-		letter = "B"
-	} else {
-		letter = LETTERS[count+1]
-	}
-
-	data.Letter = letter
-
-	err := database.Database.Create(&data).Error
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Unable to create location",
-		})
-		return
-	}
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"message": "Location created",
-	})
-
-	utils.CreateSimpleLog(c, "Added location "+name)
-}
-
-// func LookupLocation(c *gin.Context) {
-// 	// product id
-// 	// name := c.Query("name")
-// 	// letter := c.Query("letter")
-
-// 	//could remove check and use function also for list
-
-// 	// if name == "" && letter == "" && itemID == 0 {
-// 	// 	c.JSON(400, gin.H{
-// 	// 		"success": false,
-// 	// 		"message": "No fields provided",
-// 	// 	})
-// 	// 	return
-// 	// }
-
-// 	// var postData []location
-// 	// database.Database.Model(&location{}).Where(&location{Name: name, Letter: letter}).Scan(&postData)
-
-// 	// response := []lookupData{}
-
-// 	// for _, location := range postData {
-// 	// 	var item types.Item
-// 	// 	err := database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).Scan(&item).Error
-
-// 	// 	if err != nil {
-// 	// 		continue
-// 	// 	}
-
-// 	// 	response = append(response, lookupData{
-// 	// 		location: location,
-// 	// 		Item:     item,
-// 	// 	})
-
-// 	// }
-
-// 	c.JSON(200, gin.H{
-// 		"success": true,
-// 		"data":    response,
-// 	})
-
-// }
-
-func GetScannedData(c *gin.Context) {
-	name := c.Query("name")
-	letter := c.Query("letter")
-
-	var product types.Item
-
-	location := types.Location{}
-	if err := database.Database.Model(&types.Location{}).Where(&types.Location{Name: name, Letter: letter}).Scan(&location).Error; err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Unable to query location",
-			"data":    gin.H{},
-		})
-		return
-	}
-
-	var item types.Item
-	if err := database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).First(&item).Error; err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Unable to find item",
-			"error":   err.Error(),
-			"data":    gin.H{},
-		})
-		return
-	}
-
-	product = item
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"data":    product,
-	})
-
-	utils.CreateSimpleLog(c, "Scanned location "+name+" "+letter)
-
-}
-
-func ListLocationSKU(c *gin.Context) {
-
-	name := c.Query("name")
-	letter := c.Query("letter")
-
-	var sku string
-
-	database.Database.Model(&types.Location{}).Where("name = ?", name).Where("letter = ?", letter).Distinct("sku").Pluck("sku", &sku)
-
-	c.JSON(200, gin.H{"success": true, "sku": sku})
-
+	utils.CreateSimpleLog(c, fmt.Sprintf("Updated location id: %d with name: %s and description: %s", location.ID, location.Name, location.Description))
 }
