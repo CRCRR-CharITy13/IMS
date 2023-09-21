@@ -308,7 +308,7 @@ func DeleteItem(c *gin.Context) {
 		return
 	}
 
-	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted Item, ID = %d, SKU = %s, Name = %s", ID, itemSKU, itemName))
+	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted Item, id: %d, SKU: %s, Name: %s", ID, itemSKU, itemName))
 
 	c.JSON(200, gin.H{
 		"success": true,

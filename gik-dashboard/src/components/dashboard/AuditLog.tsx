@@ -11,6 +11,7 @@ import {
     LoadingOverlay,
     TextInput,
 } from "@mantine/core";
+import { Tags } from "tabler-icons-react";
 
 import { DatePickerInput } from "@mantine/dates";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -19,32 +20,18 @@ import { AdvancedLog } from "../../types/logs";
 import styles from "../../styles/AuditLog.module.scss";
 import { containerStyles } from "../../styles/container";
 
-const exampleData = [
-    {
-        id: "1",
-        date: "2022-07-04",
-        user: "amy",
-        action: "Added 10 credits to joe",
-    },
-    {
-        id: "2",
-        date: "2022-07-04",
-        user: "joe",
-        action: "Added 1,000,000 credits to joe",
-    },
-    {
-        id: "3",
-        date: "2022-07-04",
-        user: "amy",
-        action: "Subtracted 1,000,000 credits from joe",
-    },
-    {
-        id: "4",
-        date: "2022-07-04",
-        user: "amy",
-        action: "Deleted the entire database",
-    },
-];
+interface DisplayAdvanceLog {
+    ID: number;
+    control: string;
+    ipAddress: string;
+    userAgent: string;
+    method: string;
+    path: string;
+    userId: string;
+    timestamp: string;
+    action: string;
+}
+
 const AdvancedLogs = ({
     actionFilter,
     dateFilter,
@@ -107,75 +94,74 @@ const AdvancedLogs = ({
         getData();
     }, [actionFilter, dateFilter, userFilter]);
 
-    const advancedLogItems = data.map((log) => (
+    const displayAdvanceLogs : DisplayAdvanceLog[] = [];
+    for(let idx = 0; idx<data.length; idx++){
+        const strUserId = "User id: " + data[idx].userId.toString();
+        const strIpAddress = "IpAddress: " + data[idx].ipAddress;
+        const strUserAgent = "User Agent: " + data[idx].userAgent;
+        const strMethod = "Method: " + data[idx].method;
+        const strPath = "Path: " + data[idx].path;
+        const strTimeStamp = "Time: " + new Date(data[idx].timestamp * 1000).toLocaleString();
+        const strAction = "Action: " + data[idx].action;
+        //
+        let controlStr = "Log ID: ";
+        controlStr += data[idx].ID.toString();
+        controlStr = controlStr + "; " + strUserId;
+        controlStr = controlStr + "; " + strTimeStamp;
+        const newDisplayAdvanceLog : DisplayAdvanceLog = {
+            ID : data[idx].ID,
+            control : controlStr,
+            ipAddress : strIpAddress,
+            userAgent : strUserAgent,
+            method : strMethod,
+            path : strPath,
+            userId : strUserId,
+            timestamp : strTimeStamp,
+            action : strAction,
+        }
+        displayAdvanceLogs.push(newDisplayAdvanceLog);
+    }
+
+    console.log(displayAdvanceLogs)
+
+    const advancedLogItems = displayAdvanceLogs.map((log) => (
         <Accordion.Item key={log.ID} value={log.ID.toString()}>
-            <Accordion.Control>{log.timestamp}</Accordion.Control>
+            <Accordion.Control 
+            icon={
+                <Tags
+                  style={{ color: 'var(--mantine-color-red-filled'}}
+                />
+              }>
+                {log.control}</Accordion.Control>
+            <Accordion.Panel>{log.userId}</Accordion.Panel>
+            <Accordion.Panel>{log.ipAddress}</Accordion.Panel>
+            <Accordion.Panel>{log.userAgent}</Accordion.Panel>
             <Accordion.Panel>{log.method}</Accordion.Panel>
+            <Accordion.Panel>{log.path}</Accordion.Panel>
+            <Accordion.Panel>{log.timestamp}</Accordion.Panel>
+            <Accordion.Panel>{log.action}</Accordion.Panel>
         </Accordion.Item>
     ));
 
-    // // 
-    // const advancedLogItems = exampleData.map((log) => (
-    //     <Accordion.Item key={log.id} value = {log.id}>
-    //         <Accordion.Control>{log.id}</Accordion.Control>
-    //         <Accordion.Panel>{log.action}</Accordion.Panel>
-    //     </Accordion.Item>
-    // ));
-    console.log(advancedLogItems);
+
     return (
-        <Accordion>
+        <>
+        <Accordion multiple>
             {advancedLogItems}
         </Accordion>
-        // <>
-        //     <Accordion multiple>
-        //         {data.map((log) => (
-        //             <Accordion.Item value={`${log.path}`}>
-        //                 {Object.entries(log).map((entry) => {
-        //                     const key = entry[0];
-        //                     const value = entry[1];
-
-        //                     const excludedKeys = [
-        //                         "CreatedAt",
-        //                         "UpdatedAt",
-        //                         "DeletedAt",
-        //                     ];
-
-        //                     if (excludedKeys.includes(key)) return;
-
-        //                     return (
-        //                         <>
-        //                             <div className={styles.log}>
-        //                                 <p>
-        //                                     <b>{key}</b>:{" "}
-        //                                     {key === "timestamp" ? (
-        //                                         <span>
-        //                                             {new Date(
-        //                                                 value * 1000
-        //                                             ).toLocaleString()}
-        //                                         </span>
-        //                                     ) : (
-        //                                         <span>{value}</span>
-        //                                     )}
-        //                                 </p>
-        //                             </div>
-        //                         </>
-        //                     );
-        //                 })}
-        //             </Accordion.Item>
-        //         ))}
-        //     </Accordion>
-        //     <Center
-        //         sx={{
-        //             marginTop: "1rem",
-        //         }}
-        //     >
-        //         <Pagination
-        //             value={currentPage}
-        //             onChange={setCurrentPage}
-        //             total={totalPages}
-        //         />
-        //     </Center>
-        // </>
+        
+            <Center
+                sx={{
+                    marginTop: "1rem",
+                }}
+            >
+            <Pagination
+                value={currentPage}
+                onChange={setCurrentPage}
+                total={totalPages}
+            />
+            </Center>
+        </>
     );
 };
 

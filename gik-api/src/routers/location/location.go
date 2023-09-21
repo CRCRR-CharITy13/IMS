@@ -182,7 +182,7 @@ func DeleteLocation(c *gin.Context) {
 		"success": true,
 		"message": "Location deleted",
 	})
-	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted location, ID = %d, Name =  %s, Description = %s", idInt, locationName, locationDescription))
+	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted location, id: %d, Name:  %s, Description: %s", idInt, locationName, locationDescription))
 }
 
 type addItemToLocationRequest struct {
