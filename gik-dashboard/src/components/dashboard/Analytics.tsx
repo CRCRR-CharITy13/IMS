@@ -95,17 +95,6 @@ const options = {
     },
 };
 
-// const data = {
-//     label: [],
-//     datasets: [
-//         {
-//             label: "",
-//             data: [],
-//             borderColor: "rgb(255, 99, 132)",
-//             backgroundColor: "rgba(255, 99, 132, 0.5)",
-//         },
-//     ],
-// };
 
 const TrendingItems = () => {
     const [items, setItems] = useState<Item[]>([]);
@@ -379,9 +368,10 @@ const Analytics = () => {
     }, []);
 
     const init = async () => {
-        await fetchDataImport();
-        await fetchDataExport();
-        await fetchDataTotalStock();
+        // Temporary commented by tuan on 22 Sept 2023, to avoid querying transaction
+        // await fetchDataImport();
+        // await fetchDataExport();
+        // await fetchDataTotalStock();
     };
 
     const fetchDataImport = async () => {
@@ -397,6 +387,7 @@ const Analytics = () => {
             data: [];
         } = await responseImport.json();
 
+        
         if (data.success) {
             setImportData(data.data);
 
@@ -578,7 +569,9 @@ const Analytics = () => {
                         )}
                     </Skeleton>
                 </Box>
-                <AttentionRequired />
+                {/* TODO: Change attention required
+                <AttentionRequired /> 
+                */}
                 <RecentActivity />
             </Box>
         </>

@@ -6,7 +6,7 @@ package middleware
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/types"
+	"GIK_Web/type_news"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +18,7 @@ func AdvancedLoggingMiddleware() gin.HandlerFunc {
 		user := c.MustGet("userId").(uint)
 
 		// Create an Advanced Log entry
-		newLog := types.AdvancedLog{
+		newLog := type_news.AdvancedLog{
 			IPAddress: c.ClientIP(),
 			UserAgent: c.Request.UserAgent(),
 			Method:    c.Request.Method,

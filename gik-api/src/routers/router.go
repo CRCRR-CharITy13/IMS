@@ -152,7 +152,9 @@ func InitRouter() *gin.Engine {
 	logsApi := r.Group("/logs")
 	{
 		logsApi.Use(middleware.AuthMiddleware())
-		logsApi.Use(middleware.AdvancedLoggingMiddleware())
+		// Temporary commented by tuan on Sept 23 to avoid creating too many logs
+		// during the audit logs display
+		// logsApi.Use(middleware.AdvancedLoggingMiddleware())
 		logsApi.GET("/advanced", logs.GetAdvancedLogs)
 		logsApi.GET("/simple", logs.GetSimpleLogs)
 	}

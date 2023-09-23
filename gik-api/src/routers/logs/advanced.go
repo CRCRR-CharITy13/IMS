@@ -77,9 +77,7 @@ func GetAdvancedLogs(c *gin.Context) {
 	}
 
 	if userFilter != "" {
-		baseQuery = baseQuery.Where(&type_news.AdvancedLog{
-			UserID: uint(userFilterInt),
-		})
+		baseQuery = baseQuery.Where("user_id = ?", userFilterInt)
 	}
 
 	baseQuery = baseQuery.Order("timestamp desc")

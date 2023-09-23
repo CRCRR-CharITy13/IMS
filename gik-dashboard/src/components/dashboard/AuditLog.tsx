@@ -29,7 +29,6 @@ interface DisplayAdvanceLog {
     path: string;
     userId: string;
     timestamp: string;
-    action: string;
 }
 
 const AdvancedLogs = ({
@@ -48,6 +47,8 @@ const AdvancedLogs = ({
     const [currentPage, setCurrentPage] = useState<number>(1);
 
     const [totalPages, setTotalPages] = useState<number>(1);
+    const [username, setUsername] = useState<string>("");
+
 
     const getData = async () => {
         setVisible(true);
@@ -94,20 +95,40 @@ const AdvancedLogs = ({
         getData();
     }, [actionFilter, dateFilter, userFilter]);
 
+    const getUsername = async (userId : number) => {
+        
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/info/username?id=${userId}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: string;
+        } = await response.json();
+
+        if (data.success) {
+            setUsername(data.data);
+        }
+    };
+
     const displayAdvanceLogs : DisplayAdvanceLog[] = [];
     for(let idx = 0; idx<data.length; idx++){
-        const strUserId = "User id: " + data[idx].userId.toString();
+        getUsername(data[idx].userId);
+        const strUserId = "User name: " + username; //.toString();
         const strIpAddress = "IpAddress: " + data[idx].ipAddress;
         const strUserAgent = "User Agent: " + data[idx].userAgent;
         const strMethod = "Method: " + data[idx].method;
         const strPath = "Path: " + data[idx].path;
         const strTimeStamp = "Time: " + new Date(data[idx].timestamp * 1000).toLocaleString();
-        const strAction = "Action: " + data[idx].action;
         //
         let controlStr = "Log ID: ";
         controlStr += data[idx].ID.toString();
         controlStr = controlStr + "; " + strUserId;
         controlStr = controlStr + "; " + strTimeStamp;
+        controlStr = controlStr + "; " + strPath;
         const newDisplayAdvanceLog : DisplayAdvanceLog = {
             ID : data[idx].ID,
             control : controlStr,
@@ -117,7 +138,6 @@ const AdvancedLogs = ({
             path : strPath,
             userId : strUserId,
             timestamp : strTimeStamp,
-            action : strAction,
         }
         displayAdvanceLogs.push(newDisplayAdvanceLog);
     }
@@ -139,7 +159,6 @@ const AdvancedLogs = ({
             <Accordion.Panel>{log.method}</Accordion.Panel>
             <Accordion.Panel>{log.path}</Accordion.Panel>
             <Accordion.Panel>{log.timestamp}</Accordion.Panel>
-            <Accordion.Panel>{log.action}</Accordion.Panel>
         </Accordion.Item>
     ));
 
@@ -316,7 +335,7 @@ const AuditLog = () => {
 
     const [visible, setVisible] = useState<boolean>(false);
 
-    const doFilter = async () => {
+    const doFilter = async () => { 
         setActionFilter(actionFilterEditing);
         setDateFilter(dateFilterEditing);
         setUserFilter(userFilterEditing);
@@ -333,11 +352,8 @@ const AuditLog = () => {
                 >
                     <SegmentedControl
                         data={[
-                            { label: "Simple", value: "smp" },
-                            {
-                                label: "Advanced",
-                                value: "adv",
-                            },
+                                { label: "Simple", value: "smp" },
+                                { label: "Advanced", value: "adv" },
                         ]}
                         sx={{
                             marginBottom: "1rem",
