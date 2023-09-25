@@ -58,7 +58,8 @@ func InitRouter() *gin.Engine {
 		analyticsApi.Use(middleware.AdvancedLoggingMiddleware())
 		analyticsApi.GET("/transaction", analytics.GraphTransactions)
 		analyticsApi.GET("/transaction/total", analytics.GraphTotalTransactions)
-		analyticsApi.GET("/attention", analytics.AttentionRequired)
+		analyticsApi.GET("/attention-item", analytics.AttentionRequiredItem)
+		analyticsApi.GET("/attention-location", analytics.AttentionRequiredLocation)
 		analyticsApi.GET("/activity", analytics.GetRecentActivity)
 		analyticsApi.GET("/trending", analytics.GetTrendingItems)
 	}

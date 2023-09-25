@@ -1,86 +1,103 @@
 package analytics
 
 import (
+	"GIK_Web/type_news"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
+
+	"GIK_Web/database"
 )
 
-func AttentionRequired(c *gin.Context) {
+type AttentionItem struct {
+	ID      int    `json:"ID" binding:"required"`
+	SKU     string `json:"sku" binding:"required"`
+	Name    string `json:"name" binding:"required"`
+	Size    string `json:"size" binding:"required"`
+	Message string `json:"message" binding:"required"`
+}
+
+func AttentionRequiredItem(c *gin.Context) {
+	// get all the items
+	items := []type_news.Item{}
+	baseQuery := database.Database.Model(&type_news.Item{})
+	baseQuery.Find(&items)
+
+	var attentionItems []AttentionItem
+
+	totalAttention := 0
+	idx := 0
+	for _, item := range items {
+		var tmpItem type_news.Item
+		database.Database.Preload("Warehouses").Where("item_id=?", item.ID).Find(&tmpItem.Warehouses)
+		storedStock := 0
+		for _, warehouse := range tmpItem.Warehouses {
+			storedStock += warehouse.Stock
+		}
+		restStock := item.StockTotal - storedStock
+		var msg string
+		if restStock != 0 {
+			if restStock > 0 {
+				msg = fmt.Sprintf("%d pieces have not stored yet", restStock)
+			} else {
+				msg = fmt.Sprintf("The total pieces stored in locations (%d) is greater than the recored total stock (%d). Verification need!", storedStock, item.StockTotal)
+			}
+			idx++
+			attentionItems = append(attentionItems, AttentionItem{
+				ID:      idx,
+				SKU:     item.SKU,
+				Name:    item.Name,
+				Size:    item.Size,
+				Message: msg,
+			})
+			totalAttention++
+		}
+	}
+
+	c.JSON(200, gin.H{"success": true,
+		"data": gin.H{
+			"data":  attentionItems,
+			"total": totalAttention,
+		}})
 
 }
 
-// type item struct {
-// 	ID            string
-// 	SKU           string  `json:"sku"`
-// 	ProductID     uint    `json:"id"`
-// 	Price         float32 `json:"price"`
-// 	StockQuantity float32 `json:"stockQuantity"`
-// 	Name          string  `json:"name"`
-// 	Category      string  `json:"category"`
-// 	Gender        string  `json:"gender"`
-// 	Season        string  `json:"season"`
-// 	Location      string  `json:"location"`
-// 	Image         []byte  `json:"image"`
-// }
+type AttentionLocation struct {
+	ID          int    `json:"ID" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
+	Message     string `json:"message" binding:"required"`
+}
 
-// type post struct {
-// 	ID       uint    `json:"id"`
-// 	SKU      string  `json:"sku"`
-// 	Name     string  `json:"name"`
-// 	Size     string  `json:"size"`
-// 	Quantity float32 `json:"quantity"`
-// }
+func AttentionRequiredLocation(c *gin.Context) {
+	// get all the locations
+	locations := []type_news.Location{}
+	baseQuery := database.Database.Model(&type_news.Location{})
+	baseQuery.Find(&locations)
 
-// const (
-// 	max = 3
-// )
+	var attentionLocations []AttentionLocation
 
-// func AttentionRequired(c *gin.Context) {
+	totalAttention := 0
+	idx := 0
+	for _, location := range locations {
+		// var tmpItem type_news.Item
+		database.Database.Preload("Warehouses").Where("location_id=?", location.ID).Find(&location.Warehouses)
+		if len(location.Warehouses) == 0 {
+			idx++
+			attentionLocations = append(attentionLocations, AttentionLocation{
+				ID:          idx,
+				Name:        location.Name,
+				Description: location.Description,
+				Message:     "This location is currently empty",
+			})
+			totalAttention++
+		}
+	}
 
-// 	var urgentItems []post
-// 	// database.Database.Raw("SELECT * FROM `AP6_wc_product_meta_lookup` WHERE `stock_quantity` < ?", max).Find(&postData)
+	c.JSON(200, gin.H{"success": true,
+		"data": gin.H{
+			"data":  attentionLocations,
+			"total": totalAttention,
+		}})
 
-// 	limit := 5
-// 	offset := 0
-
-// 	page := c.Query("page")
-
-// 	if page == "" {
-// 		page = "1"
-// 	}
-
-// 	pageInt, err := strconv.Atoi(page)
-// 	if err != nil {
-// 		c.JSON(400, gin.H{
-// 			"success": false,
-// 			"message": "Invalid page number",
-// 		})
-// 		return
-// 	}
-
-// 	offset = (pageInt - 1) * limit
-
-// 	baseQuery := database.Database.Model(&types.Item{}).Where("quantity < ?", max).Where("name is not null").Order("quantity desc").Order("sku desc").Order("size desc")
-
-// 	itemCount := int64(0)
-// 	baseQuery.Count(&itemCount)
-
-// 	totalPages := int(math.Ceil(float64(itemCount) / float64(limit)))
-
-// 	err = baseQuery.Limit(limit).Offset(offset).Find(&urgentItems).Error
-// 	if err != nil {
-// 		c.JSON(500, gin.H{
-// 			"success": false,
-// 			"message": "Unable to get data",
-// 		})
-// 		return
-// 	}
-
-// 	c.JSON(200, gin.H{
-// 		"success": true,
-// 		"data": gin.H{
-// 			"data":       urgentItems,
-// 			"totalPages": totalPages,
-// 		},
-// 	})
-
-// }
+}

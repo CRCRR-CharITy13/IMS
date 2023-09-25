@@ -6,6 +6,8 @@ import {
     Skeleton,
     Table,
     Text,
+    LoadingOverlay,
+    SegmentedControl,
 } from "@mantine/core";
 
 import {
@@ -20,8 +22,10 @@ import {
 } from "chart.js";
 import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
-import { Item } from "../../types/item";
 import { AdvancedLog } from "../../types/logs";
+import { AttentionItem, AttentionLocation } from "../../types/attention";
+import { containerStyles } from "../../styles/container";
+
 
 ChartJS.register(
     CategoryScale,
@@ -33,14 +37,28 @@ ChartJS.register(
     Legend
 );
 
-const ItemRow = ({ item }: { item: Item }) => {
+const AttentionItemRow = ({ attentionItem } : { attentionItem : AttentionItem }) => {
     return (
         <>
-            <tr id={String(item.ID)}>
-                <td>{item.name}</td>
-                <td>{item.sku || "None"}</td>
-                <td>{item.size}</td>
-                <td>{item.quantity}</td>
+            <tr id = {String(attentionItem.ID)}>
+                <td>{attentionItem.ID}</td>
+                <td>{attentionItem.sku}</td>
+                <td>{attentionItem.name}</td>
+                <td>{attentionItem.size}</td>
+                <td>{attentionItem.message}</td>
+            </tr>
+        </>
+    );
+};
+
+const AttentionLocationRow = ({ attentionLocation } : { attentionLocation : AttentionLocation }) => {
+    return (
+        <>
+            <tr id = {String(attentionLocation.ID)}>
+                <td>{attentionLocation.ID}</td>
+                <td>{attentionLocation.name}</td>
+                <td>{attentionLocation.description}</td>
+                <td>{attentionLocation.message}</td>
             </tr>
         </>
     );
@@ -96,94 +114,21 @@ const options = {
 };
 
 
-const TrendingItems = () => {
-    const [items, setItems] = useState<Item[]>([]);
 
-    const getTrendingItems = async () => {
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/analytics/trending`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            data: Item[];
-        } = await response.json();
-
-        if (data.success) {
-            setItems(data.data);
-        }
-    };
-
-    useEffect(() => {
-        getTrendingItems();
-    }, []);
-
-    return (
-        <>
-            {" "}
-            <Box
-                sx={{
-                    width: "25rem",
-                    height: "20rem",
-                    borderRadius: "15px",
-                    boxShadow: ` 5px 5px 10px var(--neumorphism),
-            -5px -5px 10px var(--inverted-text)`,
-                    padding: "1rem",
-                    display: "flex",
-                    flexDirection: "column",
-                    flexGrow: 1,
-                }}
-            >
-                <h2>Trending Items</h2>
-                <Skeleton
-                    height={"90%"}
-                    width={"100%"}
-                    visible={items.length === 0}
-                >
-                    <Table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>SKU</th>
-                                <th>Size</th>
-                                <th>Stock</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items.map((item) => (
-                                <ItemRow key={item.ID} item={item} />
-                            ))}
-                        </tbody>
-                    </Table>
-                </Skeleton>
-            </Box>
-        </>
-    );
-};
-
-const skeletonStyles = {
-    "::before": { background: "var(--inverted-text)" },
-    "::after": { background: "var(--skeleafter)" },
-    overflowY: "scroll",
-};
-
-const AttentionRequired = () => {
-    const [attentionData, setAttentionData] = useState<Item[]>([]);
-    const [attentionLoading, setAttentionLoading] = useState<boolean>(true);
+const AttentionItemRequired = () => {
+    const [attentionItemData, setAttentionItemData] = useState<AttentionItem[]>([]);
+    const [attentionItemLoading, setAttentionItemLoading] = useState<boolean>(true);
 
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
 
     useEffect(() => {
-        fetchDataAttention();
+        fetchDataAttentionItem();
     }, [currentPage]);
 
-    const fetchDataAttention = async () => {
+    const fetchDataAttentionItem = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/analytics/attention?page=${currentPage}`,
+            `${process.env.REACT_APP_API_URL}/analytics/attention-item?page=${currentPage}`,
             {
                 credentials: "include",
             }
@@ -193,63 +138,96 @@ const AttentionRequired = () => {
             success: boolean;
             message: string;
             data: {
-                data: Item[];
+                data: AttentionItem[];
                 totalPages: number;
             };
         } = await response.json();
 
         if (data.success) {
-            setAttentionData(data.data.data);
-
+            setAttentionItemData(data.data.data);
             setTotalPages(data.data.totalPages);
-
-            setAttentionLoading(false);
+            setAttentionItemLoading(false);
         }
     };
 
     return (
         <>
-            <Box
-                sx={{
-                    width: "25rem",
-                    height: "20rem",
-                    borderRadius: "15px",
-                    padding: "1rem",
-                    display: "flex",
-                    flexDirection: "column",
-                    flexGrow: 1,
-                }}
-            >
-                <h2>Attention Required</h2>
-                <Skeleton
-                    height={"90%"}
-                    width={"100%"}
-                    visible={attentionLoading}
-                >
+            
                     <Table>
                         <thead>
                             <tr>
-                                <th>Name</th>
+                                <th>#</th>
                                 <th>SKU</th>
+                                <th>Name</th>
                                 <th>Size</th>
-                                <th>Stock</th>
+                                <th>Message</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {attentionData.map((item) => (
-                                <ItemRow key={item.ID} item={item} />
+                            {attentionItemData.map((attentionItem) => (
+                                <AttentionItemRow key={attentionItem.ID} attentionItem={attentionItem} />
                             ))}
                         </tbody>
                     </Table>
-                    <Center>
-                        <Pagination
-                            total={totalPages}
-                            value={currentPage}
-                            onChange={setCurrentPage}
-                        />
-                    </Center>
-                </Skeleton>
-            </Box>
+            
+        </>
+    );
+};
+
+const AttentionLocationRequired = () => {
+    const [attentionLocationData, setAttentionLocationData] = useState<AttentionLocation[]>([]);
+    const [attentionLocationLoading, setAttentionLocationLoading] = useState<boolean>(true);
+
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(1);
+
+    useEffect(() => {
+        fetchDataAttentionLocation();
+    }, [currentPage]);
+
+    const fetchDataAttentionLocation = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/analytics/attention-location?page=${currentPage}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            message: string;
+            data: {
+                data: AttentionLocation[];
+                totalPages: number;
+            };
+        } = await response.json();
+
+        if (data.success) {
+            setAttentionLocationData(data.data.data);
+            setTotalPages(data.data.totalPages);
+            setAttentionLocationLoading(false);
+        }
+    };
+
+    return (
+        <>
+            
+                    <Table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {attentionLocationData.map((attentionLocation) => (
+                                <AttentionLocationRow key={attentionLocation.ID} attentionLocation={attentionLocation} />
+                            ))}
+                        </tbody>
+                    </Table>
+            
         </>
     );
 };
@@ -362,6 +340,9 @@ const Analytics = () => {
     const [totalStockData, setTotalStockData] = useState<number[]>([]);
     const [totalStockLabels, setTotalStockLabels] = useState<string[]>([]);
     const [totalStockLoading, setTotalStockLoading] = useState<boolean>(true);
+    const [visible, setVisible] = useState<boolean>(false);
+    const [viewMode, setViewMode] = useState<"Items" | "Locations">("Items");
+
 
     useEffect(() => {
         init();
@@ -569,9 +550,34 @@ const Analytics = () => {
                         )}
                     </Skeleton>
                 </Box>
-                {/* TODO: Change attention required
-                <AttentionRequired /> 
-                */}
+                
+                <div
+                style={containerStyles}>
+                <LoadingOverlay visible={visible} />
+                <Box sx={containerStyles}>
+                    <SegmentedControl
+                        data={[
+                                { label: "Items", value: "Items" },
+                                { label: "Locations", value: "Locations" },
+                        ]}
+                        sx={{
+                            marginBottom: "1rem",
+                        }}
+                        onChange={(value: "Items" | "Locations") => setViewMode(value)}
+                    />
+
+                    <h3>
+                        {viewMode === "Items" ? "Items" : "Locations"} Requeried
+                    </h3>
+                    
+                    {viewMode === "Items" ? (
+                        <AttentionItemRequired/>
+                    ) : (
+                        <AttentionLocationRequired/>
+                    )}
+                    
+                </Box>
+            </div>
                 <RecentActivity />
             </Box>
         </>
