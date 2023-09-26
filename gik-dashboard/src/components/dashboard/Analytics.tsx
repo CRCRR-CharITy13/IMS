@@ -211,23 +211,21 @@ const AttentionLocationRequired = () => {
 
     return (
         <>
-            
-                    <Table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Message</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {attentionLocationData.map((attentionLocation) => (
-                                <AttentionLocationRow key={attentionLocation.ID} attentionLocation={attentionLocation} />
-                            ))}
-                        </tbody>
-                    </Table>
-            
+            <Table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {attentionLocationData.map((attentionLocation) => (
+                        <AttentionLocationRow key={attentionLocation.ID} attentionLocation={attentionLocation} />
+                    ))}
+                </tbody>
+            </Table>
         </>
     );
 };
