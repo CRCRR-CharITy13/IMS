@@ -37,7 +37,6 @@ func main() {
 
 	// Set up environmental data from .env file
 	fmt.Println("Start to run GIN server")
-
 	env.SetEnv()
 	fmt.Println("IsLocalDB = ", env.IsLocalDB)
 	// Initalize the router

@@ -25,7 +25,9 @@ var IsLocalDB bool
 
 var SqliteURI string
 
+// add the env_path to create the testing environment
 func SetEnv() {
+	//
 	godotenv.Load(".env")
 
 	WebserverHost = os.Getenv("HOST")
