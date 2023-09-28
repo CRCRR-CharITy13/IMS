@@ -11,12 +11,8 @@ import {
     Modal,
     ActionIcon,
     HoverCard,
-    MultiSelect,
-    Menu,
     Text,
-    NumberInput,
-    Global,
-    rem,
+    Autocomplete
 } from "@mantine/core";
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
@@ -92,8 +88,45 @@ export const AddItemToLocationModal = (
 
     const [itemSKU, setItemSKU] = useState('');
     const [quantity, setQuantity] = useState(0);
+    const [items, setItems] = useState<Item[]>([]);
+
+    const fetchItems = async () => {
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/list`,
+            {
+                credentials: "include",
+            }
+        );
 
 
+        const data: {
+            success: boolean;
+            message: string;
+            data: {
+                data: Item[];
+                total: number;
+                totalPages: number;
+            };
+        } = await response.json();
+
+        if (data.success) {
+            console.log("Success loading item data");
+            //console.log(data.data.data)
+            setItems(data.data.data);
+            console.log(data.data.data);
+        }
+    };
+    useEffect(() => {
+        fetchItems();
+    },[]);
+
+    const lstItemSKU : string[] = [];
+    for(let idx = 0; idx<items.length; idx++){
+        lstItemSKU.push(items[idx].sku);
+    }
+    console.log("---- lstItemSKU ---------");
+    console.log(lstItemSKU);
     return (
         <>
             <Modal
@@ -103,12 +136,20 @@ export const AddItemToLocationModal = (
                     setOpened(false);
                 }}
             >
-                <TextInput
+                <Autocomplete
+                    label = "Items"
+                    placeholder="Name or SKU"
+                    data = {lstItemSKU}
+                    value = {itemSKU}
+                    onChange={setItemSKU}
+
+                />
+                {/* <TextInput
                     required
                     label={"Item SKU"}
                     placeholder="XXXXXXXXX"
                     onChange={(e) => setItemSKU(e.target.value)}
-                />
+                /> */}
                 <Space h="md" />
                 <TextInput
                     required
