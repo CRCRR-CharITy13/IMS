@@ -12,8 +12,12 @@ var Database *gorm.DB
 
 func TestConnectDatabase(t *testing.T) {
 	env.IsLocalDB = true
-	env.SqliteURI = "./assets/test-gik-ims-localdb.sqlite"
+	// create the test database in the same folder
+	env.SqliteURI = "./test-gik-ims-localdb.sqlite"
 	env.SkipMigrations = false
 	database.ConnectDatabase()
-	// TODO: error checking
+	// TODO: add testing function here
+
+	// Note: by the end, make sure to clear table
+
 }
