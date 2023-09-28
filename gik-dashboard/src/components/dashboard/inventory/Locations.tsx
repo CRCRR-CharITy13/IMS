@@ -12,7 +12,8 @@ import {
     ActionIcon,
     HoverCard,
     Text,
-    Autocomplete
+    Autocomplete,
+    NumberInput
 } from "@mantine/core";
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
@@ -83,11 +84,11 @@ export const AddItemToLocationModal = (
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
-        command: (size: string, quantity: number)=>void;
+        command: (itemSKU: string, quantity: number | "")=>void;
     }) => {
 
     const [itemSKU, setItemSKU] = useState('');
-    const [quantity, setQuantity] = useState(0);
+    const [quantity, setQuantity] = useState<number | "">('');
     const [items, setItems] = useState<Item[]>([]);
 
     const fetchItems = async () => {
@@ -151,14 +152,14 @@ export const AddItemToLocationModal = (
                     onChange={(e) => setItemSKU(e.target.value)}
                 /> */}
                 <Space h="md" />
-                <TextInput
-                    required
-                    label={"Quantity"}
-                    placeholder="10"
-                    type="number"
-                    onChange={(e) =>
-                        setQuantity(Number(e.target.value))
-                    }
+                <NumberInput
+                    label= "Quantity"
+                    placeholder= "10"
+                    description = "Quantity"
+                    min = {0}
+                    max = {100}
+                    value = {quantity}
+                    onChange={setQuantity}
                 />
                 <Space h="md" />
                 <Group position={"right"}>
@@ -178,7 +179,7 @@ export const LocationRow = (
         refresh: () => Promise<void>
     }
 ) => {
-    const addItemToLocation = async (itemSKU: string, quantity: number) => {
+    const addItemToLocation = async (itemSKU: string, quantity: number | "") => {
         const locationID = location.ID
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/add-item-to-location`,
