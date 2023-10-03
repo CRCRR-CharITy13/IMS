@@ -357,6 +357,26 @@ func ListLocationForItem(c *gin.Context) {
 	)
 }
 
+func GetUnstoredQuantity(c *gin.Context) {
+	sku := c.Query("sku")
+
+	var item type_news.Item
+	baseQuery := database.Database.Model(&type_news.Item{})
+	baseQuery.Find(&item, "sku=?", sku)
+	database.Database.Preload("Warehouses").Where("item_id = ?", item.ID).Find(&item.Warehouses)
+	// fmt.Print(location)
+	storedQtt := 0
+	for _, warehouse := range item.Warehouses {
+		storedQtt += warehouse.Stock
+	}
+	restQtt := item.StockTotal - storedQtt
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    restQtt,
+	},
+	)
+}
+
 //
 //
 

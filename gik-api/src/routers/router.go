@@ -91,6 +91,7 @@ func InitRouter() *gin.Engine {
 		itemsApi.PATCH("/update", items.UpdateItem)
 		itemsApi.DELETE("/delete", items.DeleteItem)
 		itemsApi.GET("/list-location-for-item", items.ListLocationForItem)
+		itemsApi.GET("/get-unstored-quantity", items.GetUnstoredQuantity)
 	}
 
 	// Set up tags router

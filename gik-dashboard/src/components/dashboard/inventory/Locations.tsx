@@ -84,10 +84,10 @@ export const AddItemToLocationModal = (
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
-        command: (itemSKU: string, quantity: number | "")=>void;
+        command: (itemNameSKU: string, quantity: number | "")=>void;
     }) => {
 
-    const [itemSKU, setItemSKU] = useState('');
+    const [itemNameSKU, setItemNameSKU] = useState('');
     const [quantity, setQuantity] = useState<number | "">('');
     const [items, setItems] = useState<Item[]>([]);
 
@@ -122,12 +122,12 @@ export const AddItemToLocationModal = (
         fetchItems();
     },[]);
 
-    const lstItemSKU : string[] = [];
+    const lstItemNameSKU : string[] = [];
     for(let idx = 0; idx<items.length; idx++){
-        lstItemSKU.push(items[idx].sku);
+        lstItemNameSKU.push(items[idx].sku + " : " + items[idx].name);
     }
     console.log("---- lstItemSKU ---------");
-    console.log(lstItemSKU);
+    console.log(lstItemNameSKU);
     return (
         <>
             <Modal
@@ -140,30 +140,23 @@ export const AddItemToLocationModal = (
                 <Autocomplete
                     label = "Items"
                     placeholder="Name or SKU"
-                    data = {lstItemSKU}
-                    value = {itemSKU}
-                    onChange={setItemSKU}
+                    data = {lstItemNameSKU}
+                    value = {itemNameSKU}
+                    onChange={setItemNameSKU}
 
                 />
-                {/* <TextInput
-                    required
-                    label={"Item SKU"}
-                    placeholder="XXXXXXXXX"
-                    onChange={(e) => setItemSKU(e.target.value)}
-                /> */}
+
                 <Space h="md" />
                 <NumberInput
                     label= "Quantity"
                     placeholder= "10"
-                    description = "Quantity"
                     min = {0}
-                    max = {100}
                     value = {quantity}
                     onChange={setQuantity}
                 />
                 <Space h="md" />
                 <Group position={"right"}>
-                    <Button color="green" onClick={() => {command(itemSKU, quantity); setOpened(false);}}>Confirm</Button>
+                    <Button color="green" onClick={() => {command(itemNameSKU, quantity); setOpened(false);}}>Confirm</Button>
                 </Group>
             </Modal>
         </>
@@ -179,43 +172,75 @@ export const LocationRow = (
         refresh: () => Promise<void>
     }
 ) => {
-    const addItemToLocation = async (itemSKU: string, quantity: number | "") => {
+    const addItemToLocation = async (itemSKUName: string, quantity: number | "") => {
         const locationID = location.ID
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/location/add-item-to-location`,
+        // itemSKUName: SKU : Name
+        // The length of the SKU is 8 character, thus, extract it as follows:
+        const itemSKU = itemSKUName.substring(0,9);
+        // console.log(itemSKU);
+        
+        const restQttResponse = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/get-unstored-quantity?sku=${itemSKU}`,
             {
                 credentials: "include",
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    itemSKU,
-                    locationID,
-                    quantity,
-                }),
             }
         );
-        if (response.ok) {
-            showNotification({
-                message: "item added to location",
-                color: "green",
-                title: "Success",
-            });
-            await refresh();
-            return;
+        let restQtt = 0;
+        const data: {
+            success: boolean;
+            data: number;
+        } = await restQttResponse.json();
+
+        if (data.success) {
+            console.log("Success loading item data");
+            restQtt = data.data;
+            console.log(restQtt);
         }
-        console.log("add %d items with SKU = %s to box id %d", quantity, itemSKU, location.ID)
+    
+        if(quantity != ""){
+            if(quantity > restQtt) {
+                let msg = "Maximum quantity is: ";
+                msg += String(restQtt);
+                alert(msg);
+            } else {
+        const response = await fetch(
+                    `${process.env.REACT_APP_API_URL}/location/add-item-to-location`,
+                    {
+                        credentials: "include",
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            itemSKU,
+                            locationID,
+                            quantity,
+                        }),
+                    }
+                );
+                if (response.ok) {
+                    showNotification({
+                        message: "item added to location",
+                        color: "green",
+                        title: "Success",
+                    });
+                    await refresh();
+                    return;
+                }
+                console.log("add %d items with SKU = %s to box id %d", quantity, itemSKU, location.ID)
+                
+                
+                showNotification({
+                    message: "Failed to add size",
+                    color: "red",
+                    title: "Error",
+                });
+            }
+        }
         
         
-        showNotification({
-            message: "Failed to add size",
-            color: "red",
-            title: "Error",
-        });
     };
     const handleLocationDetailClick = async() => {
-
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/list-item-in-location?id=${location.ID}`,
             {
