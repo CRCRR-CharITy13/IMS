@@ -38,7 +38,7 @@ func AttentionRequiredItem(c *gin.Context) {
 		var msg string
 		if restStock != 0 {
 			if restStock > 0 {
-				msg = fmt.Sprintf("%d pieces have not stored yet", restStock)
+				msg = fmt.Sprintf("%d pieces have not been stored yet", restStock)
 			} else {
 				msg = fmt.Sprintf("The total pieces stored in locations (%d) is greater than the recored total stock (%d). Verification need!", storedStock, item.StockTotal)
 			}

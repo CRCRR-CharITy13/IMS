@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // start to implement methods
@@ -191,7 +192,11 @@ type addItemToLocationRequest struct {
 	Stock      int    `json:"quantity" binding:"required"`
 }
 
-// 4. Add item to location
+// 4. Add item to location by item's SKU
+// Step-1 : look-up the id of item
+// Step-2 : check if the record with foreign key pair (item_id, location_id) exists
+// + Yes: add Stock to the stock field
+// + No: create a new record
 func AddItemToLocation(c *gin.Context) {
 	json := addItemToLocationRequest{}
 
@@ -206,21 +211,33 @@ func AddItemToLocation(c *gin.Context) {
 	var item type_news.Item
 
 	database.Database.First(&item, "sku=?", json.ItemSKU)
+	var warehouse type_news.Warehouse
 
-	newWarehouse := type_news.Warehouse{
-		ItemID:     item.ID,
-		LocationID: json.LocationID,
-		Stock:      json.Stock,
-	}
+	// look-up the record with foreign key pair = (item_id, location_id)
+	result := database.Database.Where("item_id = ? AND location_id = ?", item.ID, json.LocationID).First(&warehouse)
 
-	err := database.Database.Create(&newWarehouse).Error
+	if result.Error == gorm.ErrRecordNotFound {
+		// create a new record and add to the database
+		fmt.Print("Not found, create new and add")
+		newWarehouse := type_news.Warehouse{
+			ItemID:     item.ID,
+			LocationID: json.LocationID,
+			Stock:      json.Stock,
+		}
+		err := database.Database.Create(&newWarehouse).Error
 
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Unable to add item to location",
-		})
-		return
+		if err != nil {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Unable to add item to location",
+			})
+			return
+		}
+	} else {
+		// add json.Stock to the current record stock
+		fmt.Print("Found, add to the existence")
+		warehouse.Stock += json.Stock
+		database.Database.Save(warehouse)
 	}
 
 	c.JSON(200, gin.H{
@@ -228,8 +245,7 @@ func AddItemToLocation(c *gin.Context) {
 		"message": "Successfully add an item to location",
 	})
 
-	utils.CreateSimpleLog(c, "Added item to location")
-
+	utils.CreateSimpleLog(c, fmt.Sprintf("Added %d pieces of item with sku = %s to location id = %d", json.Stock, json.ItemSKU, json.LocationID))
 }
 
 // 5. List items within location
