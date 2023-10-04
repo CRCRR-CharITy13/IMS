@@ -201,9 +201,13 @@ export const LocationRow = (
             if(quantity > restQtt) {
                 let msg = "Maximum quantity is: ";
                 msg += String(restQtt);
-                alert(msg);
+                showNotification({
+                    color : "red",
+                    title : "Error",
+                    message : msg
+                });
             } else {
-        const response = await fetch(
+                const response = await fetch(
                     `${process.env.REACT_APP_API_URL}/location/add-item-to-location`,
                     {
                         credentials: "include",
@@ -224,14 +228,13 @@ export const LocationRow = (
                         color: "green",
                         title: "Success",
                     });
+                    // console.log("add %d items with SKU = %s to box id %d", quantity, itemSKU, location.ID)
                     await refresh();
                     return;
                 }
-                console.log("add %d items with SKU = %s to box id %d", quantity, itemSKU, location.ID)
-                
                 
                 showNotification({
-                    message: "Failed to add size",
+                    message: "Failed to add Item to Location",
                     color: "red",
                     title: "Error",
                 });
