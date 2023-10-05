@@ -15,10 +15,9 @@ import {
     Autocomplete,
     NumberInput
 } from "@mantine/core";
-import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, ClipboardPlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
+import { CirclePlus, ClipboardPlus, ClipboardOff, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
 import { ConfirmationModal } from "../../confirmation";
@@ -163,6 +162,86 @@ export const AddItemToLocationModal = (
     );
 }
 
+export const RemoveItemFromLocationModal = (
+    {   locationID,
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        locationID : number;
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (itemNameSKU: string, quantity: number | "")=>void;
+    }) => {
+
+    const [itemNameSKU, setItemNameSKU] = useState('');
+    const [quantity, setQuantity] = useState<number | "">('');
+    const [itemsLocation, setItemsLocation] = useState<Item_Location[]>([]);
+    const fetchLocationItems = async () => {
+    const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/list-item-in-location?id=${locationID}`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: Item_Location[];
+        } = await response.json();
+
+        if (data.success) {
+            console.log("Success loading location data");
+            setItemsLocation(data.data)
+            console.log(itemsLocation);
+        }
+    }
+    useEffect(() => {
+        fetchLocationItems();
+    },[]);
+
+    const lstItemNameSKU : string[] = [];
+    for(let idx = 0; idx<itemsLocation.length; idx++){
+        lstItemNameSKU.push(itemsLocation[idx].item_sku + " : " + itemsLocation[idx].item_name);
+    }
+    console.log("---- lstItemSKU ---------");
+    console.log(lstItemNameSKU);
+    return (
+        <>
+            <Modal
+                title={"Remove Item from Location"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <Autocomplete
+                    label = "Items"
+                    placeholder="Name or SKU"
+                    data = {lstItemNameSKU}
+                    value = {itemNameSKU}
+                    onChange={setItemNameSKU}
+
+                />
+
+                <Space h="md" />
+                <NumberInput
+                    label= "Quantity"
+                    placeholder= "10"
+                    min = {0}
+                    value = {quantity}
+                    onChange={setQuantity}
+                />
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(itemNameSKU, quantity); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}
 export const LocationRow = (
     {
         location,
@@ -287,6 +366,7 @@ export const LocationRow = (
         )
 
     }
+
     const doDelete = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/delete?id=${location.ID}`,
@@ -357,16 +437,28 @@ export const LocationRow = (
     const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
     const [editLocationModal, setEditLocationModal] = useState<boolean>(false);
     const [addItemToLocationModal, setAddItemToLocationModal] = useState<boolean>(false);
+    const [removeItemFromLocationModal, setRemoveItemFromLocationModal] = useState<boolean>(false);
+    
     return (
         <>
             <tr>
                 <td>{location.name || "None"}</td>
                 <td>{location.description || "None"}</td>
+                
                 <td>
-                    <Button onClick = {handleLocationDetailClick}>
-                        {location.total_item || 0}
-                    </Button>
+                    <Group>
+                        <Button variant = "outline" onClick = {() => setRemoveItemFromLocationModal(true)}>
+                            -
+                        </Button>
+                        <Button variant = "filled" onClick = {handleLocationDetailClick}>
+                            {location.total_item || 0}
+                        </Button>
+                        <Button variant = "outline" onClick = {() => setAddItemToLocationModal(true)}>
+                            +
+                        </Button>
+                    </Group>
                 </td>
+                
                 <td>
                     <Group>
                     <HoverCard>
@@ -394,26 +486,14 @@ export const LocationRow = (
                             </Text>
                         </HoverCard.Dropdown>
                     </HoverCard>
-
-                    <HoverCard>
-                        <HoverCard.Target>
-                        <ActionIcon variant="default" onClick={() => setAddItemToLocationModal(true)}>
-                            <ClipboardPlus />
-                            </ActionIcon>
-                        </HoverCard.Target>
-                        <HoverCard.Dropdown>
-                            <Text size="sm">
-                                Add item to this location
-                            </Text>
-                        </HoverCard.Dropdown>
-                    </HoverCard>
-
                     </Group>
                 </td>
             </tr>
             <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} command={editLocation}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Location beyond recovery."}/>
-            <AddItemToLocationModal opened={addItemToLocationModal} setOpened={setAddItemToLocationModal} command={addItemToLocation}/>
+            <AddItemToLocationModal  opened={addItemToLocationModal} setOpened={setAddItemToLocationModal} command={addItemToLocation}/>
+            <RemoveItemFromLocationModal locationID = {location.ID} opened={removeItemFromLocationModal} setOpened={setRemoveItemFromLocationModal} command={addItemToLocation}/>
+
         </>
     );
 };
@@ -626,7 +706,7 @@ export const LocationsManager = () => {
                     <tr>
                         <th>Name</th>
                         <th>Description</th>
-                        <th>Nb of Items</th>
+                        <th>Number of Items</th>
                         <th>Actions</th>
                     </tr>
                 </thead>

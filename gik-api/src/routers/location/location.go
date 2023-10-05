@@ -250,6 +250,7 @@ func AddItemToLocation(c *gin.Context) {
 
 // 5. List items within location
 type ListItemInLocationResponse struct {
+	ItemSKU  string `json:"item_sku" binding:"required"`
 	ItemName string `json:"item_name" binding:"required"`
 	Stock    int    `json:"stock" binding:"required"`
 }
@@ -274,6 +275,7 @@ func ListItemInLocation(c *gin.Context) {
 		var item type_news.Item
 		database.Database.First(&item, warehouse.ItemID)
 		itemsInLocation[i] = ListItemInLocationResponse{
+			ItemSKU:  item.SKU,
 			ItemName: item.Name,
 			Stock:    warehouse.Stock,
 		}

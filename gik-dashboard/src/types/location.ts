@@ -6,6 +6,7 @@ export interface Location {
 }
 
 export interface Item_Location {
+    item_sku    : string;
     item_name : string;
     stock : number;
 }
