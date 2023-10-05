@@ -186,7 +186,7 @@ func DeleteLocation(c *gin.Context) {
 	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted location, id: %d, Name:  %s, Description: %s", idInt, locationName, locationDescription))
 }
 
-type addItemToLocationRequest struct {
+type adjustItemLocationRequest struct {
 	ItemSKU    string `json:"itemSKU" binding:"required"`
 	LocationID uint   `json:"locationID" binding:"required"`
 	Stock      int    `json:"quantity" binding:"required"`
@@ -198,7 +198,7 @@ type addItemToLocationRequest struct {
 // + Yes: add Stock to the stock field
 // + No: create a new record
 func AddItemToLocation(c *gin.Context) {
-	json := addItemToLocationRequest{}
+	json := adjustItemLocationRequest{}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
@@ -288,6 +288,77 @@ func ListItemInLocation(c *gin.Context) {
 	})
 }
 
+// 6. Remove item from location by item's SKU
+// Step-1 : look-up the id of item
+// Step-2 : check if the record with foreign key pair (item_id, location_id) exists
+//   - Yes:
+//     ++ check if current stock >= Stock:
+//     Yes: subtract Stock from the stock field (if = 0 => delete current record) => success
+//     ++ No: return error: "stock must <= current stock"
+//   - No: return error "ErrRecordNotFound"
+func RemoveItemFromLocation(c *gin.Context) {
+	json := adjustItemLocationRequest{}
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+	fmt.Println(json)
+	var item type_news.Item
+
+	database.Database.First(&item, "sku=?", json.ItemSKU)
+	var warehouse type_news.Warehouse
+
+	// look-up the record with foreign key pair = (item_id, location_id)
+	result := database.Database.Where("item_id = ? AND location_id = ?", item.ID, json.LocationID).First(&warehouse)
+	successMsg := "Success, "
+	if result.Error == gorm.ErrRecordNotFound {
+		//not found
+		msg := gorm.ErrRecordNotFound
+		fmt.Println(msg)
+		c.JSON(200, gin.H{
+			"success": false,
+			"message": "record not found",
+		})
+		return
+	} else {
+		// check if current stock >= Stock
+		fmt.Print("Found, subtract")
+		if warehouse.Stock < json.Stock {
+			msg := fmt.Sprintf("Error: the removed quantity must <= %d", warehouse.Stock)
+			fmt.Println(msg)
+			c.JSON(200, gin.H{
+				"success": false,
+				"message": msg,
+			})
+			return
+		} else {
+			// subtract
+			warehouse.Stock -= json.Stock
+			// if remain stock > 0 : save; else: delete current record
+			if warehouse.Stock > 0 {
+				successMsg += "current quantity updated"
+				database.Database.Save(warehouse)
+			} else {
+				successMsg += "current quantity of this item in the location is 0"
+				database.Database.Delete(&warehouse)
+			}
+		}
+
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": successMsg,
+	})
+
+	utils.CreateSimpleLog(c, fmt.Sprintf("Remove %d pieces of item with sku = %s from location id = %d", json.Stock, json.ItemSKU, json.LocationID))
+}
+
+// -------------------------------------------
 type updateLocationRequest struct {
 	ID          string `json:"id"`
 	Name        string `json:"name" binding:"required"`

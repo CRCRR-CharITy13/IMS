@@ -132,6 +132,7 @@ func InitRouter() *gin.Engine {
 		locationsApi.PATCH("/update", location.UpdateLocation)
 		//locationsApi.GET("/scan", location.GetScannedData)
 		locationsApi.PUT("/add-item-to-location", location.AddItemToLocation)
+		locationsApi.PUT("/remove-item-from-location", location.RemoveItemFromLocation)
 		locationsApi.GET("/list-item-in-location", location.ListItemInLocation)
 	}
 

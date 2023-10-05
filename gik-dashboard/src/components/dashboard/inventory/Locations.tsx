@@ -367,6 +367,53 @@ export const LocationRow = (
 
     }
 
+    const removeItemFromLocation = async (itemSKUName: string, quantity: number | "") => {
+        const locationID = location.ID
+        // itemSKUName: SKU : Name
+        // The length of the SKU is 8 character, thus, extract it as follows:
+        const itemSKU = itemSKUName.substring(0,9);
+        // console.log(itemSKU);
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/remove-item-from-location`,
+            {
+                credentials: "include",
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    itemSKU,
+                    locationID,
+                    quantity,
+                }),
+            }
+        );
+        const data : {
+            success: boolean;
+            message: string;
+        } = await response.json();
+
+        if (data.success) {
+            showNotification({
+                message: data.message,
+                color: "green",
+                title: "Success",
+            });
+            // refresh to update current page
+            await refresh();
+            return;
+        } else {
+            showNotification({
+                message: data.message,
+                color: "red",
+                title: "Error",
+            }); 
+            // refresh to update current page
+            await refresh();
+            return;
+        }
+    };
+
     const doDelete = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/delete?id=${location.ID}`,
@@ -492,7 +539,7 @@ export const LocationRow = (
             <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} command={editLocation}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Location beyond recovery."}/>
             <AddItemToLocationModal  opened={addItemToLocationModal} setOpened={setAddItemToLocationModal} command={addItemToLocation}/>
-            <RemoveItemFromLocationModal locationID = {location.ID} opened={removeItemFromLocationModal} setOpened={setRemoveItemFromLocationModal} command={addItemToLocation}/>
+            <RemoveItemFromLocationModal locationID = {location.ID} opened={removeItemFromLocationModal} setOpened={setRemoveItemFromLocationModal} command={removeItemFromLocation}/>
 
         </>
     );
