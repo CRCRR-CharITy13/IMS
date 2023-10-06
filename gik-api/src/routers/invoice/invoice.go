@@ -82,7 +82,7 @@ func GetInvoice(c *gin.Context) {
 
 	doc.SetCompany(&generator.Contact{
 		Name: "Gifts In Kind",
-		Logo: &logoBytes,
+		Logo: logoBytes,
 		Address: &generator.Address{
 			Address:    "CRC Rideau-Rockcliffe CRC Unit 3 - 815 St. Laurent Blvd",
 			PostalCode: "K1K 3A7",
