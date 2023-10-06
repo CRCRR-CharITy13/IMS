@@ -10,6 +10,7 @@ import {
     Table,
     Modal,
     ActionIcon,
+    HoverCard,
     MultiSelect,
     Menu,
     Text,
@@ -20,10 +21,9 @@ import {
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
+import { CirclePlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
-import { Item } from "../../../types/item";
-import {Client} from "../../../types/client";
+import { Item, Location_Item } from "../../../types/item";
 import {ConfirmationModal} from "../../confirmation";
 
 export const ItemRow = (
@@ -38,7 +38,7 @@ export const ItemRow = (
 
     const doDelete = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/delete?id=${item.id}`,
+            `${process.env.REACT_APP_API_URL}/items/delete?id=${item.ID}`,
             {
                 method: "DELETE",
                 credentials: "include",
@@ -62,18 +62,46 @@ export const ItemRow = (
         });
     };
 
-    const addSize = async (size: string, quantity: number) => {
+    const editItem = async(name: string, sku: string, price: number, size: string, quantity: number) => {
+        if(name == ""){
+            name = item.name;
+        }
+        if(sku == ""){
+            sku = item.sku;
+        }
+        if(price == -1){
+            price = item.price;
+        }
+        if(size == ""){
+            size = item.size;
+        }
+        if(quantity == -1){
+            quantity = item.quantity;
+        }
+        const id = item.ID.toString();
+        const stock_total = quantity;
+        console.log("Run edit item id = %d, with name = %s, sku = %s, price = %d, size = %s, quantity = %d", item.ID, name, sku, price, size, quantity);
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.id}&size=${size}&quantity=${quantity}`,
+            `${process.env.REACT_APP_API_URL}/items/update`,
             {
-                method: "PUT",
                 credentials: "include",
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id,
+                    name,
+                    sku,
+                    price,
+                    size,
+                    stock_total,
+                }),
             }
         );
-
         if (response.ok) {
             showNotification({
-                message: "Size added",
+                message: "Itemu updated",
                 color: "green",
                 title: "Success",
             });
@@ -82,57 +110,124 @@ export const ItemRow = (
         }
 
         showNotification({
-            message: "Failed to add size",
+            message: "Failed to update the location",
             color: "red",
             title: "Error",
         });
-    };
+    }
+
+    const handleItemLocationDetailClick = async() => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/list-location-for-item?id=${item.ID}`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: Location_Item[];
+        } = await response.json();
+        
+        
+        console.log(data.data);
+        let locationItemMessage = "";
+        let totalStored = 0;
+        locationItemMessage = locationItemMessage + "List of locations which store: " + item.name + "\n";
+        locationItemMessage += "----------\n";
+        let idx = 0;
+        for (idx=0; idx<data.data.length; idx++){
+            locationItemMessage = locationItemMessage + (idx+1) + "." + data.data[idx].location_name + ": " +  data.data[idx].stock + "\n";
+            totalStored += data.data[idx].stock;
+        }
+        const nonStored = item.quantity - totalStored;
+        locationItemMessage += "-----\nTotal Stored: ";
+        locationItemMessage += totalStored;
+        locationItemMessage += "/";
+        locationItemMessage += item.quantity;
+        locationItemMessage += "\nNot Stored: "
+        locationItemMessage += nonStored;
+        locationItemMessage += "/";
+        locationItemMessage += item.quantity;
+
+        alert(locationItemMessage);
+        
+        return (
+                <Table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.data?.map((location_item) => (
+                        <p>
+                            <span>{location_item.location_name}</span>
+                            <span>{location_item.stock}</span>
+                        </p>
+                    ))}
+                </tbody>
+            </Table>
+        )
+
+    }
 
     const [showConfirmationModal, setShowConfirmationModal] =
         useState<boolean>(false);
-    const [showSizeModal, setShowSizeModal] =
+    const [editItemModal, setEditItemModal] =
         useState<boolean>(false);
 
     return (
         <>
             <tr>
-                <td>{item.Name}</td>
-                <td>{item.Sku || "None"}</td>
-                <td>{item.Price || "undefined"}</td>
-                <td>{item.Quantity}</td>
-                <td>{item.size}</td>
+                <td>{item.name}</td>
+                <td>{item.sku || "None"}</td>
+                <td>{item.price || "0"}</td>
+                <td>
+                    <Button onClick = {handleItemLocationDetailClick}>
+                        {item.quantity || "0"}
+                    </Button>
+                </td>
+                <td>{item.size || "None"}</td>
                 <td>
                     <Group>
-                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
+                    <HoverCard>
+                        <HoverCard.Target>
+                            <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                             <Trash />
+                            </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Delete this item
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>
+
+                    <HoverCard>
+                        <HoverCard.Target>
+                        <ActionIcon variant="default" onClick={() => setEditItemModal(true)}>
+                            <Edit />
                         </ActionIcon>
-                        <ActionIcon variant="default" onClick={() => setShowSizeModal(true)}>
-                            <CirclePlus />
-                        </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Edit this item
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>    
+                        
                     </Group>
                 </td>
             </tr>
-            <AddSizeModal opened={showSizeModal} setOpened={setShowSizeModal} command={addSize}/>
+            <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={editItem}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
         </>
     );
 };
-
-export const TagRow = ({ tag }: { tag: string }) => {
-    return (
-        <>
-            <tr>
-                <td>{tag}</td>
-                <ActionIcon variant="default" /*onClick={}*/>
-                    <Trash />
-                </ActionIcon>
-            </tr>
-        </>
-    );
-};
-
-
-
+    
 const  UploadCSVModal = (
 {
     opened,
@@ -192,7 +287,7 @@ const  UploadCSVModal = (
     );
 }
 
-export const AddSizeModal = (
+export const EditItemModal = (
     {
         opened,
         setOpened,
@@ -201,17 +296,20 @@ export const AddSizeModal = (
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
-        command: (size: string, quantity: number)=>void;
+        command: (name: string, sku: string, price: number, size: string, quantity: number)=>void;
     }) => {
 
+    const [name, setName] = useState('');
+    const [sku, setSku] = useState('');
+    const [price, setPrice] = useState(-1);
     const [size, setSize] = useState('');
-    const [quantity, setQuantity] = useState(0);
+    const [quantity, setQuantity] = useState(-1);
 
 
     return (
         <>
             <Modal
-                title={"Add Size"}
+                title={"Edit Item"}
                 opened={opened}
                 onClose={() => {
                     setOpened(false);
@@ -219,15 +317,39 @@ export const AddSizeModal = (
             >
                 <TextInput
                     required
+                    label={"Name"}
+                    placeholder="Left blank to use the curent name"
+                    onChange={(e) => setSize(e.target.value)}
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"SKU"}
+                    placeholder="Left blank to use the curent SKU"
+                    onChange={(e) =>
+                        setQuantity(Number(e.target.value))
+                    }
+                />
+                <TextInput
+                    label="Price"
+                    required
+                    placeholder="Left blank to use the curent price"
+                    type="number"
+                    onChange={(e) =>
+                        setPrice(Number(e.target.value))
+                    }
+                />
+                <TextInput
+                    required
                     label={"Size"}
-                    placeholder="10/XL"
+                    placeholder="Left blank to use the curent size"
                     onChange={(e) => setSize(e.target.value)}
                 />
                 <Space h="md" />
                 <TextInput
                     required
                     label={"Quantity"}
-                    placeholder="10"
+                    placeholder="Left blank to use the curent quantity"
                     type="number"
                     onChange={(e) =>
                         setQuantity(Number(e.target.value))
@@ -235,7 +357,7 @@ export const AddSizeModal = (
                 />
                 <Space h="md" />
                 <Group position={"right"}>
-                    <Button color="green" onClick={() => {command(size, quantity); setOpened(false);}}>Confirm</Button>
+                    <Button color="green" onClick={() => {command(name, sku, price, size, quantity); setOpened(false);}}>Confirm</Button>
                 </Group>
             </Modal>
         </>
@@ -254,7 +376,6 @@ const CreateItemModal = ({
 }) => {
     const [name, setName] = useState("");
     const [sku, setSku] = useState("");
-    const [category, setCategory] = useState("");
     const [price, setPrice] = useState(0);
     const [quantity, setQuantity] = useState(0);
     const [size, setSize] = useState("");
@@ -272,7 +393,6 @@ const CreateItemModal = ({
                 body: JSON.stringify({
                     name,
                     sku,
-                    category,
                     price,
                     quantity,
                     size,
@@ -320,22 +440,15 @@ const CreateItemModal = ({
                     <TextInput
                         label="Name"
                         required
-                        placeholder="Women's All Season Short Pants"
+                        placeholder="The name of the item"
                         onChange={(e) => setName(e.target.value)}
                     />
                     <Space h="md" />
                     <TextInput
                         label="SKU"
                         required
-                        placeholder="XXXXXX"
+                        placeholder="XXXXXXXXX"
                         onChange={(e) => setSku(e.target.value)}
-                    />
-                    <Space h="md" />
-                    <TextInput
-                        label="Category"
-                        required
-                        placeholder="Men, XL, Summer"
-                        onChange={(e) => setCategory(e.target.value)}
                     />
                     <Space h="md" />
                     <TextInput
@@ -377,101 +490,9 @@ const CreateItemModal = ({
 };
 
 
-const EditTagsModal = ({
-    opened,
-    setOpened,
-    refresh,
-    tags,
-      }: {
-    opened: boolean;
-    setOpened: Dispatch<SetStateAction<boolean>>;
-    refresh: (search: string) => Promise<void>;
-    tags: string[];
-}) => {
-    const [name, setName] = useState("");
-
-    //const [tags, setTags] = useState<string[]>([]);
-/*
-    const fetchTags = async () => {
-
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/tags/list?name=${name}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            data: string[];
-        } = await response.json();
-
-        if (data.success) {
-            setTags(data.data);
-        }
-    };
-
-    useEffect(() => {
-        fetchTags();
-    })*/
-
-    return (
-        <>
-            <Modal
-                opened={opened}
-                onClose={() => {
-                    refresh("");
-                    setOpened(false);
-                }}
-                title="Edit Tags"
-            >
-                <Box sx={containerStyles}>
-                    <Group>
-                        {/* <TextInput
-                            placeholder="Search Tags"
-                            onChange={async (e: any) => {
-                                //await search()
-                                await refresh(e.target.value)
-                            }
-                            }
-                        /> */}
-                        {/*
-                        <Button
-                            color="green"
-                            onClick={() => {
-                                setSearchQuery(searchQueryTyping);
-                            }}
-                            disabled={loading}
-                        >
-                            Search
-                        </Button>*/}
-                    </Group>
-                    <Space h="md" />
-                    <Table>
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {tags.length != 0 && (
-                            tags.map((tag) => (
-                            <TagRow tag={tag} />
-                        )))}
-                        </tbody>
-                    </Table>
-
-                </Box>
-            </Modal>
-        </>
-    );
-};
 
 export const ItemsManager = () => {
     const [items, setItems] = useState<Item[]>([]);
-    const [tags, setTags] = useState<string[]>([]);
-
     const [loading, setLoading] = useState<boolean>(false);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -483,19 +504,16 @@ export const ItemsManager = () => {
     const [skuQuery, setSkuQuery] = useState("");
     const [skuQueryTyping, setSkuQueryTyping] = useState("");
 
-    const [tagsQuery, setTagsQuery] = useState("");
-    const [tagsQueryTyping, setTagsQueryTyping] = useState("");
+    
 
     const [showCreationModal, setShowCreationModal] = useState(false);
-    const [showTagsModal, setShowTagsModal] = useState(false);
-
     const [showImportModal, setShowImportModal] = useState(false);
 
 
 
     const exportCSV = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/export?&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
+            `${process.env.REACT_APP_API_URL}/items/export?&name=${nameQuery}&sku=${skuQuery}`,
             {
                 credentials: "include",
             }
@@ -514,36 +532,12 @@ export const ItemsManager = () => {
         window.open(url, "_blank");
     };
 
-    const fetchTags = async (search: string) => {
-
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/tags/list?name=${search}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            data: string[];
-        } = await response.json();
-
-        if (data.success) {
-            // setTags(data.data); 
-            if (data.data != null) { // hacky workaround from type error caused by data.data after a few cycles of running ItemsManager
-                setTags(data.data); 
-            } else {
-                setTags(["Tags Unavailable"]);
-            }
-        }
-    };
-
 
     const fetchItems = async () => {
         setLoading(true);
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
+            `${process.env.REACT_APP_API_URL}/items/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}`,
             {
                 credentials: "include",
             }
@@ -572,14 +566,12 @@ export const ItemsManager = () => {
 
     useEffect(() => {
         fetchItems();
-        fetchTags("");
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
         fetchItems();
-        fetchTags("");
-    }, [nameQuery, tagsQuery, skuQuery]);
+    }, [nameQuery, skuQuery]);
 
     return (
         <>
@@ -587,12 +579,6 @@ export const ItemsManager = () => {
                 opened={showCreationModal}
                 setOpened={setShowCreationModal}
                 refresh={fetchItems}
-            />
-            <EditTagsModal
-                opened={showTagsModal}
-                setOpened={setShowTagsModal}
-                refresh={fetchTags}
-                tags={tags}
             />
             <UploadCSVModal
                 opened={showImportModal}
@@ -603,29 +589,28 @@ export const ItemsManager = () => {
                 <Group position="apart">
                     <h3>Items</h3>
                     <Group spacing={0}>
-                        <ActionIcon
-                            sx={{
-                                height: "4rem",
-                                width: "4rem",
-                            }}
-                            onClick={() => setShowCreationModal(true)}
-                        >
-                            <CirclePlus />
-                        </ActionIcon>
-                        <ActionIcon
-                            sx={{
-                                height: "4rem",
-                                width: "4rem",
-                            }}
-                            onClick={() => setShowTagsModal(true)}
-                        >
-                            <Tags />
-                        </ActionIcon>
+                        <HoverCard>
+                            <HoverCard.Target>
+                                <ActionIcon
+                                    sx={{
+                                        height: "4rem",
+                                        width: "4rem",
+                                    }}
+                                    onClick={() => setShowCreationModal(true)}
+                                >
+                                    <CirclePlus />
+                                </ActionIcon>
+                            </HoverCard.Target>
+                            <HoverCard.Dropdown>
+                                <Text size="sm">
+                                    Add a new item
+                                </Text>
+                            </HoverCard.Dropdown>
+                        </HoverCard>
+
                     </Group>
                 </Group>
                 <Space h="md" />
-
-
                 <Group>
                     <TextInput
                         placeholder="Search Items"
@@ -639,22 +624,10 @@ export const ItemsManager = () => {
                             setSkuQueryTyping(e.target.value)
                         }
                     />
-                    {/* <MultiSelect
-                        data={tags}
-                        placeholder="Search Tags"
-                        clearButtonProps={{ 'aria-label': 'Clear selection' }}
-                        clearable
-                        searchable
-                        onChange={(e: any) => {
-                                setTagsQueryTyping(e)
-                            }
-                        }
-                    /> */}
                     <Button
                         onClick={() => {
                             setNameQuery(nameQueryTyping);
                             setSkuQuery(skuQueryTyping);
-                            //setTagsQuery(tagsQueryTyping);
                         }}
                         disabled={loading}
                     >
@@ -664,7 +637,7 @@ export const ItemsManager = () => {
 
 
                 <Space h="md" />
-                <Table>
+                <Table striped highlightOnHover>
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -677,7 +650,7 @@ export const ItemsManager = () => {
                     </thead>
                     <tbody>
                         {items.map((item) => (
-                            <ItemRow key={item.id} item={item} refresh={fetchItems} />
+                            <ItemRow key={item.ID} item={item} refresh={fetchItems} />
                         ))
                         }
                     </tbody>

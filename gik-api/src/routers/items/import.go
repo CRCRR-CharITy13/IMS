@@ -3,9 +3,28 @@ package items
 import (
 	"GIK_Web/database"
 	"GIK_Web/types"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gocarina/gocsv"
 )
+
+type returnedItem struct {
+	Name string `json:"name"`
+	SKU  string `json:"sku"`
+	//Category string  `json:"category"` // Clothes or not
+	Price float32 `json:"price"`
+	Stock int     `json:"stock"`
+	Size  string  `json:"size"`
+}
+
+type newItemRequest struct {
+	Name     string  `json:"name" binding:"required"`
+	SKU      string  `json:"sku" binding:"required"`
+	Category string  `json:"category" binding:"required"`
+	Size     string  `json:"size" binding:"required"`
+	Price    float32 `json:"price" binding:"required"`
+	Quantity int     `json:"quantity" binding:"required"`
+}
 
 func ImportItems(c *gin.Context) {
 	fileParent, err := c.FormFile("file")

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ReactElement, useEffect, useState } from "react";
 
-import { FileInvoice, Qrcode, BuildingWarehouse, Settings, Users, ArrowsRightLeft, Logout, Shield, ReportAnalytics, Notes, Sun, MoonStars} from "tabler-icons-react";
+import { FileInvoice, Qrcode, BuildingWarehouse, Settings, Users, ArrowsRightLeft, Logout, Shield, ReportAnalytics, Notes, Sun, MoonStars, BuildingBank} from "tabler-icons-react";
 //import {Item} from "../types/item";
 
 import logo from '../assets/Logo.png';
@@ -79,8 +79,9 @@ const useStyles = createStyles((theme) => ({
 }));
 
   const data = [
+    // { needsAdmin: false, label: 'Location', icon: BuildingBank, route: 'Location' },
     { needsAdmin: false, label: 'Analytics', icon: ReportAnalytics, route: 'Analytics' },
-    { needsAdmin: false, label: 'Scanner', icon: Qrcode, route: 'Scanner' },
+    //{ needsAdmin: false, label: 'Scanner', icon: Qrcode, route: 'Scanner' },
     { needsAdmin: false, label: 'Transaction', icon: ArrowsRightLeft, route: 'Transaction' },
     { needsAdmin: false, label: 'Inventory', icon: BuildingWarehouse, route: 'Inventory' },
     { needsAdmin: false, label: 'Clients & Donors', icon: Users, route: 'Clientsdonors' },

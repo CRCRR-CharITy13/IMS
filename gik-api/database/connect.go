@@ -19,46 +19,32 @@ func ConnectDatabase() {
 		fmt.Println("DSN: " + dsn)
 		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
-			panic("Unable to connect to database: " + err.Error())
+			fmt.Println("Unable to connect to database: " + err.Error())
+			// try creating the database, if skipMigrations == false
+			if !env.SkipMigrations {
+				migrations()
+				db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+			} else {
+				return
+			}
 		}
 		Database = db
 
 	} else {
-		fmt.Printf("Connect to the local database: %s", env.SqliteURI)
+		fmt.Printf("Connect to the local database: %s \n", env.SqliteURI)
 		db, err := gorm.Open(sqlite.Open(env.SqliteURI), &gorm.Config{})
 		if err != nil {
 			fmt.Println("Error: ", err)
-			return
+			if !env.SkipMigrations {
+				migrations()
+				db, err = gorm.Open(sqlite.Open(env.SqliteURI), &gorm.Config{})
+			} else {
+				return
+			}
 		}
-		//
-
-		// Get a reference to the underlying database connection
-		// sqlDB, err := db.DB()
-		// if err != nil {
-		// 	panic("failed to get database connection")
-		// }
-		// defer sqlDB.Close()
-
-		// // Query the database for table names
-		// rows, err := sqlDB.Query("SELECT name FROM sqlite_master WHERE type='table'")
-		// if err != nil {
-		// 	panic("failed to query database")
-		// }
-		// defer rows.Close()
-
-		// fmt.Println("Tables:")
-		// for rows.Next() {
-		// 	var tableName string
-		// 	if err := rows.Scan(&tableName); err != nil {
-		// 		panic("failed to scan row")
-		// 	}
-		// 	fmt.Println(tableName)
-		// }
-
-		//
 		Database = db
 	}
-	//migrations()
+	migrations()
 }
 
 func migrations() {
@@ -93,6 +79,5 @@ func migrations() {
 		Database.AutoMigrate(&type_news.Session{})
 		Database.AutoMigrate(&type_news.AdvancedLog{})
 		Database.AutoMigrate(&type_news.SimpleLog{})
-		Database.AutoMigrate(&type_news.Tag{})
 	}
 }

@@ -1,12 +1,12 @@
-import { Item } from "./item";
-
 export interface Location {
     ID: number;
-    id: number;
     name: string;
-    letter: string;
-    itemId: number;
-    product: Item;
-    sku: string;
-    productName: string;
+    description: string;
+    total_item : number;
+}
+
+export interface Item_Location {
+    item_sku    : string;
+    item_name : string;
+    stock : number;
 }

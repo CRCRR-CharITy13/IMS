@@ -20,5 +20,5 @@ type DonationItem struct {
 	Donation   Donation `gorm:"foreignKey:DonationID;references:ID"`
 	ItemID     uint
 	Item       Item `gorm:"foreignKey:ItemID;references:ID"`
-	count      uint
+	Count      uint
 }

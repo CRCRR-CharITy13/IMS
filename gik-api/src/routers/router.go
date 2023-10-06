@@ -58,7 +58,8 @@ func InitRouter() *gin.Engine {
 		analyticsApi.Use(middleware.AdvancedLoggingMiddleware())
 		analyticsApi.GET("/transaction", analytics.GraphTransactions)
 		analyticsApi.GET("/transaction/total", analytics.GraphTotalTransactions)
-		analyticsApi.GET("/attention", analytics.AttentionRequired)
+		analyticsApi.GET("/attention-item", analytics.AttentionRequiredItem)
+		analyticsApi.GET("/attention-location", analytics.AttentionRequiredLocation)
 		analyticsApi.GET("/activity", analytics.GetRecentActivity)
 		analyticsApi.GET("/trending", analytics.GetTrendingItems)
 	}
@@ -87,10 +88,10 @@ func InitRouter() *gin.Engine {
 		itemsApi.POST("/import", items.ImportItems)
 		itemsApi.GET("/suggest", items.GetAutoSuggest)
 		itemsApi.PUT("/add", items.AddItem)
-		itemsApi.PUT("/add/size", items.AddSize)
 		itemsApi.PATCH("/update", items.UpdateItem)
 		itemsApi.DELETE("/delete", items.DeleteItem)
 		itemsApi.GET("/list-location-for-item", items.ListLocationForItem)
+		itemsApi.GET("/get-unstored-quantity", items.GetUnstoredQuantity)
 	}
 
 	// Set up tags router
@@ -125,14 +126,13 @@ func InitRouter() *gin.Engine {
 		locationsApi.Use(middleware.AuthMiddleware())
 		locationsApi.Use(middleware.AdvancedLoggingMiddleware())
 		locationsApi.GET("/list", location.ListLocation)
-		locationsApi.GET("/list/sku", location.ListLocationSKU)
-		locationsApi.GET("/lookup", location.LookupLocation)
+		// locationsApi.GET("/lookup", location.LookupLocation)
 		locationsApi.PUT("/add", location.AddLocation)
-		locationsApi.PUT("/add/sub", location.AddSubLocation)
 		locationsApi.DELETE("/delete", location.DeleteLocation)
 		locationsApi.PATCH("/update", location.UpdateLocation)
-		locationsApi.GET("/scan", location.GetScannedData)
+		//locationsApi.GET("/scan", location.GetScannedData)
 		locationsApi.PUT("/add-item-to-location", location.AddItemToLocation)
+		locationsApi.PUT("/remove-item-from-location", location.RemoveItemFromLocation)
 		locationsApi.GET("/list-item-in-location", location.ListItemInLocation)
 	}
 
@@ -155,7 +155,9 @@ func InitRouter() *gin.Engine {
 	logsApi := r.Group("/logs")
 	{
 		logsApi.Use(middleware.AuthMiddleware())
-		logsApi.Use(middleware.AdvancedLoggingMiddleware())
+		// Temporary commented by tuan on Sept 23 to avoid creating too many logs
+		// during the audit logs display
+		// logsApi.Use(middleware.AdvancedLoggingMiddleware())
 		logsApi.GET("/advanced", logs.GetAdvancedLogs)
 		logsApi.GET("/simple", logs.GetSimpleLogs)
 	}

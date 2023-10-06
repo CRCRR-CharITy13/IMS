@@ -1,33 +1,551 @@
 import {
-    Modal,
-    LoadingOverlay,
-    Autocomplete,
     Group,
     TextInput,
     Button,
-    ActionIcon,
+    Center,
+    Pagination,
     Space,
-    Text,
+    Loader,
     Box,
     Table,
-    Checkbox,
+    Modal,
+    ActionIcon,
+    HoverCard,
+    Text,
+    Autocomplete,
+    NumberInput
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
-import { Dispatch, SetStateAction, useState, useEffect } from "react";
-import QRCode from "react-qr-code";
-import { Trash, Qrcode, CirclePlus } from "tabler-icons-react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { CirclePlus, ClipboardPlus, ClipboardOff, Edit, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
+import { Item } from "../../../types/item";
+import { ConfirmationModal } from "../../confirmation";
 
-import type { Location } from "../../../types/location";
+import { Location } from "../../../types/location";
 
-import styles from "../../../styles/Location.module.scss";
+import { Item_Location } from "../../../types/location";
 
-interface data {
-    name: string;
-    sku: string;
+export const EditLocationModal = (
+    {
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (name : string, description : string)=>void;
+    }) => {
+
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    
+    return (
+        <>
+            <Modal
+                title={"Edit Location"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <TextInput
+                    required
+                    label={"Name"}
+                    placeholder="Left blank to use the current name"
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"Description"}
+                    placeholder="Left blank to use the current description"
+                    onChange={(e) =>
+                        setDescription(e.target.value)}
+                />
+
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(name, description); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
 }
 
-export const CreateLocationModal = ({
+export const AddItemToLocationModal = (
+    {
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (itemNameSKU: string, quantity: number | "")=>void;
+    }) => {
+
+    const [itemNameSKU, setItemNameSKU] = useState('');
+    const [quantity, setQuantity] = useState<number | "">('');
+    const [items, setItems] = useState<Item[]>([]);
+
+    const fetchItems = async () => {
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/list`,
+            {
+                credentials: "include",
+            }
+        );
+
+
+        const data: {
+            success: boolean;
+            message: string;
+            data: {
+                data: Item[];
+                total: number;
+                totalPages: number;
+            };
+        } = await response.json();
+
+        if (data.success) {
+            console.log("Success loading item data");
+            //console.log(data.data.data)
+            setItems(data.data.data);
+            console.log(data.data.data);
+        }
+    };
+    useEffect(() => {
+        fetchItems();
+    },[]);
+
+    const lstItemNameSKU : string[] = [];
+    for(let idx = 0; idx<items.length; idx++){
+        lstItemNameSKU.push(items[idx].sku + " : " + items[idx].name);
+    }
+    console.log("---- lstItemSKU ---------");
+    console.log(lstItemNameSKU);
+    return (
+        <>
+            <Modal
+                title={"Add Item to Location"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <Autocomplete
+                    label = "Items"
+                    placeholder="Name or SKU"
+                    data = {lstItemNameSKU}
+                    value = {itemNameSKU}
+                    onChange={setItemNameSKU}
+
+                />
+
+                <Space h="md" />
+                <NumberInput
+                    label= "Quantity"
+                    placeholder= "10"
+                    min = {0}
+                    value = {quantity}
+                    onChange={setQuantity}
+                />
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(itemNameSKU, quantity); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}
+
+export const RemoveItemFromLocationModal = (
+    {   locationID,
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        locationID : number;
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (itemNameSKU: string, quantity: number | "")=>void;
+    }) => {
+
+    const [itemNameSKU, setItemNameSKU] = useState('');
+    const [quantity, setQuantity] = useState<number | "">('');
+    const [itemsLocation, setItemsLocation] = useState<Item_Location[]>([]);
+    const fetchLocationItems = async () => {
+    const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/list-item-in-location?id=${locationID}`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: Item_Location[];
+        } = await response.json();
+
+        if (data.success) {
+            console.log("Success loading location data");
+            setItemsLocation(data.data)
+            console.log(itemsLocation);
+        }
+    }
+    useEffect(() => {
+        fetchLocationItems();
+    },[]);
+
+    const lstItemNameSKU : string[] = [];
+    for(let idx = 0; idx<itemsLocation.length; idx++){
+        lstItemNameSKU.push(itemsLocation[idx].item_sku + " : " + itemsLocation[idx].item_name);
+    }
+    console.log("---- lstItemSKU ---------");
+    console.log(lstItemNameSKU);
+    return (
+        <>
+            <Modal
+                title={"Remove Item from Location"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <Autocomplete
+                    label = "Items"
+                    placeholder="Name or SKU"
+                    data = {lstItemNameSKU}
+                    value = {itemNameSKU}
+                    onChange={setItemNameSKU}
+
+                />
+
+                <Space h="md" />
+                <NumberInput
+                    label= "Quantity"
+                    placeholder= "10"
+                    min = {0}
+                    value = {quantity}
+                    onChange={setQuantity}
+                />
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(itemNameSKU, quantity); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}
+export const LocationRow = (
+    {
+        location,
+        refresh
+    }: {
+        location: Location,
+        refresh: () => Promise<void>
+    }
+) => {
+    const addItemToLocation = async (itemSKUName: string, quantity: number | "") => {
+        const locationID = location.ID
+        // itemSKUName: SKU : Name
+        // The length of the SKU is 8 character, thus, extract it as follows:
+        const itemSKU = itemSKUName.substring(0,9);
+        // console.log(itemSKU);
+        
+        const restQttResponse = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/get-unstored-quantity?sku=${itemSKU}`,
+            {
+                credentials: "include",
+            }
+        );
+        let restQtt = 0;
+        const data: {
+            success: boolean;
+            data: number;
+        } = await restQttResponse.json();
+
+        if (data.success) {
+            console.log("Success loading item data");
+            restQtt = data.data;
+            console.log(restQtt);
+        }
+    
+        if(quantity != ""){
+            if(quantity > restQtt) {
+                let msg = "Maximum quantity is: ";
+                msg += String(restQtt);
+                showNotification({
+                    color : "red",
+                    title : "Error",
+                    message : msg
+                });
+            } else {
+                const response = await fetch(
+                    `${process.env.REACT_APP_API_URL}/location/add-item-to-location`,
+                    {
+                        credentials: "include",
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            itemSKU,
+                            locationID,
+                            quantity,
+                        }),
+                    }
+                );
+                if (response.ok) {
+                    showNotification({
+                        message: "item added to location",
+                        color: "green",
+                        title: "Success",
+                    });
+                    // console.log("add %d items with SKU = %s to box id %d", quantity, itemSKU, location.ID)
+                    await refresh();
+                    return;
+                }
+                
+                showNotification({
+                    message: "Failed to add Item to Location",
+                    color: "red",
+                    title: "Error",
+                });
+            }
+        }
+        
+        
+    };
+    const handleLocationDetailClick = async() => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/list-item-in-location?id=${location.ID}`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: Item_Location[];
+        } = await response.json();
+        
+        
+        console.log(data.data);
+        let itemLocationMessage = "";
+        itemLocationMessage = itemLocationMessage + "List of items in " + location.name + "\n";
+        itemLocationMessage += "----------\n";
+        let idx = 0;
+        for (idx=0; idx<data.data.length; idx++){
+            itemLocationMessage = itemLocationMessage + (idx+1) + "." + data.data[idx].item_name + ": " +  data.data[idx].stock + "\n";
+        }
+        alert(itemLocationMessage);
+        return (
+                <Table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.data?.map((item_location) => (
+                        <p>
+                            <span>{item_location.item_name}</span>
+                            <span>{item_location.stock}</span>
+                        </p>
+                    ))}
+                </tbody>
+            </Table>
+        )
+
+    }
+
+    const removeItemFromLocation = async (itemSKUName: string, quantity: number | "") => {
+        const locationID = location.ID
+        // itemSKUName: SKU : Name
+        // The length of the SKU is 8 character, thus, extract it as follows:
+        const itemSKU = itemSKUName.substring(0,9);
+        // console.log(itemSKU);
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/remove-item-from-location`,
+            {
+                credentials: "include",
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    itemSKU,
+                    locationID,
+                    quantity,
+                }),
+            }
+        );
+        const data : {
+            success: boolean;
+            message: string;
+        } = await response.json();
+
+        if (data.success) {
+            showNotification({
+                message: data.message,
+                color: "green",
+                title: "Success",
+            });
+            // refresh to update current page
+            await refresh();
+            return;
+        } else {
+            showNotification({
+                message: data.message,
+                color: "red",
+                title: "Error",
+            }); 
+            // refresh to update current page
+            await refresh();
+            return;
+        }
+    };
+
+    const doDelete = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/delete?id=${location.ID}`,
+            {
+                method: "DELETE",
+                credentials: "include",
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                message: "Item deleted",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to delete item",
+            color: "red",
+            title: "Error",
+        });
+    };
+
+    const editLocation = async(name: string, description : string) => {
+        if(name == ""){
+            name = location.name;
+        }
+        if(description == ""){
+            description = location.description;
+        }
+        const id = location.ID.toString();
+        console.log("Run edit location id = %d, with name = %s, description = %s", location.ID, name, description);
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/update`,
+            {
+                credentials: "include",
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id,
+                    name,
+                    description,
+                }),
+            }
+        );
+        if (response.ok) {
+            showNotification({
+                message: "Location updated",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to update the location",
+            color: "red",
+            title: "Error",
+        });
+    }
+
+    const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
+    const [editLocationModal, setEditLocationModal] = useState<boolean>(false);
+    const [addItemToLocationModal, setAddItemToLocationModal] = useState<boolean>(false);
+    const [removeItemFromLocationModal, setRemoveItemFromLocationModal] = useState<boolean>(false);
+    
+    return (
+        <>
+            <tr>
+                <td>{location.name || "None"}</td>
+                <td>{location.description || "None"}</td>
+                
+                <td>
+                    <Group>
+                        <Button variant = "outline" onClick = {() => setRemoveItemFromLocationModal(true)}>
+                            -
+                        </Button>
+                        <Button variant = "filled" onClick = {handleLocationDetailClick}>
+                            {location.total_item || 0}
+                        </Button>
+                        <Button variant = "outline" onClick = {() => setAddItemToLocationModal(true)}>
+                            +
+                        </Button>
+                    </Group>
+                </td>
+                
+                <td>
+                    <Group>
+                    <HoverCard>
+                        <HoverCard.Target>
+                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
+                            <Trash />
+                            </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Delete this location
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>
+
+                    <HoverCard>
+                        <HoverCard.Target>
+                        <ActionIcon variant = "default" onClick={() => setEditLocationModal(true)}>
+                            <Edit />
+                        </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Edit this location
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>
+                    </Group>
+                </td>
+            </tr>
+            <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} command={editLocation}/>
+            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Location beyond recovery."}/>
+            <AddItemToLocationModal  opened={addItemToLocationModal} setOpened={setAddItemToLocationModal} command={addItemToLocation}/>
+            <RemoveItemFromLocationModal locationID = {location.ID} opened={removeItemFromLocationModal} setOpened={setRemoveItemFromLocationModal} command={removeItemFromLocation}/>
+
+        </>
+    );
+};
+
+const CreateLocationModal = ({
     opened,
     setOpened,
     refresh,
@@ -36,52 +554,9 @@ export const CreateLocationModal = ({
     setOpened: Dispatch<SetStateAction<boolean>>;
     refresh: () => Promise<void>;
 }) => {
-    const [suggestions, setSuggestions] = useState<string[]>([]);
-
-    const [itemName, setItemName] = useState("");
-
-    const [locationName, setLocationName] = useState("");
-    const [locationLetter, setLocationLetter] = useState("");
-
-    const [loading, setLoading] = useState(false);
-
-    const fetchSuggestions = async () => {
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/suggest?query=${itemName}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            message: string;
-            data: data[];
-        } = await response.json();
-
-
-        let temp: string[]
-
-        temp = []
-
-        if (data.success) {
-
-            for (let i = 0; i < data.data.length; i++) {
-                temp = [...temp, data.data[i].name]
-            }
-        }
-
-        setSuggestions(temp);
-    };
-
-    useEffect(() => {
-        fetchSuggestions();
-    }, [itemName]);
-
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
     const doCreate = async () => {
-        setItemName("")
-        setLoading(true);
-
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/add`,
             {
@@ -91,10 +566,98 @@ export const CreateLocationModal = ({
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name: locationName,
-                    //letter: locationLetter,
-                    productName: itemName,
+                    name,
+                    description,
                 }),
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                color: "green",
+                title: "Location created",
+                message: "Location created successfully",
+            });
+
+            await refresh();
+            setOpened(false);
+            return;
+        }
+
+        const data = await response.json();
+
+        showNotification({
+            color: "red",
+            title: "Error",
+            message: data.message,
+        });
+    };
+
+    return (
+        <>
+            <Modal
+                opened={opened}
+                onClose={() => {
+                    refresh();
+                    setOpened(false);
+                }}
+                title="Create Location"
+            >
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        doCreate();
+                    }}
+                >
+                    <TextInput
+                        label="Name"
+                        required
+                        placeholder="The name of the location"
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                    <Space h="md" />
+                    <TextInput
+                        label="Description"
+                        required
+                        placeholder="The description of the location"
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
+                    <Space h="md" />
+                    <Group position="right">
+                        <Button color="green" type="submit">
+                            Submit
+                        </Button>
+                    </Group>
+                </form>
+            </Modal>
+        </>
+    );
+};
+
+export const LocationsManager = () => {
+    const [locations, setLocations] = useState<Location[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPage, setTotalPage] = useState(1);
+
+    const [nameQuery, setNameQuery] = useState("");
+    const [nameQueryTyping, setNameQueryTyping] = useState("");
+
+    const [descriptionQuery, setDescriptionQuery] = useState("");
+    const [descriptionQueryTyping, setDescriptionQueryTyping] = useState("");
+
+    const [showCreationModal, setShowCreationModal] = useState(false);
+
+    
+
+    const fetchLocations = async () => {
+        setLoading(true);
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/list?page=${currentPage}&name=${nameQuery}&description=${descriptionQuery}`,
+            {
+                credentials: "include",
             }
         );
 
@@ -103,343 +666,131 @@ export const CreateLocationModal = ({
         const data: {
             success: boolean;
             message: string;
+            data: {
+                data: Location[];
+                total: number;
+                totalPages: number;
+            };
         } = await response.json();
 
         if (data.success) {
-            await refresh();
-            setOpened(false);
-            return;
-        }
-
-        showNotification({
-            color: "red",
-            title: "Error creating location",
-            message: data.message,
-        });
-    };
-
-    return (
-        <>
-            <Modal
-                title="Create Location"
-                opened={opened}
-                onClose={() => setOpened(false)}
-            >
-                <LoadingOverlay visible={loading} />
-                <Autocomplete
-                    onChange={setItemName}
-                    label="Item Name OR Product ID"
-                    placeholder="Start typing..."
-                    data={suggestions}
-                />
-                <Space h="md" />
-                <Group grow>
-                    <TextInput
-                        label="Name"
-                        placeholder="M15"
-                        onChange={(e) => setLocationName(e.target.value)}
-                    />
-                </Group>
-                <Space h="md" />
-                <Group position="right">
-                    <Button color="green" onClick={doCreate}>
-                        Create
-                    </Button>
-                </Group>
-            </Modal>
-        </>
-    );
-};
-
-export const LocationQrGenerator = ({
-    location,
-    opened,
-    setOpened,
-}: {
-    location: string;
-    opened: boolean;
-    setOpened: Dispatch<SetStateAction<boolean>>;
-}) => {
-    const getQrFile = async () => {
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/qr/codes?labels=${location}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        // data is arraybuffer
-        const data = await response.arrayBuffer();
-
-        // convert to blob
-        const blob = new Blob([data], { type: "application/pdf" });
-
-        // create a url from the blob
-        const url = URL.createObjectURL(blob);
-
-        // open the url with the pdf viewer
-        window.open(url, "_blank");
-    };
-
-    return (
-        <>
-            <Modal
-                opened={opened}
-                onClose={() => setOpened(false)}
-                title="Location QR Code Generator"
-            >
-                <Text>{location}</Text>
-                <QRCode value={location} size={200} />
-                <Space h="md" />
-                <Group position="right">
-                    <Button color="green" onClick={getQrFile}>
-                        Print
-                    </Button>
-                </Group>
-            </Modal>
-        </>
-    );
-};
-
-export const LocationComponent = ({
-    location,
-    refresh,
-    locationIdentifiers,
-    setLocationIdentifiers,
-}: {
-    location: Location;
-    refresh: () => Promise<void>;
-    locationIdentifiers: string[];
-    setLocationIdentifiers: Dispatch<SetStateAction<string[]>>;
-}) => {
-    const [showQr, setShowQr] = useState(false);
-
-    const doDelete = async () => {
-        await fetch(
-            `${process.env.REACT_APP_API_URL}/location/delete?id=${location.ID}`,
-            {
-                method: "DELETE",
-                credentials: "include",
-            }
-        );
-
-        await refresh();
-    };
-
-    const addSub = async () => {
-        await fetch(
-            `${process.env.REACT_APP_API_URL}/location/add/sub?name=${location.name}`,
-            {
-                method: "PUT",
-                credentials: "include",
-            }
-        );
-
-        refresh();
-    };
-
-    return (
-        <>
-            <tr className={styles.locationComponent}>
-                <td>
-                    <Checkbox
-                        onClick={() => {
-                            // check if it's in locationIdentifiers
-                            const identifier = `${location.name}${location.letter}`;
-
-                            if (locationIdentifiers.includes(identifier)) {
-                                // remove it
-                                setLocationIdentifiers(
-                                    locationIdentifiers.filter(
-                                        (i) => i !== identifier
-                                    )
-                                );
-                                return;
-                            }
-
-                            setLocationIdentifiers([
-                                ...locationIdentifiers,
-                                identifier,
-                            ]);
-                        }}
-                    />
-                </td>
-                <td>{location.name+location.letter}</td>
-                <td>{location.productName}</td>
-                <td>
-                    <Group>
-                        <ActionIcon variant="default" onClick={doDelete}>
-                            <Trash />
-                        </ActionIcon>
-                        <ActionIcon
-                            variant="default"
-                            onClick={() => setShowQr(true)}
-                        >
-                            <Qrcode />
-                        </ActionIcon>
-                        <ActionIcon
-                            variant="default"
-                            onClick={addSub}
-                        >
-                            <CirclePlus />
-                        </ActionIcon>
-                    </Group>
-                </td>
-            </tr>
-            <LocationQrGenerator
-                opened={showQr}
-                setOpened={setShowQr}
-                location={location.name + location.letter}
-            />
-        </>
-    );
-};
-
-export const LocationsManager = () => {
-    const [locations, setLocations] = useState<Location[]>([]);
-
-    const [nameTyping, setNameTyping] = useState("");
-    const [filterName, setFilterName] = useState("");
-
-    const [letterTyping, setLetterTyping] = useState("");
-    const [filterLetter, setFilterLetter] = useState("");
-
-    const [productTyping, setProductTyping] = useState("");
-    const [filterProduct, setFilterProduct] = useState("");
-
-    const [showCreateModal, setShowCreateModal] = useState(false);
-
-    const [locationIdentifiers, setLocationIdentifiers] = useState<string[]>(
-        []
-    );
-
-    const bulkPrint = async () => {
-        const response = await fetch(
-            `${
-                process.env.REACT_APP_API_URL
-            }/qr/codes?labels=${encodeURIComponent(
-                locationIdentifiers.join(" ")
-            )}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        // data is arraybuffer
-        const data = await response.arrayBuffer();
-
-        // convert to blob
-        const blob = new Blob([data], { type: "application/pdf" });
-
-        // create a url from the blob
-        const url = URL.createObjectURL(blob);
-
-        // open the url with the pdf viewer
-        window.open(url, "_blank");
-    };
-
-    const fetchLocations = async () => {
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/location/list?name=${filterName}&letter=${filterLetter}&product=${filterProduct}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            message: string;
-            data: Location[];
-        } = await response.json();
-
-        if (data.success) {
-            setLocations(data.data);
+            console.log("Success loading item data");
+            setLocations(data.data.data);
+            console.log(data.data.data);
+            setTotalPage(data.data.totalPages);
         }
     };
 
     useEffect(() => {
         fetchLocations();
-    }, [filterName, filterLetter, filterProduct]);
+    }, [currentPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+        fetchLocations();
+    }, [nameQuery, descriptionQuery]);
 
     return (
         <>
+            <CreateLocationModal
+                opened={showCreationModal}
+                setOpened={setShowCreationModal}
+                refresh={fetchLocations}
+            />
             <Box sx={containerStyles}>
+                <Group>
                 <Group position="apart">
                     <h3>Locations</h3>
-                    <ActionIcon
-                        sx={{
-                            height: "4rem",
-                            width: "4rem",
-                        }}
-                        onClick={() => setShowCreateModal(true)}
-                    >
-                        <CirclePlus />
-                    </ActionIcon>
+                    <Group spacing={0}>
+                        <HoverCard>
+                            <HoverCard.Target>
+                                <ActionIcon
+                                    sx={{
+                                        height: "4rem",
+                                        width: "4rem",
+                                    }}
+                                    onClick={() => setShowCreationModal(true)}
+                                >
+                                    <CirclePlus />
+                                </ActionIcon>
+                            </HoverCard.Target>
+                            <HoverCard.Dropdown>
+                                <Text size="sm">
+                                    Add a new location
+                                </Text>
+                            </HoverCard.Dropdown>
+                        </HoverCard>
+                    </Group>
                 </Group>
                 <Space h="md" />
-                <Text>Filter</Text>
                 <Group>
                     <TextInput
-                        placeholder="W15"
-                        onChange={(e: any) => setNameTyping(e.target.value)}
+                        placeholder="Search Name"
+                        onChange={(e: any) =>
+                            setNameQueryTyping(e.target.value)
+                        }
                     />
                     <TextInput
-                        placeholder="A"
-                        onChange={(e: any) => setLetterTyping(e.target.value)}
-                    />
-                    <TextInput
-                        placeholder="pants OR 18830"
-                        onChange={(e: any) => setProductTyping(e.target.value)}
+                        placeholder="Search Description"
+                        onChange={(e: any) =>
+                            setDescriptionQueryTyping(e.target.value)
+                        }
                     />
                     <Button
                         onClick={() => {
-                            setFilterName(nameTyping);
-                            setFilterLetter(letterTyping);
-                            setFilterProduct(productTyping);
+                            setNameQuery(nameQueryTyping);
+                            setDescriptionQuery(descriptionQueryTyping);
                         }}
+                        disabled={loading}
                     >
-                        Filter
+                    Search
                     </Button>
                 </Group>
-                <Space h="md" />
-                {locationIdentifiers.length ? (
-                    <Button color="blue" onClick={bulkPrint}>
-                        Bulk Print QR Codes
-                    </Button>
-                ) : null}
-                <Space h="md" />
-                <Table>
-                    <thead>
-                        <tr>
-                            <th>[+]</th>
-                            <th>Name</th>
-                            <th>Product Name</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {locations.map((location) => (
-                            <LocationComponent
-                                key={location.ID}
-                                location={location}
-                                refresh={fetchLocations}
-                                locationIdentifiers={locationIdentifiers}
-                                setLocationIdentifiers={setLocationIdentifiers}
-                            />
-                        ))}
-                    </tbody>
-                </Table>
-                <Group position="right">
-                    <Button onClick={fetchLocations}>
-                        Refresh
-                    </Button>
-                </Group>
+            </Group>
+            <Space h="md" />
+            <Table striped highlightOnHover>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Number of Items</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {locations.map((location) => (
+                        <LocationRow key={location.ID} location={location} refresh={fetchLocations} />
+                    ))
+                    }
+                </tbody>
+            </Table>
+            <Space h="md" />
+            <Center>
+                {loading ? (
+                    <Loader variant="dots" />
+                ) : (
+                    <Pagination
+                        boundaries={3}
+                        withEdges
+                        value={currentPage}
+                        total={totalPage}
+                        onChange={setCurrentPage}
+                    />
+                )}
+            </Center>
+            
+                <Button
+                    onClick={fetchLocations}
+                    disabled={loading}
+                >
+                    Refresh
+                </Button>
             </Box>
-            <CreateLocationModal
-                refresh={fetchLocations}
-                opened={showCreateModal}
-                setOpened={setShowCreateModal}
-            />
         </>
     );
 };
+function useStyles(): { classes: any; cx: any; } {
+    throw new Error("Function not implemented.");
+}
+
+export default LocationsManager;

@@ -3,32 +3,14 @@ package location
 import (
 	"GIK_Web/database"
 	"GIK_Web/type_news"
-	"GIK_Web/types"
 	"GIK_Web/utils"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
-
-type location struct {
-	ID          int
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// Letter string `json:"letter"`
-	// SKU    string `json:"sku"`
-}
-
-type lookupData struct {
-	location
-	Item types.Item `json:"product"`
-}
-
-type listData struct {
-	location
-	Item        types.Item `json:"product"`
-	ProductName string     `json:"productName"`
-}
 
 // start to implement methods
 
@@ -36,8 +18,8 @@ type listData struct {
 // To add a new, empty location to the list
 
 type addRequest struct {
-	Name        string `json:"name" binding: "required"`
-	Description string `json:"description" binding: "required`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
 }
 
 func AddLocation(c *gin.Context) {
@@ -74,12 +56,35 @@ func AddLocation(c *gin.Context) {
 
 }
 
+type ListLocationResponse struct {
+	Id          int    `json:"ID" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
+	TotalItem   int    `json:"total_item" binding:"required"`
+}
+
 // 2. List location: display the list of location (do not include the items within)
 func ListLocation(c *gin.Context) {
 	name := c.Query("name")
 	description := c.Query("description")
+	page := c.Query("page")
 
-	locations := []location{}
+	if page == "" {
+		page = "1"
+	}
+
+	pageInt, err := strconv.Atoi(page)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid page number",
+		})
+		return
+	}
+
+	limit := 10 // Number of entries shown per page
+	offset := (pageInt - 1) * limit
 
 	baseQuery := database.Database.Model(&type_news.Location{})
 
@@ -91,7 +96,14 @@ func ListLocation(c *gin.Context) {
 		baseQuery = baseQuery.Where("description LIKE ?", "%"+description+"%")
 	}
 
-	err := baseQuery.Find(&locations).Error
+	var totalCount int64
+	baseQuery.Count(&totalCount)
+
+	baseQuery = baseQuery.Limit(limit).Offset(offset)
+
+	locations := []type_news.Location{}
+
+	err = baseQuery.Find(&locations).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
@@ -100,14 +112,31 @@ func ListLocation(c *gin.Context) {
 		return
 	}
 
-	var totalCount int64
-	baseQuery.Count(&totalCount)
+	totalPages := math.Ceil(float64(totalCount) / float64(limit))
 
+	locationResponse := make([]ListLocationResponse, len(locations))
+
+	for i, location := range locations {
+		itemCount := 0
+		var tmpLocation type_news.Location
+		database.Database.Preload("Warehouses").Where("location_id = ?", location.ID).Find(&tmpLocation.Warehouses)
+		for _, warehouse := range tmpLocation.Warehouses {
+			itemCount += warehouse.Stock
+		}
+		locationResponse[i] = ListLocationResponse{
+			Id:          int(location.ID),
+			Name:        location.Name,
+			Description: location.Description,
+			TotalItem:   itemCount,
+		}
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
-			"data":  locations,
-			"total": totalCount,
+			"data":        locationResponse,
+			"total":       totalCount,
+			"currentPage": pageInt,
+			"totalPages":  totalPages,
 		},
 	})
 
@@ -130,6 +159,17 @@ func DeleteLocation(c *gin.Context) {
 
 	location := type_news.Location{}
 
+	if err := database.Database.Model(&type_news.Location{}).Where("id = ?", idInt).First(&location).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid Location",
+		})
+		return
+	}
+
+	locationName := location.Name
+	locationDescription := location.Description
+
 	err = database.Database.Model(&location).Where("id = ?", idInt).Delete(&location).Error
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -139,31 +179,26 @@ func DeleteLocation(c *gin.Context) {
 		return
 	}
 
-	// err = database.Database.Delete(&location).Error
-	// if err != nil {
-	// 	c.JSON(400, gin.H{
-	// 		"success": false,
-	// 		"message": "Unable to delete location",
-	// 	})
-	// 	return
-	// }
-
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "Location deleted",
 	})
-	utils.CreateSimpleLog(c, "Deleted location "+id)
+	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted location, id: %d, Name:  %s, Description: %s", idInt, locationName, locationDescription))
 }
 
-type addItemToLocationRequest struct {
-	ItemID     uint `json:"item-id" binding: "required"`
-	LocationID uint `json:"location-id" binding: "required`
-	Stock      int  `json:"stock" binding: "required`
+type adjustItemLocationRequest struct {
+	ItemSKU    string `json:"itemSKU" binding:"required"`
+	LocationID uint   `json:"locationID" binding:"required"`
+	Stock      int    `json:"quantity" binding:"required"`
 }
 
-// 4. Add item to location
+// 4. Add item to location by item's SKU
+// Step-1 : look-up the id of item
+// Step-2 : check if the record with foreign key pair (item_id, location_id) exists
+// + Yes: add Stock to the stock field
+// + No: create a new record
 func AddItemToLocation(c *gin.Context) {
-	json := addItemToLocationRequest{}
+	json := adjustItemLocationRequest{}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
@@ -172,21 +207,37 @@ func AddItemToLocation(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println(json)
+	var item type_news.Item
 
-	newWarehouse := type_news.Warehouse{
-		ItemID:     json.ItemID,
-		LocationID: json.LocationID,
-		Stock:      json.Stock,
-	}
+	database.Database.First(&item, "sku=?", json.ItemSKU)
+	var warehouse type_news.Warehouse
 
-	err := database.Database.Create(&newWarehouse).Error
+	// look-up the record with foreign key pair = (item_id, location_id)
+	result := database.Database.Where("item_id = ? AND location_id = ?", item.ID, json.LocationID).First(&warehouse)
 
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Unable to add item to location",
-		})
-		return
+	if result.Error == gorm.ErrRecordNotFound {
+		// create a new record and add to the database
+		fmt.Print("Not found, create new and add")
+		newWarehouse := type_news.Warehouse{
+			ItemID:     item.ID,
+			LocationID: json.LocationID,
+			Stock:      json.Stock,
+		}
+		err := database.Database.Create(&newWarehouse).Error
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Unable to add item to location",
+			})
+			return
+		}
+	} else {
+		// add json.Stock to the current record stock
+		fmt.Print("Found, add to the existence")
+		warehouse.Stock += json.Stock
+		database.Database.Save(warehouse)
 	}
 
 	c.JSON(200, gin.H{
@@ -194,14 +245,14 @@ func AddItemToLocation(c *gin.Context) {
 		"message": "Successfully add an item to location",
 	})
 
-	utils.CreateSimpleLog(c, "Added item to location")
-
+	utils.CreateSimpleLog(c, fmt.Sprintf("Added %d pieces of item with sku = %s to location id = %d", json.Stock, json.ItemSKU, json.LocationID))
 }
 
 // 5. List items within location
 type ListItemInLocationResponse struct {
-	ItemName string `json:"item-name" binding: "required"`
-	Stock    int    `json: "stock" binding : "required"`
+	ItemSKU  string `json:"item_sku" binding:"required"`
+	ItemName string `json:"item_name" binding:"required"`
+	Stock    int    `json:"stock" binding:"required"`
 }
 
 func ListItemInLocation(c *gin.Context) {
@@ -224,26 +275,30 @@ func ListItemInLocation(c *gin.Context) {
 		var item type_news.Item
 		database.Database.First(&item, warehouse.ItemID)
 		itemsInLocation[i] = ListItemInLocationResponse{
+			ItemSKU:  item.SKU,
 			ItemName: item.Name,
 			Stock:    warehouse.Stock,
 		}
 		fmt.Printf("item id: %s : %d\n", item.Name, warehouse.Stock)
 	}
-	// jsonReturn, err := json.MarshalIndent(itemsInLocation, "", " ")
-	// if err != nil {
-	// 	fmt.Println("Cannot convert the result to json")
-	// }
-	//fmt.Println(string(jsonReturn))
+
 	c.JSON(200, gin.H{
 		"success": true,
 		"data":    itemsInLocation,
 	})
 }
 
-//
+// 6. Remove item from location by item's SKU
+// Step-1 : look-up the id of item
+// Step-2 : check if the record with foreign key pair (item_id, location_id) exists
+//   - Yes:
+//     ++ check if current stock >= Stock:
+//     Yes: subtract Stock from the stock field (if = 0 => delete current record) => success
+//     ++ No: return error: "stock must <= current stock"
+//   - No: return error "ErrRecordNotFound"
+func RemoveItemFromLocation(c *gin.Context) {
+	json := adjustItemLocationRequest{}
 
-func UpdateLocation(c *gin.Context) {
-	json := location{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -251,151 +306,118 @@ func UpdateLocation(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println(json)
+	var item type_news.Item
 
-	// database.Database.Model(&location{}).Where("name = ?", json.Name).Update("sku", json.SKU)
+	database.Database.First(&item, "sku=?", json.ItemSKU)
+	var warehouse type_news.Warehouse
+
+	// look-up the record with foreign key pair = (item_id, location_id)
+	result := database.Database.Where("item_id = ? AND location_id = ?", item.ID, json.LocationID).First(&warehouse)
+	successMsg := "Success, "
+	if result.Error == gorm.ErrRecordNotFound {
+		//not found
+		msg := gorm.ErrRecordNotFound
+		fmt.Println(msg)
+		c.JSON(200, gin.H{
+			"success": false,
+			"message": "record not found",
+		})
+		return
+	} else {
+		// check if current stock >= Stock
+		fmt.Print("Found, subtract")
+		if warehouse.Stock < json.Stock {
+			msg := fmt.Sprintf("Error: the removed quantity must <= %d", warehouse.Stock)
+			fmt.Println(msg)
+			c.JSON(200, gin.H{
+				"success": false,
+				"message": msg,
+			})
+			return
+		} else {
+			// subtract
+			warehouse.Stock -= json.Stock
+			// if remain stock > 0 : save; else: delete current record
+			if warehouse.Stock > 0 {
+				successMsg += "current quantity updated"
+				database.Database.Save(warehouse)
+			} else {
+				successMsg += "current quantity of this item in the location is 0"
+				database.Database.Delete(&warehouse)
+			}
+		}
+
+	}
 
 	c.JSON(200, gin.H{
 		"success": true,
-		"message": "Updated location",
+		"message": successMsg,
 	})
 
-	utils.CreateSimpleLog(c, "Updated location "+json.Name)
-
+	utils.CreateSimpleLog(c, fmt.Sprintf("Remove %d pieces of item with sku = %s from location id = %d", json.Stock, json.ItemSKU, json.LocationID))
 }
 
-func AddSubLocation(c *gin.Context) {
+// -------------------------------------------
+type updateLocationRequest struct {
+	ID          string `json:"id"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
+}
 
-	name := c.Query("name")
-
-	data := types.Location{}
-
-	database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).First(&data)
-
-	var count int64
-
-	database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).Count(&count)
-
-	var letter string
-
-	LETTERS := [...]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
-
-	if count == 0 {
-		letter = ""
-	} else if count == 1 {
-		database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).Update("letter", "A")
-		letter = "B"
-	} else {
-		letter = LETTERS[count+1]
+func UpdateLocation(c *gin.Context) {
+	json := updateLocationRequest{}
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid json fields",
+		})
+		return
 	}
 
-	data.Letter = letter
-
-	err := database.Database.Create(&data).Error
+	jsonIdInt, err := strconv.Atoi(json.ID)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Unable to create location",
+			"message": "Invalid ID",
 		})
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"success": true,
-		"message": "Location created",
-	})
-
-	utils.CreateSimpleLog(c, "Added location "+name)
-}
-
-func LookupLocation(c *gin.Context) {
-	// product id
-	// name := c.Query("name")
-	// letter := c.Query("letter")
-
-	//could remove check and use function also for list
-
-	// if name == "" && letter == "" && itemID == 0 {
-	// 	c.JSON(400, gin.H{
-	// 		"success": false,
-	// 		"message": "No fields provided",
-	// 	})
-	// 	return
-	// }
-
-	// var postData []location
-	// database.Database.Model(&location{}).Where(&location{Name: name, Letter: letter}).Scan(&postData)
-
-	response := []lookupData{}
-
-	// for _, location := range postData {
-	// 	var item types.Item
-	// 	err := database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).Scan(&item).Error
-
-	// 	if err != nil {
-	// 		continue
-	// 	}
-
-	// 	response = append(response, lookupData{
-	// 		location: location,
-	// 		Item:     item,
-	// 	})
-
-	// }
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"data":    response,
-	})
-
-}
-
-func GetScannedData(c *gin.Context) {
-	name := c.Query("name")
-	letter := c.Query("letter")
-
-	var product types.Item
-
-	location := types.Location{}
-	if err := database.Database.Model(&types.Location{}).Where(&types.Location{Name: name, Letter: letter}).Scan(&location).Error; err != nil {
+	location := type_news.Location{}
+	if err := database.Database.Model(&type_news.Location{}).Where("ID = ?", jsonIdInt).First(&location).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Unable to query location",
-			"data":    gin.H{},
+			"message": "Invalid location ID",
 		})
 		return
 	}
 
-	var item types.Item
-	if err := database.Database.Model(&types.Item{}).Where("sku = ?", location.SKU).First(&item).Error; err != nil {
+	///////////
+	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Unable to find item",
-			"error":   err.Error(),
-			"data":    gin.H{},
+			"message": "Invalid name",
 		})
 		return
 	}
+	location.Name = json.Name
 
-	product = item
+	if json.Description == "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid description",
+		})
+		return
+	}
+	location.Description = json.Description
+
+	database.Database.Save(location)
 
 	c.JSON(200, gin.H{
 		"success": true,
-		"data":    product,
+		"message": "Location successfully updated",
 	})
 
-	utils.CreateSimpleLog(c, "Scanned location "+name+" "+letter)
-
-}
-
-func ListLocationSKU(c *gin.Context) {
-
-	name := c.Query("name")
-	letter := c.Query("letter")
-
-	var sku string
-
-	database.Database.Model(&types.Location{}).Where("name = ?", name).Where("letter = ?", letter).Distinct("sku").Pluck("sku", &sku)
-
-	c.JSON(200, gin.H{"success": true, "sku": sku})
-
+	utils.CreateSimpleLog(c, fmt.Sprintf("Updated location id: %d with name: %s and description: %s", location.ID, location.Name, location.Description))
 }

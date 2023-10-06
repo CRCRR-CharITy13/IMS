@@ -19,7 +19,7 @@ type addNewItemRequest struct {
 	Name       string  `json:"name" binding:"required"`
 	Size       string  `json:"size" binding:"required"`
 	Price      float32 `json:"price" binding:"required"`
-	StockTotal int     `json:"stock_total" binding:"required"`
+	StockTotal int     `json:"quantity" binding:"required"`
 }
 
 func AddItem(c *gin.Context) {
@@ -36,28 +36,28 @@ func AddItem(c *gin.Context) {
 
 	item := type_news.Item{}
 
-	if json.Name != "" {
+	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item name",
 		})
 		return
 	}
 	item.Name = json.Name
 
-	if json.SKU != "" {
+	if json.SKU == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item SKU",
 		})
 		return
 	}
 	item.SKU = json.SKU
 
-	if json.Size != "" {
+	if json.Size == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item size",
 		})
 		return
 
@@ -68,7 +68,7 @@ func AddItem(c *gin.Context) {
 	if json.Price < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item price",
 		})
 		return
 	}
@@ -77,7 +77,7 @@ func AddItem(c *gin.Context) {
 	if json.StockTotal < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid item stock total",
 		})
 		return
 	}
@@ -104,12 +104,12 @@ func AddItem(c *gin.Context) {
 // 2. List items
 
 type ListItemResponse struct {
-	Id       int     `json:"id" binding: "required"`
-	Name     string  `json: "name" binding : "required"`
-	Sku      string  `json: "sku" binding : "required"`
-	Size     string  `json:"size" binding: "required"`
-	Quantity int     `json: "quantity" binding : "required"`
-	Price    float32 `json: "price" binding : "required"`
+	Id       int     `json:"ID" binding:"required"`
+	Name     string  `json:"name" binding:"required"`
+	Sku      string  `json:"sku" binding:"required"`
+	Size     string  `json:"size" binding:"required"`
+	Quantity int     `json:"quantity" binding:"required"`
+	Price    float32 `json:"price" binding:"required"`
 }
 
 func ListItem(c *gin.Context) {
@@ -178,7 +178,7 @@ func ListItem(c *gin.Context) {
 // 3. Update Items
 
 type updateItemRequest struct {
-	ID         string  `json:"id"`
+	ID         string  `json:"id" binding:"required"`
 	SKU        string  `json:"sku" binding:"required"`
 	Name       string  `json:"name" binding:"required"`
 	Size       string  `json:"size" binding:"required"`
@@ -206,7 +206,7 @@ func UpdateItem(c *gin.Context) {
 	}
 
 	item := type_news.Item{}
-	if err := database.Database.Model(&types.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
+	if err := database.Database.Model(&type_news.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid item ID",
@@ -215,7 +215,7 @@ func UpdateItem(c *gin.Context) {
 	}
 
 	///////////
-	if json.Name != "" {
+	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
@@ -224,7 +224,7 @@ func UpdateItem(c *gin.Context) {
 	}
 	item.Name = json.Name
 
-	if json.SKU != "" {
+	if json.SKU == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
@@ -233,7 +233,7 @@ func UpdateItem(c *gin.Context) {
 	}
 	item.SKU = json.SKU
 
-	if json.Size != "" {
+	if json.Size == "" {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
@@ -270,7 +270,7 @@ func UpdateItem(c *gin.Context) {
 		"message": "Item successfully updated",
 	})
 
-	utils.CreateSimpleLog(c, fmt.Sprintf("Updated item with id: %d, name: %s", item.ID, item.Name))
+	utils.CreateSimpleLog(c, fmt.Sprintf("Updated item with id: %d, SKU: %s, and name: %s", item.ID, item.SKU, item.Name))
 }
 
 //
@@ -287,14 +287,17 @@ func DeleteItem(c *gin.Context) {
 		return
 	}
 
-	item := types.Item{}
-	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
+	item := type_news.Item{}
+	if err := database.Database.Model(&type_news.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid Item",
 		})
 		return
 	}
+
+	itemSKU := item.SKU
+	itemName := item.Name
 
 	if err := database.Database.Model(&types.Item{}).Delete(&item).Error; err != nil {
 		c.JSON(500, gin.H{
@@ -305,7 +308,7 @@ func DeleteItem(c *gin.Context) {
 		return
 	}
 
-	utils.CreateSimpleLog(c, "Deleted Item")
+	utils.CreateSimpleLog(c, fmt.Sprintf("Deleted Item, id: %d, SKU: %s, Name: %s", ID, itemSKU, itemName))
 
 	c.JSON(200, gin.H{
 		"success": true,
@@ -317,8 +320,8 @@ func DeleteItem(c *gin.Context) {
 // 5. List locations for an item, by id
 
 type ListLocationForItemResponse struct {
-	LocationName string `json:"location-name" binding: "required"`
-	Stock        int    `json: "stock" binding : "required"`
+	LocationName string `json:"location_name" binding:"required"`
+	Stock        int    `json:"stock" binding:"required"`
 }
 
 func ListLocationForItem(c *gin.Context) {
@@ -354,93 +357,28 @@ func ListLocationForItem(c *gin.Context) {
 	)
 }
 
+func GetUnstoredQuantity(c *gin.Context) {
+	sku := c.Query("sku")
+
+	var item type_news.Item
+	baseQuery := database.Database.Model(&type_news.Item{})
+	baseQuery.Find(&item, "sku=?", sku)
+	database.Database.Preload("Warehouses").Where("item_id = ?", item.ID).Find(&item.Warehouses)
+	// fmt.Print(location)
+	storedQtt := 0
+	for _, warehouse := range item.Warehouses {
+		storedQtt += warehouse.Stock
+	}
+	restQtt := item.StockTotal - storedQtt
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    restQtt,
+	},
+	)
+}
+
 //
 //
-
-type returnedItem struct {
-	Name string `json:"name"`
-	SKU  string `json:"sku"`
-	//Category string  `json:"category"` // Clothes or not
-	Price float32 `json:"price"`
-	Stock int     `json:"stock"`
-	Size  string  `json:"size"`
-}
-
-type newItemRequest struct {
-	Name     string  `json:"name" binding:"required"`
-	SKU      string  `json:"sku" binding:"required"`
-	Category string  `json:"category" binding:"required"`
-	Size     string  `json:"size" binding:"required"`
-	Price    float32 `json:"price" binding:"required"`
-	Quantity int     `json:"quantity" binding:"required"`
-}
-
-func AddSize(c *gin.Context) {
-	id := c.Query("id")
-	size := c.Query("size")
-	quantity := c.Query("quantity")
-	ID, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-
-	data := newItemRequest{}
-	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&data).Error; err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid Item",
-		})
-		return
-	}
-
-	var count int64
-
-	database.Database.Model(&types.Item{}).Where("id = ?", ID).Where("size = ?", size).Count(&count)
-
-	if count != 0 {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Size already exists",
-		})
-		return
-	}
-
-	data.Size = size
-	data.Quantity, err = strconv.Atoi(quantity)
-
-	item := types.Item{}
-
-	item.Name = data.Name
-	item.SKU = data.SKU
-	item.Category = data.Category
-	item.Size = data.Size
-	item.Price = data.Price
-	item.Quantity = int(data.Quantity)
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields",
-		})
-		return
-	}
-
-	err = database.Database.Model(&types.Item{}).Create(&item).Error
-	if err != nil {
-		c.JSON(500, gin.H{
-			"success": false,
-			"message": "Unable to create item",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
-}
 
 // Function to edit a single item in terms of name, SKU, size, stock and/or price
 func EditItem(c *gin.Context) {
@@ -503,23 +441,7 @@ func EditItem(c *gin.Context) {
 
 		baseQuery.Update("price", pricef32)
 	}
-	// Update the item
-	// database.Database.Model(&types.Item{}).Where("id = ?", ID).Updates(types.Item{Price: pricef32, Name: name, SKU: sku, Size: size, Quantity: Stock})
 
-	// items := []types.Item{}
-	// database.Database.Model(&types.Item{}).Select(&types.Item{}).
-	// 	Where("id < ?", 0, "stock < ?", 0, "price < ?", 0, "size < ?",
-	// 		strconv.Itoa(0), "SKU < ?", strconv.Itoa(0)).Find(&items)
-
-	// if items != nil {
-	// 	c.JSON(400, gin.H{
-	// 		"success": false,
-	// 		"message": "Invalid fields",
-	// 	})
-	// 	return
-	// }
-
-	// Return that you have successfully updated the item
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "Item successfully edited.",

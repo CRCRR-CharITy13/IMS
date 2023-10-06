@@ -1,8 +1,13 @@
 export interface Item {
-    id: number;
-    Name: string;
-    Sku: string;
-    Price: number;
-    Quantity: number;
+    ID: number;
+    name: string;
+    sku: string;
+    price: number;
+    quantity: number;
     size: string;
+}
+
+export interface Location_Item {
+    location_name : string;
+    stock : number;
 }

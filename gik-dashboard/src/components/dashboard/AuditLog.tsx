@@ -11,6 +11,7 @@ import {
     LoadingOverlay,
     TextInput,
 } from "@mantine/core";
+import { Tags } from "tabler-icons-react";
 
 import { DatePickerInput } from "@mantine/dates";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -19,32 +20,16 @@ import { AdvancedLog } from "../../types/logs";
 import styles from "../../styles/AuditLog.module.scss";
 import { containerStyles } from "../../styles/container";
 
-const exampleData = [
-    {
-        id: 1,
-        date: "2022-07-04",
-        user: "amy",
-        action: "Added 10 credits to joe",
-    },
-    {
-        id: 2,
-        date: "2022-07-04",
-        user: "joe",
-        action: "Added 1,000,000 credits to joe",
-    },
-    {
-        id: 3,
-        date: "2022-07-04",
-        user: "amy",
-        action: "Subtracted 1,000,000 credits from joe",
-    },
-    {
-        id: 4,
-        date: "2022-07-04",
-        user: "amy",
-        action: "Deleted the entire database",
-    },
-];
+interface DisplayAdvanceLog {
+    ID: number;
+    control: string;
+    ipAddress: string;
+    userAgent: string;
+    method: string;
+    path: string;
+    userId: string;
+    timestamp: string;
+}
 
 const AdvancedLogs = ({
     actionFilter,
@@ -62,6 +47,8 @@ const AdvancedLogs = ({
     const [currentPage, setCurrentPage] = useState<number>(1);
 
     const [totalPages, setTotalPages] = useState<number>(1);
+    const [username, setUsername] = useState<string>("");
+
 
     const getData = async () => {
         setVisible(true);
@@ -108,55 +95,90 @@ const AdvancedLogs = ({
         getData();
     }, [actionFilter, dateFilter, userFilter]);
 
+    const getUsername = async (userId : number) => {
+        
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/info/username?id=${userId}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: string;
+        } = await response.json();
+
+        if (data.success) {
+            setUsername(data.data);
+        }
+    };
+
+    const displayAdvanceLogs : DisplayAdvanceLog[] = [];
+    for(let idx = 0; idx<data.length; idx++){
+        getUsername(data[idx].userId);
+        const strUserId = "User name: " + username; //.toString();
+        const strIpAddress = "IpAddress: " + data[idx].ipAddress;
+        const strUserAgent = "User Agent: " + data[idx].userAgent;
+        const strMethod = "Method: " + data[idx].method;
+        const strPath = "Path: " + data[idx].path;
+        const strTimeStamp = "Time: " + new Date(data[idx].timestamp * 1000).toLocaleString();
+        //
+        let controlStr = "Log ID: ";
+        controlStr += data[idx].ID.toString();
+        controlStr = controlStr + "; " + strUserId;
+        controlStr = controlStr + "; " + strTimeStamp;
+        controlStr = controlStr + "; " + strPath;
+        const newDisplayAdvanceLog : DisplayAdvanceLog = {
+            ID : data[idx].ID,
+            control : controlStr,
+            ipAddress : strIpAddress,
+            userAgent : strUserAgent,
+            method : strMethod,
+            path : strPath,
+            userId : strUserId,
+            timestamp : strTimeStamp,
+        }
+        displayAdvanceLogs.push(newDisplayAdvanceLog);
+    }
+
+    console.log(displayAdvanceLogs)
+
+    const advancedLogItems = displayAdvanceLogs.map((log) => (
+        <Accordion.Item key={log.ID} value={log.ID.toString()}>
+            <Accordion.Control 
+            icon={
+                <Tags
+                  style={{ color: 'var(--mantine-color-red-filled'}}
+                />
+              }>
+                {log.control}</Accordion.Control>
+            <Accordion.Panel>{log.userId}</Accordion.Panel>
+            <Accordion.Panel>{log.ipAddress}</Accordion.Panel>
+            <Accordion.Panel>{log.userAgent}</Accordion.Panel>
+            <Accordion.Panel>{log.method}</Accordion.Panel>
+            <Accordion.Panel>{log.path}</Accordion.Panel>
+            <Accordion.Panel>{log.timestamp}</Accordion.Panel>
+        </Accordion.Item>
+    ));
+
+
     return (
         <>
-            <Accordion multiple>
-                {data.map((log) => (
-                    <Accordion.Item value={`${log.path}`}>
-                        {Object.entries(log).map((entry) => {
-                            const key = entry[0];
-                            const value = entry[1];
-
-                            const excludedKeys = [
-                                "CreatedAt",
-                                "UpdatedAt",
-                                "DeletedAt",
-                            ];
-
-                            if (excludedKeys.includes(key)) return;
-
-                            return (
-                                <>
-                                    <div className={styles.log}>
-                                        <p>
-                                            <b>{key}</b>:{" "}
-                                            {key === "timestamp" ? (
-                                                <span>
-                                                    {new Date(
-                                                        value * 1000
-                                                    ).toLocaleString()}
-                                                </span>
-                                            ) : (
-                                                <span>{value}</span>
-                                            )}
-                                        </p>
-                                    </div>
-                                </>
-                            );
-                        })}
-                    </Accordion.Item>
-                ))}
-            </Accordion>
+        <Accordion multiple>
+            {advancedLogItems}
+        </Accordion>
+        
             <Center
                 sx={{
                     marginTop: "1rem",
                 }}
             >
-                <Pagination
-                    value={currentPage}
-                    onChange={setCurrentPage}
-                    total={totalPages}
-                />
+            <Pagination
+                value={currentPage}
+                onChange={setCurrentPage}
+                total={totalPages}
+            />
             </Center>
         </>
     );
@@ -313,7 +335,7 @@ const AuditLog = () => {
 
     const [visible, setVisible] = useState<boolean>(false);
 
-    const doFilter = async () => {
+    const doFilter = async () => { 
         setActionFilter(actionFilterEditing);
         setDateFilter(dateFilterEditing);
         setUserFilter(userFilterEditing);
@@ -330,11 +352,8 @@ const AuditLog = () => {
                 >
                     <SegmentedControl
                         data={[
-                            { label: "Simple", value: "smp" },
-                            {
-                                label: "Advanced",
-                                value: "adv",
-                            },
+                                { label: "Simple", value: "smp" },
+                                { label: "Advanced", value: "adv" },
                         ]}
                         sx={{
                             marginBottom: "1rem",
@@ -383,19 +402,6 @@ const AuditLog = () => {
                             Filter
                         </Button>
                     </Center>
-                    {/* <Table>
-                        {" "}
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Date</th>
-                                <th>User</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>{rows}</tbody>
-                    </Table> */}
-                    {/* <Accordion> */}
                     {viewMode === "smp" ? (
                         <SimpleLogs
                             actionFilter={actionFilter}
@@ -411,7 +417,6 @@ const AuditLog = () => {
                             userFilter={userFilter}
                         />
                     )}
-                    {/* </Accordion> */}
                 </Box>
             </div>
         </>
