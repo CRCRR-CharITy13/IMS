@@ -6,18 +6,26 @@ import {
     Button,
     TextInput,
     Modal,
-    ActionIcon, Text,
+    ActionIcon, Text, CheckIcon, CheckboxIcon,
 
 } from "@mantine/core";
 import { openConfirmModal } from '@mantine/modals';
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import {CirclePlus, Refresh, TableExport, TableImport, Trash} from "tabler-icons-react";
+import {Checklist, CirclePlus, ColorFilter, Command, Id, Refresh, TableExport, TableImport, Trash} from "tabler-icons-react";
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
 import {Dropzone, MIME_TYPES} from "@mantine/dropzone";
-import { ConfirmationModal } from "../confirmation"
+import { ConfirmationModal } from "../confirmation";
+import { SquareCheck } from 'tabler-icons-react';
+import { Checkbox } from '@mantine/core';
+import { BsDatabase } from "react-icons/bs";
+import { ALL } from "dns";
+import { randomId, useListState } from "@mantine/hooks";
+
+
+
 
 
 const  UploadCSVModal = (
@@ -78,7 +86,25 @@ const  UploadCSVModal = (
         </>
     );
 }
+// Select Client Component using checkbox
 
+// const SelectClientComponent = ({
+//     client,
+//     refresh,
+// }: {
+//     client: Client;
+//     refresh: () => Promise<void>;
+// }) => {
+//     const SelectClient = async ()=> {
+//         const response = await fetch(
+//         `${process.env.REACT_APP_API_URL}/client/select?id=${client.ID}`,
+//         {
+//             method: "SELECT",
+//             credentials: "include",
+//         }
+//     );
+//     }
+// }
 
 
 const ClientComponent = ({
@@ -88,7 +114,7 @@ const ClientComponent = ({
     client: Client;
     refresh: () => Promise<void>;
 }) => {
-    const doDelete = async () => {
+    const doDelete= async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/client/delete?id=${client.ID}`,
             {
@@ -132,6 +158,15 @@ const ClientComponent = ({
                         <Trash />
                     </ActionIcon>
                 </td>
+                <td>
+                    <Checkbox defaultValue="disabled"
+                        // labelPosition="left"
+                        color="teal"
+                        size="md"
+                        onClick={() => showConfirmationModal}
+                    >
+                    </Checkbox>
+                </td>                
             </tr>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the client beyond recovery."}/>
         </>
@@ -214,7 +249,7 @@ const CreateClientModal = ({
                     }}
                 >
                     <TextInput
-                        label="Name"
+                        label="Organization name"
                         required
                         placeholder="Gifts In Kind"
                         {...form.getInputProps("name")}
@@ -332,6 +367,7 @@ const Clients = () => {
         if (data.success) {
             setClients(data.data);
         }
+        console.log(data.data);
     };
 
     useEffect(() => {
@@ -354,9 +390,9 @@ const Clients = () => {
                     </ActionIcon>
                 </Group>
                 <Space h="md" />
-                <Group>
+                <Group position="apart">
                     <TextInput
-                        placeholder="Name"
+                        placeholder="Organization name"
                         onChange={(e) => setNameQuery(e.target.value)}
                     />
                     <TextInput
@@ -374,26 +410,39 @@ const Clients = () => {
                     <TextInput
                         placeholder="Address"
                         onChange={(e) => setAddressQuery(e.target.value)}
-                    />
+                    />   
+                </Group>
+                <Space h="md"/>
+                <Group position="apart">
                     <Button
                         disabled={loading}
                         onClick={() => fetchClients()}
                     >
                         Filter
                     </Button>
-                </Group>
+                    <Button color="red" onClick={() => ConfirmationModal}>
+                    Delete Clients
+                    </Button>
+                    </Group>
+
                 <Space h="md" />
                 <Table>
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Name</th>
+                            <th>Organization name</th>
                             <th>Contact</th>
                             <th>Phone</th>
                             <th>Email</th>
                             <th>Address</th>
                             <th>Balance</th>
                             <th>Actions</th>
+                            <th>
+                                <Checkbox size="md" 
+                                    onClick={() => getSelection()} >
+                             
+                                </Checkbox>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>

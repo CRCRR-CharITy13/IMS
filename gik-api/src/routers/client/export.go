@@ -4,10 +4,11 @@ import (
 	"GIK_Web/database"
 	"GIK_Web/types"
 	"fmt"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gocarina/gocsv"
 	"github.com/google/uuid"
-	"os"
 )
 
 type export struct {
