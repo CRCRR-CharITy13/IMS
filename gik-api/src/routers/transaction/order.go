@@ -82,18 +82,18 @@ func ListOrders(c *gin.Context) {
 	})
 }
 
-type addOrderRequest struct {
+type AddOrderRequest struct {
 	ClientID int       `json:"clientId" binding:"required"`
-	Products []product `json:"products" binding:"required"`
+	Products []Product `json:"products" binding:"required"`
 }
 
-type product struct {
+type Product struct {
 	ID       int `json:"id" binding:"required"`
 	Quantity int `json:"quantity" binding:"required"`
 }
 
 func AddOrder(c *gin.Context) {
-	json := addOrderRequest{}
+	json := AddOrderRequest{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
