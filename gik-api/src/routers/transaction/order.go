@@ -84,8 +84,8 @@ func ListOrders(c *gin.Context) {
 	nbOrder := len(orders)
 	orderList := make([]ListOrderResponse, nbOrder)
 	for idx, order := range orders {
-		database.Database.First(&orders[idx].Client, orders[idx].ClientID)
-		database.Database.First(&orders[idx].SignedBy, orders[idx].UserID)
+		database.Database.First(&order.Client, order.ClientID)
+		database.Database.First(&order.SignedBy, order.UserID)
 		orderList[idx] = ListOrderResponse{
 			Id:            int(order.ID),
 			TimeStamp:     order.CreatedAt.Local().String(),

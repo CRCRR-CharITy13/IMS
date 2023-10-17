@@ -19,6 +19,8 @@ import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react"
 import { containerStyles } from "../../../styles/container";
 import { Client } from "../../../types/client";
 import { Transaction, TransactionItem } from "../../../types/transaction";
+import { Order, OrderItem } from "../../../types/order";
+
 import { ConfirmationModal } from "../../confirmation";
 
 
@@ -326,10 +328,10 @@ interface invoiceItem {
 }
 
 const TransactionComponent = ({
-    transaction,
+    order,
     refresh,
 }: {
-    transaction: Transaction;
+    order: Order;
     refresh: () => Promise<void>;
 }) => {
 
@@ -466,14 +468,13 @@ const TransactionComponent = ({
     return (
         <>
             <tr>
-                <td>{transaction.ID}</td>
+                <td>{order.ID}</td>
                 <td>
-                    {new Date(transaction.timestamp * 1000).toLocaleString()}
+                {order.timestamp}
                 </td>
-                <td>{transaction.type ? "Import" : "Export"}</td>
-                <td>{preparerUsername}</td>
-                <td>{clientName}</td>
-                <td>{transaction.totalQuantity}</td>
+                <td>{order.signedBy}</td>
+                <td>{order.clientName}</td>
+                <td>{order.totalQuantity}</td>
                 <td>
                     <Group>
                         <Tooltip label="Delete">
@@ -521,7 +522,7 @@ export const OrderManager = () => {
 
     const [suggestData, setSuggestData] = useState<any[]>([]);
 
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
 
     const [showCreationModal, setShowCreationModal] = useState(false);
 
@@ -609,13 +610,13 @@ export const OrderManager = () => {
             success: boolean;
             message: string;
             data: {
-                data: Transaction[];
+                data: Order[];
                 totalPages: number;
             };
         } = await response.json();
 
         if (data.success) {
-            setTransactions(data.data.data);
+            setOrders(data.data.data);
             console.log(data.data.data);
             setTotalPages(data.data.totalPages);
             return;
@@ -663,19 +664,18 @@ export const OrderManager = () => {
                         <tr>
                             <th>ID</th>
                             <th>Timestamp</th>
-                            <th>Type</th>
-                            <th>Preparer</th>
-                            <th>Customer</th>
+                            <th>Signed By</th>
+                            <th>Client</th>
                             <th>Item Quantity</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {transactions.map((transaction) => (
+                        {orders.map((order) => (
                             <TransactionComponent
                                 refresh={fetchTransactions}
-                                key={transaction.ID}
-                                transaction={transaction}
+                                key={order.ID}
+                                order={order}
                             />
                         ))}
                     </tbody>
