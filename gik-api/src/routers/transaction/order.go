@@ -10,6 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ListOrderResponse struct {
+	Id            int    `json:"ID" binding:"required"`
+	TimeStamp     string `json:"timestamp" binding:"required"`
+	ClientName    string `json:"clientName" binding:"required"`
+	SignedBy      string `json:"signedBy" binding:"required"`
+	TotalQuantity int    `json:"totalQuantity" binding:"required"`
+}
+
 func ListOrders(c *gin.Context) {
 	orders := []type_news.Order{}
 
@@ -73,10 +81,25 @@ func ListOrders(c *gin.Context) {
 
 	totalPages := math.Ceil(float64(totalCount) / float64(limit))
 
+	nbOrder := len(orders)
+	orderList := make([]ListOrderResponse, nbOrder)
+	for idx, order := range orders {
+		database.Database.First(&orders[idx].Client, orders[idx].ClientID)
+		database.Database.First(&orders[idx].SignedBy, orders[idx].UserID)
+		orderList[idx] = ListOrderResponse{
+			Id:            int(order.ID),
+			TimeStamp:     order.CreatedAt.Local().String(),
+			ClientName:    order.Client.OrgName,
+			SignedBy:      order.SignedBy.Username,
+			TotalQuantity: 10,
+		}
+
+	}
+
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
-			"data":       orders,
+			"data":       orderList,
 			"totalPages": totalPages,
 		},
 	})

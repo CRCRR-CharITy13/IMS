@@ -108,7 +108,7 @@ const CreateOrderModal = ({
 
     const doSubmit = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/transaction/add`,
+            `${process.env.REACT_APP_API_URL}/orders/add`,
             {
                 headers: {
                     "Content-Type": "application/json",
@@ -598,7 +598,7 @@ export const OrderManager = () => {
         setLoading(true);
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/transaction/list?page=${currentPage}&type=${typeFilter}&date=${dateFilter}&user=${userFilter}`,
+            `${process.env.REACT_APP_API_URL}/orders/list?page=${currentPage}&type=${typeFilter}&date=${dateFilter}&user=${userFilter}`,
             {
                 credentials: "include",
             }
@@ -616,6 +616,7 @@ export const OrderManager = () => {
 
         if (data.success) {
             setTransactions(data.data.data);
+            console.log(data.data.data);
             setTotalPages(data.data.totalPages);
             return;
         }
