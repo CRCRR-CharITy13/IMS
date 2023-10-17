@@ -1,9 +1,11 @@
 export interface Order {
     ID: number;
-    timestamp: string;
+    createdTime: string;
+    clientId: number;
     clientName: string;
+    signerId : number;
     signedBy: string;
-    totalQuantity: number;
+    totalCost: number;
 }
 
 export interface OrderItem {
@@ -13,5 +15,5 @@ export interface OrderItem {
     size: string;
     price: number;
     quantity: number;
-    totalValue: number;
+    totalCost: number;
 }

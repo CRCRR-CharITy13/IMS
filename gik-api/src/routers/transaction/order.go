@@ -3,6 +3,7 @@ package transaction
 import (
 	"GIK_Web/database"
 	"GIK_Web/type_news"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -11,11 +12,11 @@ import (
 )
 
 type ListOrderResponse struct {
-	Id            int    `json:"ID" binding:"required"`
-	TimeStamp     string `json:"timestamp" binding:"required"`
-	ClientName    string `json:"clientName" binding:"required"`
-	SignedBy      string `json:"signedBy" binding:"required"`
-	TotalQuantity int    `json:"totalQuantity" binding:"required"`
+	Id          int     `json:"ID" binding:"required"`
+	CreatedTime string  `json:"createdTime" binding:"required"`
+	ClientName  string  `json:"clientName" binding:"required"`
+	SignedBy    string  `json:"signedBy" binding:"required"`
+	TotalCost   float32 `json:"totalCost" binding:"required"`
 }
 
 func ListOrders(c *gin.Context) {
@@ -58,10 +59,6 @@ func ListOrders(c *gin.Context) {
 		dateEndInt, err := strconv.Atoi(date[1])
 		dateEndInt += 86400 // To make sure the filter is inclusive of the entire end date
 		if err == nil {
-			// print("date start: ")
-			// println(dateStartInt)
-			// print("date end: ")
-			// println(dateEndInt)
 			baseQuery = baseQuery.Where("created_at > ?", dateStartInt)
 			baseQuery = baseQuery.Where("created_at < ?", dateEndInt)
 		}
@@ -86,12 +83,14 @@ func ListOrders(c *gin.Context) {
 	for idx, order := range orders {
 		database.Database.First(&order.Client, order.ClientID)
 		database.Database.First(&order.SignedBy, order.UserID)
+		createdTime := order.CreatedAt
+		strCreatedTime := fmt.Sprintf("%v : %d-%d-%d : %d:%d:%d", createdTime.Weekday(), createdTime.Year(), createdTime.Month(), createdTime.Day(), createdTime.Hour(), createdTime.Minute(), createdTime.Second())
 		orderList[idx] = ListOrderResponse{
-			Id:            int(order.ID),
-			TimeStamp:     order.CreatedAt.Local().String(),
-			ClientName:    order.Client.OrgName,
-			SignedBy:      order.SignedBy.Username,
-			TotalQuantity: 10,
+			Id:          int(order.ID),
+			CreatedTime: strCreatedTime,
+			ClientName:  order.Client.OrgName,
+			SignedBy:    order.SignedBy.Username,
+			TotalCost:   order.TotalCost,
 		}
 
 	}
@@ -140,16 +139,18 @@ func AddOrder(c *gin.Context) {
 		})
 		return
 	}
-
+	fmt.Println("Start to create order")
+	fmt.Println(json.Products)
 	for _, product := range json.Products {
 		// get items
 		item := type_news.Item{}
 		baseQuery := database.Database.Model(&type_news.Item{}).Where("id = ?", product.ID)
 		baseQuery.First(&item)
 
-		item.StockTotal -= product.Quantity
+		// TODO: update the current item.StockTotal
+		//item.StockTotal -= product.Quantity
 
-		database.Database.Save(item)
+		//database.Database.Save(item)
 
 		// create transaction item
 		orderItem := type_news.OrderItem{
@@ -160,7 +161,7 @@ func AddOrder(c *gin.Context) {
 
 		database.Database.Create(&orderItem)
 
-		totalCost += float32(item.Price)
+		totalCost += float32(product.Quantity) * item.Price
 	}
 
 	order.TotalCost = totalCost
@@ -220,13 +221,13 @@ func DeleteOrder(c *gin.Context) {
 }
 
 type orderItemTotalInfo struct {
-	ID         uint    `json:"ID"`
-	Name       string  `json:"name"`
-	SKU        string  `json:"sku"`
-	Size       string  `json:"size"`
-	Price      float32 `json:"price"`
-	Quantity   int     `json:"quantity"`
-	TotalValue float32 `json:"totalValue"`
+	ID        uint    `json:"ID" binding:"required"`
+	Name      string  `json:"name" binding:"required"`
+	SKU       string  `json:"sku" binding:"required"`
+	Size      string  `json:"size" binding:"required"`
+	Price     float32 `json:"price" binding:"required"`
+	Quantity  int     `json:"quantity" binding:"required"`
+	TotalCost float32 `json:"totalCost" binding:"required" `
 }
 
 // Takes an ID query, returns list of order items (item ID + quantity)
@@ -262,9 +263,11 @@ func GetOrderItems(c *gin.Context) {
 
 	// For each item in the order, get its information
 	orderItemsInfo := []type_news.Item{}
+	//fmt.Println(orderItems)
 	for _, item := range orderItems {
 		itemInfo := type_news.Item{}
 		database.Database.Where("id = ?", item.ID).Find(&itemInfo)
+		fmt.Print(itemInfo)
 		orderItemsInfo = append(orderItemsInfo, itemInfo)
 	}
 

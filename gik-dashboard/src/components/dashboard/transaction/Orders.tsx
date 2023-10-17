@@ -17,8 +17,8 @@ import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
-import { Client } from "../../../types/client";
-import { Transaction, TransactionItem } from "../../../types/transaction";
+//import { Client } from "../../../types/client";
+//import { Transaction, TransactionItem } from "../../../types/transaction";
 import { Order, OrderItem } from "../../../types/order";
 
 import { ConfirmationModal } from "../../confirmation";
@@ -30,7 +30,7 @@ interface editingTransactionItem {
 }
 
 
-const TransactionItemModal =
+const OrderItemModal =
     ({
          opened,
          setOpened,
@@ -40,7 +40,7 @@ const TransactionItemModal =
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
         refresh: (search: string) => Promise<void>;
-        items: TransactionItem[];
+        items: OrderItem[];
 }) => {
         //const [items, setItems] = useState<TransactionItem[]>([]);
         return (
@@ -51,7 +51,7 @@ const TransactionItemModal =
                         refresh("");
                         setOpened(false);
                     }}
-                    title="Transaction Items"
+                    title="Order Items"
                     size="50%"
                 >
                     <Box sx={containerStyles}>
@@ -64,7 +64,7 @@ const TransactionItemModal =
                                 <th>Size</th>
                                 <th>Price</th>
                                 <th>Quantity</th>
-                                <th>Total Value</th>
+                                <th>Total Cost</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -75,7 +75,7 @@ const TransactionItemModal =
                                     <td>{item.size}</td>
                                     <td>{item.price}</td>
                                     <td>{item.quantity}</td>
-                                    <td>{item.totalValue}</td>
+                                    <td>{item.totalCost}</td>
                                 </tr>
                             ))}
                             </tbody>
@@ -340,7 +340,7 @@ const TransactionComponent = ({
 
 
     const [showItemModal, setShowItemModal] = useState(false);
-    const [items, setItems] = useState<TransactionItem[]>([]);
+    const [items, setItems] = useState<OrderItem[]>([]);
 
     const [showConfirmationModal, setShowConfirmationModal] =
         useState<boolean>(false);
@@ -377,7 +377,7 @@ const TransactionComponent = ({
 
     const getClientName = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/info/client?id=${transaction.clientId}`,
+            `${process.env.REACT_APP_API_URL}/info/client?id=${order.clientId}`,
             {
                 credentials: "include",
             }
@@ -395,7 +395,7 @@ const TransactionComponent = ({
 
     const getPreparerUsername = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/info/username?id=${transaction.signerId}`,
+            `${process.env.REACT_APP_API_URL}/info/username?id=${order.signerId}`,
             {
                 credentials: "include",
             }
@@ -419,7 +419,7 @@ const TransactionComponent = ({
         //await getTransactionItems();
         await getPreparerUsername();
         await getClientName();
-        await getItems()
+        await getItems();
     };
 
     const showTransactionItems = async () => {
@@ -431,7 +431,7 @@ const TransactionComponent = ({
 
     const getItems = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/transaction/items?id=${transaction.ID}`,
+            `${process.env.REACT_APP_API_URL}/orders/items?id=${order.ID}`,
             {
                 credentials: "include",
             }
@@ -439,17 +439,18 @@ const TransactionComponent = ({
 
         const data: {
             success: boolean;
-            data: TransactionItem[];
+            data: OrderItem[];
         } = await response.json();
 
         if (data.success) {
+            console.log(data.data);
             setItems(data.data);
         }
     };
 
     const doDelete = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/transaction/delete?id=${transaction.ID}`,
+            `${process.env.REACT_APP_API_URL}/orders/delete?id=${order.ID}`,
             {
                 credentials: "include",
                 method: "DELETE",
@@ -468,13 +469,11 @@ const TransactionComponent = ({
     return (
         <>
             <tr>
-                <td>{order.ID}</td>
-                <td>
-                {order.timestamp}
-                </td>
+               
+                <td>{order.createdTime}</td>
                 <td>{order.signedBy}</td>
                 <td>{order.clientName}</td>
-                <td>{order.totalQuantity}</td>
+                <td>{order.totalCost}</td>
                 <td>
                     <Group>
                         <Tooltip label="Delete">
@@ -503,7 +502,7 @@ const TransactionComponent = ({
                     </Group>
                 </td>
             </tr>
-            <TransactionItemModal
+            <OrderItemModal
                 opened={showItemModal}
                 setOpened={setShowItemModal}
                 refresh={showTransactionItems}
@@ -662,11 +661,10 @@ export const OrderManager = () => {
                 <Table>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Timestamp</th>
+                            <th>Time</th>
                             <th>Signed By</th>
                             <th>Client</th>
-                            <th>Item Quantity</th>
+                            <th>Total Cost</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
