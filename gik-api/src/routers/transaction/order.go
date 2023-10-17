@@ -262,13 +262,15 @@ func GetOrderItems(c *gin.Context) {
 	database.Database.Where("order_id = ?", order.ID).Find(&orderItems)
 
 	// For each item in the order, get its information
-	orderItemsInfo := []type_news.Item{}
+	//orderItemsInfo := []type_news.Item{}
+	orderItemsInfo := make([]type_news.Item, len(orderItems))
 	//fmt.Println(orderItems)
-	for _, item := range orderItems {
-		itemInfo := type_news.Item{}
-		database.Database.Where("id = ?", item.ID).Find(&itemInfo)
-		fmt.Print(itemInfo)
-		orderItemsInfo = append(orderItemsInfo, itemInfo)
+	for i, item := range orderItems {
+		// itemInfo := type_news.Item{}
+		//database.Database.Where("id = ?", item.ID).Find(&itemInfo)
+		//fmt.Print(itemInfo)
+		//orderItemsInfo = append(orderItemsInfo, itemInfo)
+		database.Database.Where("id = ?", item.ID).Find(&orderItemsInfo[i])
 	}
 
 	itemCount := len(orderItems)
