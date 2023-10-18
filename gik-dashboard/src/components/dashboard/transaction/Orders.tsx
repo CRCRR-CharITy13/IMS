@@ -1,5 +1,6 @@
 import {
     ActionIcon,
+    Autocomplete,
     Box,
     Button,
     Center,
@@ -9,7 +10,7 @@ import {
     Select,
     Space,
     Table,
-    TextInput,
+    NumberInput,
     Tooltip,
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
@@ -17,14 +18,12 @@ import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
-//import { Client } from "../../../types/client";
-//import { Transaction, TransactionItem } from "../../../types/transaction";
+import { Item } from "../../../types/item";
 import { Order, OrderItem } from "../../../types/order";
-
 import { ConfirmationModal } from "../../confirmation";
 
 
-interface editingTransactionItem {
+interface editingOrderItem {
     id: number;
     quantity: number;
 }
@@ -42,7 +41,6 @@ const OrderItemModal =
         refresh: (search: string) => Promise<void>;
         items: OrderItem[];
 }) => {
-        //const [items, setItems] = useState<TransactionItem[]>([]);
         return (
             <>
                 <Modal
@@ -96,17 +94,18 @@ const CreateOrderModal = ({
     setOpened: Dispatch<SetStateAction<boolean>>;
     refresh: () => Promise<void>;
 }) => {
-    const [transactionItems, setTransactionItems] = useState<
-        editingTransactionItem[]
+    const [orderItems, setOrderItems] = useState<
+        editingOrderItem[]
     >([]);
 
     const [productId, setProductId] = useState<number>(0);
-    const [quantity, setQuantity] = useState<number>(0);
+    const [quantity, setQuantity] = useState<number | "">('');
 
     const [suggestData, setSuggestData] = useState<any[]>([]);
 
     const [clientId, setClientId] = useState<number>(0);
-
+    const [items, setItems] = useState<Item[]>([]);
+    const [itemNameSKU, setItemNameSKU] = useState('');
 
     const doSubmit = async () => {
         const response = await fetch(
@@ -119,7 +118,7 @@ const CreateOrderModal = ({
                 method: "PUT",
                 body: JSON.stringify({
                     clientId,
-                    products: transactionItems,
+                    products: orderItems,
                 }),
             }
         );
@@ -133,19 +132,18 @@ const CreateOrderModal = ({
             setOpened(false);
             refresh();
             showNotification({
-                message: "Transaction created successfully.",
+                message: "Order created successfully.",
                 color: "green",
-                title: "Transaction created",
+                title: "Order created",
             });
-            setTransactionItems([]);
-            // setSuggestData([]);
+            setOrderItems([]);
             return;
         }
 
         showNotification({
             message: data.message,
             color: "red",
-            title: "Transaction creation failed",
+            title: "Order creation failed",
         });
     };
 
@@ -185,9 +183,48 @@ const CreateOrderModal = ({
         }
     };
 
+    const fetchItems = async () => {
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/list`,
+            {
+                credentials: "include",
+            }
+        );
+
+
+        const data: {
+            success: boolean;
+            message: string;
+            data: {
+                data: Item[];
+                total: number;
+                totalPages: number;
+            };
+        } = await response.json();
+
+        if (data.success) {
+            console.log("Success loading item data");
+            //console.log(data.data.data)
+            setItems(data.data.data);
+            console.log(data.data.data);
+        }
+    };
+    
+    
+    useEffect(() => {
+        fetchItems();
+    },[]);
+    
+    
     useEffect(() => {
         fetchClients();
     }, []);
+
+    const lstItemNameSKU : string[] = [];
+    for(let idx = 0; idx<items.length; idx++){
+        lstItemNameSKU.push(items[idx].sku + " : " + items[idx].name);
+    }
 
     return (
         <>
@@ -215,37 +252,32 @@ const CreateOrderModal = ({
                             setClientId(Number(value));
                         }}
                     />
-                    <Space h="md" />
+                    {/* <Space h="md" />
                     <Group
                         grow
                         sx={{
                             alignItems: "flex-end",
                         }}
-                    >
-                        <TextInput
-                            label="Product ID"
-                            required
-                            placeholder="19281"
-                            type="number"
-                            value={productId}
-                            onChange={(e) =>
-                                setProductId(Number(e.target.value))
-                            }
+                    > */}
+                        <Autocomplete
+                            label="Items"
+                            placeholder="Name or SKU (type any word to search)"
+                            data={lstItemNameSKU}
+                            value={itemNameSKU}
+                            onChange={setItemNameSKU}
+                            
                         />
-                        <TextInput
-                            label="Quantity"
-                            required
-                            placeholder="6"
-                            type="number"
-                            value={quantity}
-                            onChange={(e) =>
-                                setQuantity(Number(e.target.value))
-                            }
+                        <NumberInput
+                        label= "Quantity"
+                        placeholder= "10"
+                        min = {0}
+                        value = {quantity}
+                        onChange={setQuantity}
                         />
                         <Button
                             onClick={() => {
-                                // check if product exists in transaction items already
-                                const existingItem = transactionItems.find(
+                                // check if product exists in order items already
+                                const existingItem = orderItems.find(
                                     (item) => item.id === Number(productId)
                                 );
 
@@ -260,20 +292,22 @@ const CreateOrderModal = ({
                                     return;
                                 }
 
-                                setTransactionItems([
-                                    {
-                                        id: Number(productId),
-                                        quantity,
-                                    },
-                                    ...transactionItems,
-                                ]);
+                                if(quantity != "") {
+                                    setOrderItems([
+                                        {
+                                            id: Number(productId),
+                                            quantity,
+                                        },
+                                        ...orderItems,
+                                    ]);
+                                }
                                 setProductId(0);
                                 setQuantity(0);
                             }}
                         >
                             Add
                         </Button>
-                    </Group>
+                    {/* </Group> */}
                     <Space h="md" />
                     <Table>
                         <thead>
@@ -284,16 +318,16 @@ const CreateOrderModal = ({
                             </tr>
                         </thead>
                         <tbody>
-                            {transactionItems.map((item) => (
+                            {orderItems.map((item) => (
                                 <tr key={item.id}>
                                     <td>{item.id}</td>
                                     <td>{item.quantity}</td>
                                     <td>
                                         <ActionIcon
                                             onClick={() => {
-                                                // remove item from transaction items
-                                                setTransactionItems(
-                                                    transactionItems.filter(
+                                                // remove item from order items
+                                                setOrderItems(
+                                                    orderItems.filter(
                                                         (i) => i.id !== item.id
                                                     )
                                                 );
@@ -327,7 +361,7 @@ interface invoiceItem {
     quantity: number;
 }
 
-const TransactionComponent = ({
+const OrderComponent = ({
     order,
     refresh,
 }: {
@@ -416,13 +450,13 @@ const TransactionComponent = ({
     }, []);
 
     const init = async () => {
-        //await getTransactionItems();
+        //await getOrderItems();
         await getPreparerUsername();
         await getClientName();
         await getItems();
     };
 
-    const showTransactionItems = async () => {
+    const showOrderItems = async () => {
 
         getItems()
         setShowItemModal(true)
@@ -484,7 +518,7 @@ const TransactionComponent = ({
 
                         <Tooltip label="List Items">
                             <ActionIcon
-                                onClick={showTransactionItems}
+                                onClick={showOrderItems}
                                 variant="default"
                             >
                                 <ListDetails />
@@ -505,10 +539,10 @@ const TransactionComponent = ({
             <OrderItemModal
                 opened={showItemModal}
                 setOpened={setShowItemModal}
-                refresh={showTransactionItems}
+                refresh={showOrderItems}
                 items={items}
             />
-            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Transaction beyond recovery."}/>
+            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Order beyond recovery."}/>
         </>
     );
 };
@@ -543,12 +577,12 @@ export const OrderManager = () => {
     }, []);
 
     useEffect(() => {
-        fetchTransactions();
+        fetchOrders();
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
-        fetchTransactions();
+        fetchOrders();
     }, [dateFilter, userFilter, typeFilter]);
 
     const doFilter = async () => {
@@ -594,7 +628,7 @@ export const OrderManager = () => {
         }
     };
 
-    const fetchTransactions = async () => {
+    const fetchOrders = async () => {
         setLoading(true);
 
         const response = await fetch(
@@ -670,8 +704,8 @@ export const OrderManager = () => {
                     </thead>
                     <tbody>
                         {orders.map((order) => (
-                            <TransactionComponent
-                                refresh={fetchTransactions}
+                            <OrderComponent
+                                refresh={fetchOrders}
                                 key={order.ID}
                                 order={order}
                             />
@@ -687,7 +721,7 @@ export const OrderManager = () => {
                     />
                 </Center>
                 <Group position="right">
-                    <Button onClick={fetchTransactions}>
+                    <Button onClick={fetchOrders}>
                         Refresh
                     </Button>
                 </Group>
@@ -695,7 +729,7 @@ export const OrderManager = () => {
             <CreateOrderModal
                 opened={showCreationModal}
                 setOpened={setShowCreationModal}
-                refresh={fetchTransactions}
+                refresh={fetchOrders}
             />
         </>
     );
