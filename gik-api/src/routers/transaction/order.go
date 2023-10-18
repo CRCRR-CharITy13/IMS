@@ -3,12 +3,21 @@ package transaction
 import (
 	"GIK_Web/database"
 	"GIK_Web/type_news"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+type ListOrderResponse struct {
+	Id          int     `json:"ID" binding:"required"`
+	CreatedTime string  `json:"createdTime" binding:"required"`
+	ClientName  string  `json:"clientName" binding:"required"`
+	SignedBy    string  `json:"signedBy" binding:"required"`
+	TotalCost   float32 `json:"totalCost" binding:"required"`
+}
 
 func ListOrders(c *gin.Context) {
 	orders := []type_news.Order{}
@@ -50,10 +59,6 @@ func ListOrders(c *gin.Context) {
 		dateEndInt, err := strconv.Atoi(date[1])
 		dateEndInt += 86400 // To make sure the filter is inclusive of the entire end date
 		if err == nil {
-			// print("date start: ")
-			// println(dateStartInt)
-			// print("date end: ")
-			// println(dateEndInt)
 			baseQuery = baseQuery.Where("created_at > ?", dateStartInt)
 			baseQuery = baseQuery.Where("created_at < ?", dateEndInt)
 		}
@@ -73,27 +78,44 @@ func ListOrders(c *gin.Context) {
 
 	totalPages := math.Ceil(float64(totalCount) / float64(limit))
 
+	nbOrder := len(orders)
+	orderList := make([]ListOrderResponse, nbOrder)
+	for idx, order := range orders {
+		database.Database.First(&order.Client, order.ClientID)
+		database.Database.First(&order.SignedBy, order.UserID)
+		createdTime := order.CreatedAt
+		strCreatedTime := fmt.Sprintf("%v : %d-%d-%d : %d:%d:%d", createdTime.Weekday(), createdTime.Year(), createdTime.Month(), createdTime.Day(), createdTime.Hour(), createdTime.Minute(), createdTime.Second())
+		orderList[idx] = ListOrderResponse{
+			Id:          int(order.ID),
+			CreatedTime: strCreatedTime,
+			ClientName:  order.Client.OrgName,
+			SignedBy:    order.SignedBy.Username,
+			TotalCost:   order.TotalCost,
+		}
+
+	}
+
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
-			"data":       orders,
+			"data":       orderList,
 			"totalPages": totalPages,
 		},
 	})
 }
 
-type addOrderRequest struct {
-	ClientID int       `json:"clientId" binding:"required"`
-	Products []product `json:"products" binding:"required"`
+type AddOrderRequest struct {
+	ClientID int         `json:"clientId" binding:"required"`
+	Items    []OrderItem `json:"items" binding:"required"`
 }
 
-type product struct {
-	ID       int `json:"id" binding:"required"`
-	Quantity int `json:"quantity" binding:"required"`
+type OrderItem struct {
+	SKUName  string `json:"SKUName" binding:"required"`
+	Quantity int    `json:"quantity" binding:"required"`
 }
 
 func AddOrder(c *gin.Context) {
-	json := addOrderRequest{}
+	json := AddOrderRequest{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -117,27 +139,31 @@ func AddOrder(c *gin.Context) {
 		})
 		return
 	}
-
-	for _, product := range json.Products {
-		// get items
+	fmt.Println("Start to create order")
+	fmt.Println(json.Items)
+	for _, inputOrderItem := range json.Items {
+		// SKUName: SKU : Name
+		// The length of the SKU is 8 character, thus, extract it as follows:
+		orderItemSKU := inputOrderItem.SKUName[0:9]
 		item := type_news.Item{}
-		baseQuery := database.Database.Model(&type_news.Item{}).Where("id = ?", product.ID)
+		baseQuery := database.Database.Model(&type_news.Item{}).Where("sku = ?", orderItemSKU)
 		baseQuery.First(&item)
 
-		item.StockTotal -= product.Quantity
+		// TODO: update the current item.StockTotal
+		//item.StockTotal -= product.Quantity
 
-		database.Database.Save(item)
+		//database.Database.Save(item)
 
 		// create transaction item
 		orderItem := type_news.OrderItem{
 			OrderID: order.ID,
-			ItemID:  uint(product.ID),
-			Count:   product.Quantity,
+			ItemID:  uint(item.ID),
+			Count:   inputOrderItem.Quantity,
 		}
 
 		database.Database.Create(&orderItem)
 
-		totalCost += float32(item.Price)
+		totalCost += float32(inputOrderItem.Quantity) * item.Price
 	}
 
 	order.TotalCost = totalCost
@@ -171,7 +197,7 @@ func DeleteOrder(c *gin.Context) {
 		return
 	}
 
-	// get transaction
+	// get order
 	order := type_news.Order{}
 	database.Database.Where("id = ?", idInt).First(&order)
 
@@ -183,7 +209,7 @@ func DeleteOrder(c *gin.Context) {
 		return
 	}
 
-	// delete all transaction items
+	// delete all order items
 	orderItems := []type_news.OrderItem{}
 	database.Database.Where("order_id = ?", order.ID).Delete(&orderItems)
 
@@ -197,13 +223,13 @@ func DeleteOrder(c *gin.Context) {
 }
 
 type orderItemTotalInfo struct {
-	ID         uint    `json:"ID"`
-	Name       string  `json:"name"`
-	SKU        string  `json:"sku"`
-	Size       string  `json:"size"`
-	Price      float32 `json:"price"`
-	Quantity   int     `json:"quantity"`
-	TotalValue float32 `json:"totalValue"`
+	ID        uint    `json:"ID" binding:"required"`
+	Name      string  `json:"name" binding:"required"`
+	SKU       string  `json:"sku" binding:"required"`
+	Size      string  `json:"size" binding:"required"`
+	Price     float32 `json:"price" binding:"required"`
+	Quantity  int     `json:"quantity" binding:"required"`
+	TotalCost float32 `json:"totalCost" binding:"required" `
 }
 
 // Takes an ID query, returns list of order items (item ID + quantity)
@@ -237,27 +263,21 @@ func GetOrderItems(c *gin.Context) {
 	orderItems := []type_news.OrderItem{}
 	database.Database.Where("order_id = ?", order.ID).Find(&orderItems)
 
-	// For each item in the order, get its information
-	orderItemsInfo := []type_news.Item{}
-	for _, item := range orderItems {
-		itemInfo := type_news.Item{}
-		database.Database.Where("id = ?", item.ID).Find(&itemInfo)
-		orderItemsInfo = append(orderItemsInfo, itemInfo)
-	}
-
-	itemCount := len(orderItems)
-
 	orderItemsPost := []orderItemTotalInfo{}
+	for _, orderItem := range orderItems {
 
-	for i := 0; i < itemCount; i++ {
+		fmt.Printf("orderItem.ItemID = %d", orderItem.ItemID)
+		database.Database.Where("id = ?", orderItem.ItemID).Find(&orderItem.Item)
+		fmt.Println("found ----")
+		fmt.Printf("name = %s", orderItem.Item.Name)
 		orderItemsPost = append(orderItemsPost, orderItemTotalInfo{
-			orderItems[i].ItemID,
-			orderItemsInfo[i].Name,
-			orderItemsInfo[i].SKU,
-			orderItemsInfo[i].Size,
-			orderItemsInfo[i].Price,
-			orderItems[i].Count,
-			orderItemsInfo[i].Price * float32(orderItems[i].Count),
+			orderItem.ItemID,
+			orderItem.Item.Name,
+			orderItem.Item.SKU,
+			orderItem.Item.Size,
+			orderItem.Item.Price,
+			orderItem.Count,
+			orderItem.Item.Price * float32(orderItem.Count),
 		})
 	}
 
