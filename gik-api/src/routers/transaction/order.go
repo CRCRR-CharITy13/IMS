@@ -105,13 +105,13 @@ func ListOrders(c *gin.Context) {
 }
 
 type AddOrderRequest struct {
-	ClientID int       `json:"clientId" binding:"required"`
-	Products []Product `json:"products" binding:"required"`
+	ClientID int         `json:"clientId" binding:"required"`
+	Items    []OrderItem `json:"items" binding:"required"`
 }
 
-type Product struct {
-	ID       int `json:"id" binding:"required"`
-	Quantity int `json:"quantity" binding:"required"`
+type OrderItem struct {
+	SKUName  string `json:"SKUName" binding:"required"`
+	Quantity int    `json:"quantity" binding:"required"`
 }
 
 func AddOrder(c *gin.Context) {
@@ -140,11 +140,13 @@ func AddOrder(c *gin.Context) {
 		return
 	}
 	fmt.Println("Start to create order")
-	fmt.Println(json.Products)
-	for _, product := range json.Products {
-		// get items
+	fmt.Println(json.Items)
+	for _, inputOrderItem := range json.Items {
+		// SKUName: SKU : Name
+		// The length of the SKU is 8 character, thus, extract it as follows:
+		orderItemSKU := inputOrderItem.SKUName[0:9]
 		item := type_news.Item{}
-		baseQuery := database.Database.Model(&type_news.Item{}).Where("id = ?", product.ID)
+		baseQuery := database.Database.Model(&type_news.Item{}).Where("sku = ?", orderItemSKU)
 		baseQuery.First(&item)
 
 		// TODO: update the current item.StockTotal
@@ -155,13 +157,13 @@ func AddOrder(c *gin.Context) {
 		// create transaction item
 		orderItem := type_news.OrderItem{
 			OrderID: order.ID,
-			ItemID:  uint(product.ID),
-			Count:   product.Quantity,
+			ItemID:  uint(item.ID),
+			Count:   inputOrderItem.Quantity,
 		}
 
 		database.Database.Create(&orderItem)
 
-		totalCost += float32(product.Quantity) * item.Price
+		totalCost += float32(inputOrderItem.Quantity) * item.Price
 	}
 
 	order.TotalCost = totalCost
@@ -195,7 +197,7 @@ func DeleteOrder(c *gin.Context) {
 		return
 	}
 
-	// get transaction
+	// get order
 	order := type_news.Order{}
 	database.Database.Where("id = ?", idInt).First(&order)
 
@@ -207,7 +209,7 @@ func DeleteOrder(c *gin.Context) {
 		return
 	}
 
-	// delete all transaction items
+	// delete all order items
 	orderItems := []type_news.OrderItem{}
 	database.Database.Where("order_id = ?", order.ID).Delete(&orderItems)
 
@@ -261,31 +263,21 @@ func GetOrderItems(c *gin.Context) {
 	orderItems := []type_news.OrderItem{}
 	database.Database.Where("order_id = ?", order.ID).Find(&orderItems)
 
-	// For each item in the order, get its information
-	//orderItemsInfo := []type_news.Item{}
-	orderItemsInfo := make([]type_news.Item, len(orderItems))
-	//fmt.Println(orderItems)
-	for i, item := range orderItems {
-		// itemInfo := type_news.Item{}
-		//database.Database.Where("id = ?", item.ID).Find(&itemInfo)
-		//fmt.Print(itemInfo)
-		//orderItemsInfo = append(orderItemsInfo, itemInfo)
-		database.Database.Where("id = ?", item.ID).Find(&orderItemsInfo[i])
-	}
-
-	itemCount := len(orderItems)
-
 	orderItemsPost := []orderItemTotalInfo{}
+	for _, orderItem := range orderItems {
 
-	for i := 0; i < itemCount; i++ {
+		fmt.Printf("orderItem.ItemID = %d", orderItem.ItemID)
+		database.Database.Where("id = ?", orderItem.ItemID).Find(&orderItem.Item)
+		fmt.Println("found ----")
+		fmt.Printf("name = %s", orderItem.Item.Name)
 		orderItemsPost = append(orderItemsPost, orderItemTotalInfo{
-			orderItems[i].ItemID,
-			orderItemsInfo[i].Name,
-			orderItemsInfo[i].SKU,
-			orderItemsInfo[i].Size,
-			orderItemsInfo[i].Price,
-			orderItems[i].Count,
-			orderItemsInfo[i].Price * float32(orderItems[i].Count),
+			orderItem.ItemID,
+			orderItem.Item.Name,
+			orderItem.Item.SKU,
+			orderItem.Item.Size,
+			orderItem.Item.Price,
+			orderItem.Count,
+			orderItem.Item.Price * float32(orderItem.Count),
 		})
 	}
 

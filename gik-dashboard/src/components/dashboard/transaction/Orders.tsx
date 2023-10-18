@@ -24,7 +24,7 @@ import { ConfirmationModal } from "../../confirmation";
 
 
 interface editingOrderItem {
-    id: number;
+    SKUName: string;
     quantity: number;
 }
 
@@ -98,14 +98,13 @@ const CreateOrderModal = ({
         editingOrderItem[]
     >([]);
 
-    const [productId, setProductId] = useState<number>(0);
     const [quantity, setQuantity] = useState<number | "">('');
 
     const [suggestData, setSuggestData] = useState<any[]>([]);
 
     const [clientId, setClientId] = useState<number>(0);
     const [items, setItems] = useState<Item[]>([]);
-    const [itemNameSKU, setItemNameSKU] = useState('');
+    const [itemSKUName, setItemSKUName] = useState('');
 
     const doSubmit = async () => {
         const response = await fetch(
@@ -118,7 +117,7 @@ const CreateOrderModal = ({
                 method: "PUT",
                 body: JSON.stringify({
                     clientId,
-                    products: orderItems,
+                    Items: orderItems,
                 }),
             }
         );
@@ -221,9 +220,9 @@ const CreateOrderModal = ({
         fetchClients();
     }, []);
 
-    const lstItemNameSKU : string[] = [];
+    const lstItemSKUName : string[] = [];
     for(let idx = 0; idx<items.length; idx++){
-        lstItemNameSKU.push(items[idx].sku + " : " + items[idx].name);
+        lstItemSKUName.push(items[idx].sku + " : " + items[idx].name);
     }
 
     return (
@@ -262,9 +261,9 @@ const CreateOrderModal = ({
                         <Autocomplete
                             label="Items"
                             placeholder="Name or SKU (type any word to search)"
-                            data={lstItemNameSKU}
-                            value={itemNameSKU}
-                            onChange={setItemNameSKU}
+                            data={lstItemSKUName}
+                            value={itemSKUName}
+                            onChange={setItemSKUName}
                             
                         />
                         <NumberInput
@@ -276,9 +275,9 @@ const CreateOrderModal = ({
                         />
                         <Button
                             onClick={() => {
-                                // check if product exists in order items already
+                                
                                 const existingItem = orderItems.find(
-                                    (item) => item.id === Number(productId)
+                                    (item) => item.SKUName === itemSKUName
                                 );
 
                                 if (existingItem) {
@@ -295,13 +294,13 @@ const CreateOrderModal = ({
                                 if(quantity != "") {
                                     setOrderItems([
                                         {
-                                            id: Number(productId),
+                                            SKUName: itemSKUName,
                                             quantity,
                                         },
                                         ...orderItems,
                                     ]);
                                 }
-                                setProductId(0);
+                                setItemSKUName("");
                                 setQuantity(0);
                             }}
                         >
@@ -319,8 +318,8 @@ const CreateOrderModal = ({
                         </thead>
                         <tbody>
                             {orderItems.map((item) => (
-                                <tr key={item.id}>
-                                    <td>{item.id}</td>
+                                <tr key={item.SKUName}>
+                                    <td>{item.SKUName}</td>
                                     <td>{item.quantity}</td>
                                     <td>
                                         <ActionIcon
@@ -328,7 +327,7 @@ const CreateOrderModal = ({
                                                 // remove item from order items
                                                 setOrderItems(
                                                     orderItems.filter(
-                                                        (i) => i.id !== item.id
+                                                        (i) => i.SKUName !== item.SKUName
                                                     )
                                                 );
                                             }}
