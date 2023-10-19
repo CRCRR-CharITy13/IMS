@@ -1,12 +1,16 @@
 import { Divider, Space } from "@mantine/core";
 import { OrderManager } from "./transaction/Orders"
+import { DonationManager } from "./transaction/Donations";
 
 
 const Transactions = () => {
     return (
         <>
-        <OrderManager/>
+            <OrderManager/>
+            <Space h="md"/>
+            <Divider/>
+            <DonationManager/>
         </>
-    )
-}
-export default Transactions
+    );
+};
+export default Transactions;
