@@ -114,6 +114,12 @@ type OrderItem struct {
 	Quantity int    `json:"quantity" binding:"required"`
 }
 
+type AddOrderResponse struct {
+	ItemSKUName string `json:"itemSKUName" binding:"required"`
+	BoxName     string `json:"boxName" binding:"required"`
+	Quantity    int    `json:"quantity" binding:"required"`
+}
+
 func AddOrder(c *gin.Context) {
 	json := AddOrderRequest{}
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -124,23 +130,23 @@ func AddOrder(c *gin.Context) {
 		return
 	}
 
-	totalCost := float32(0)
+	fmt.Println("Start to create order")
+	fmt.Println(json.Items)
 
 	order := type_news.Order{
 		ClientID: uint(json.ClientID),
 		UserID:   c.MustGet("userId").(uint),
 	}
 
-	err := database.Database.Create(&order).Error
-	if err != nil {
-		c.JSON(500, gin.H{
-			"success": false,
-			"message": "Could not create order",
-		})
-		return
-	}
-	fmt.Println("Start to create order")
-	fmt.Println(json.Items)
+	// Look-up Client balance
+	client := type_news.Client{}
+	database.Database.First(&client, uint(json.ClientID))
+	totalCost := float32(0)
+	isSuccess := true
+	msgResponse := "Order created"
+	lstAddOrderResponse := []AddOrderResponse{}
+	lstOrderItem := []type_news.OrderItem{}
+
 	for _, inputOrderItem := range json.Items {
 		// SKUName: SKU : Name
 		// The length of the SKU is 8 character, thus, extract it as follows:
@@ -149,31 +155,63 @@ func AddOrder(c *gin.Context) {
 		baseQuery := database.Database.Model(&type_news.Item{}).Where("sku = ?", orderItemSKU)
 		baseQuery.First(&item)
 
+		if item.StockTotal < inputOrderItem.Quantity {
+			isSuccess = false
+			msgResponse = fmt.Sprintf("There are only %d of %s\n", item.StockTotal, inputOrderItem.SKUName)
+			break
+		}
+
+		totalCost += float32(inputOrderItem.Quantity) * item.Price
+		if totalCost > client.Balance {
+			isSuccess = false
+			msgResponse = fmt.Sprintf("Current balance (%f) is not enough", client.Balance)
+			break
+		}
 		// TODO: update the current item.StockTotal
 		//item.StockTotal -= product.Quantity
 
 		//database.Database.Save(item)
 
-		// create transaction item
+		// create order item
+
 		orderItem := type_news.OrderItem{
-			OrderID: order.ID,
+			OrderID: 0, //dummy value, will be replace after creating the order
 			ItemID:  uint(item.ID),
 			Count:   inputOrderItem.Quantity,
 		}
-
-		database.Database.Create(&orderItem)
-
-		totalCost += float32(inputOrderItem.Quantity) * item.Price
+		lstOrderItem = append(lstOrderItem, orderItem)
+		//database.Database.Create(&orderItem)
 	}
 
 	order.TotalCost = totalCost
 
-	database.Database.Save(&order)
+	//TODO: check if this line requried: database.Database.Save(&order)
+	if isSuccess {
+		err := database.Database.Create(&order).Error
+		if err != nil {
+			c.JSON(500, gin.H{
+				"success": false,
+				"message": "Could not create order",
+			})
+			return
+		}
+		//
+		for _, orderItem := range lstOrderItem {
+			database.Database.First(&orderItem.Item, orderItem.ItemID)
+			// get list of item's warehouses
+			database.Database.Preload("Warehouses").Where("item_id = ?", orderItem.Item.ID).Find(&orderItem.Item.Warehouses)
+			fmt.Printf("for item %s \n", orderItem.Item.Name)
+			fmt.Println(orderItem.Item.Warehouses)
+		}
+
+	}
 
 	c.JSON(200, gin.H{
-		"success": true,
-		"message": "Order created",
+		"success": isSuccess,
+		"message": msgResponse,
+		"data":    lstAddOrderResponse,
 	})
+
 }
 
 func DeleteOrder(c *gin.Context) {
