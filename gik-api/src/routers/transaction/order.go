@@ -115,9 +115,9 @@ type OrderItem struct {
 }
 
 type AddOrderResponse struct {
-	ItemSKUName string `json:"itemSKUName" binding:"required"`
-	BoxName     string `json:"boxName" binding:"required"`
-	Quantity    int    `json:"quantity" binding:"required"`
+	ItemSKUName  string `json:"itemSKUName" binding:"required"`
+	LocationName string `json:"locationName" binding:"required"`
+	Quantity     int    `json:"quantity" binding:"required"`
 }
 
 func AddOrder(c *gin.Context) {
@@ -200,10 +200,42 @@ func AddOrder(c *gin.Context) {
 			database.Database.First(&orderItem.Item, orderItem.ItemID)
 			// get list of item's warehouses
 			database.Database.Preload("Warehouses").Where("item_id = ?", orderItem.Item.ID).Find(&orderItem.Item.Warehouses)
-			fmt.Printf("for item %s \n", orderItem.Item.Name)
-			fmt.Println(orderItem.Item.Warehouses)
+			// fmt.Printf("for item %s \n", orderItem.Item.Name)
+			// fmt.Println(orderItem.Item.Warehouses)
+			remainQtt := orderItem.Count
+			var removeQtt int
+			strItemSKUName := orderItem.Item.SKU + " : " + orderItem.Item.Name
+			for _, warehouse := range orderItem.Item.Warehouses {
+				if remainQtt > warehouse.Stock {
+					removeQtt = warehouse.Stock
+				} else {
+					removeQtt = remainQtt
+				}
+				var location type_news.Location
+				database.Database.First(&location, warehouse.LocationID)
+				tmpAddOrderResponse := AddOrderResponse{
+					ItemSKUName:  strItemSKUName,
+					LocationName: location.Name,
+					Quantity:     removeQtt,
+				}
+				lstAddOrderResponse = append(lstAddOrderResponse, tmpAddOrderResponse)
+				remainQtt -= removeQtt
+				if remainQtt == 0 {
+					break
+				}
+			}
+			if remainQtt > 0 {
+				tmpAddOrderResponse := AddOrderResponse{
+					ItemSKUName:  strItemSKUName,
+					LocationName: "Common storage",
+					Quantity:     remainQtt,
+				}
+				lstAddOrderResponse = append(lstAddOrderResponse, tmpAddOrderResponse)
+			}
 		}
-
+		fmt.Println(lstAddOrderResponse)
+		// TODO: update item.TotalStock
+		// TODO: update Client.Balance
 	}
 
 	c.JSON(200, gin.H{
