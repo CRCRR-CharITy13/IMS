@@ -115,6 +115,7 @@ type OrderItem struct {
 }
 
 type AddOrderResponse struct {
+	ID           int    `json:"ID" binding:"required"`
 	ItemSKUName  string `json:"itemSKUName" binding:"required"`
 	LocationName string `json:"locationName" binding:"required"`
 	Quantity     int    `json:"quantity" binding:"required"`
@@ -195,7 +196,16 @@ func AddOrder(c *gin.Context) {
 			})
 			return
 		}
-		//
+		// save order items to the database
+		for i := 0; i < len(lstOrderItem); i++ {
+			//fmt.Println(order.ID)
+			lstOrderItem[i].OrderID = order.ID
+			//fmt.Println(lstOrderItem[i].OrderID)
+			database.Database.Create(&lstOrderItem[i])
+
+		}
+		// remove items from locatons
+		idx := 0
 		for _, orderItem := range lstOrderItem {
 			database.Database.First(&orderItem.Item, orderItem.ItemID)
 			// get list of item's warehouses
@@ -213,29 +223,44 @@ func AddOrder(c *gin.Context) {
 				}
 				var location type_news.Location
 				database.Database.First(&location, warehouse.LocationID)
+				idx++
 				tmpAddOrderResponse := AddOrderResponse{
+					ID:           idx,
 					ItemSKUName:  strItemSKUName,
 					LocationName: location.Name,
 					Quantity:     removeQtt,
 				}
 				lstAddOrderResponse = append(lstAddOrderResponse, tmpAddOrderResponse)
+				// remove these amount of items from the location
+				warehouse.Stock -= removeQtt
+				// if remain stock > 0 : save; else: delete current record
+				if warehouse.Stock > 0 {
+					database.Database.Save(warehouse)
+				} else {
+					database.Database.Delete(&warehouse)
+				}
+				//
 				remainQtt -= removeQtt
 				if remainQtt == 0 {
 					break
 				}
 			}
 			if remainQtt > 0 {
+				idx++
 				tmpAddOrderResponse := AddOrderResponse{
+					ID:           idx,
 					ItemSKUName:  strItemSKUName,
-					LocationName: "Common storage",
+					LocationName: "Common Storage",
 					Quantity:     remainQtt,
 				}
 				lstAddOrderResponse = append(lstAddOrderResponse, tmpAddOrderResponse)
 			}
+			orderItem.Item.StockTotal -= orderItem.Count
 		}
-		fmt.Println(lstAddOrderResponse)
-		// TODO: update item.TotalStock
-		// TODO: update Client.Balance
+
+		//update Client.Balance
+		client.Balance -= totalCost
+		database.Database.Save(client)
 	}
 
 	c.JSON(200, gin.H{

@@ -17,3 +17,10 @@ export interface OrderItem {
     quantity: number;
     totalCost: number;
 }
+
+export interface AddOrderResponse {
+    ID: number;
+    itemSKUName : string;
+    locationName : string;
+    quantity : number;
+}

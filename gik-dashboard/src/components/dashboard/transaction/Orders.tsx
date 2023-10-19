@@ -19,7 +19,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
-import { Order, OrderItem } from "../../../types/order";
+import { Order, OrderItem, AddOrderResponse } from "../../../types/order";
 import { ConfirmationModal } from "../../confirmation";
 
 
@@ -28,7 +28,55 @@ interface editingOrderItem {
     quantity: number;
 }
 
+const AddOrderResponseModal =
+    ({
+         opened,
+         setOpened,
+         //refresh,
+         takenItems,
+     }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        //refresh: (search: string) => Promise<void>;
+        takenItems: AddOrderResponse[];
+}) => {
+        return (
+            <>
+                <Modal
+                    opened={opened}
+                    onClose={() => {
+                        //refresh("");
+                        setOpened(false);
+                    }}
+                    title="Order Items"
+                    size="50%"
+                >
+                    <Box sx={containerStyles}>
+                        <Space h="md" />
+                        <Table>
+                            <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Location</th>
+                                <th>Taken Quantity</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {takenItems.map((takenItem) => (
+                                <tr key={takenItem.ID}>
+                                    <td>{takenItem.itemSKUName}</td>
+                                    <td>{takenItem.locationName}</td>
+                                    <td>{takenItem.quantity}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
 
+                    </Box>
+                </Modal>
+            </>
+    );
+};
 const OrderItemModal =
     ({
          opened,
@@ -105,6 +153,7 @@ const CreateOrderModal = ({
     const [clientId, setClientId] = useState<number>(0);
     const [items, setItems] = useState<Item[]>([]);
     const [itemSKUName, setItemSKUName] = useState('');
+    const [showAddOrderResponseModal, setShowAddOrderResponseModal] = useState(false);
 
     const doSubmit = async () => {
         const response = await fetch(
@@ -125,18 +174,40 @@ const CreateOrderModal = ({
         const data: {
             success: boolean;
             message: string;
+            data : AddOrderResponse[];
         } = await response.json();
 
         if (data.success) {
+            setShowAddOrderResponseModal(true);
             setOpened(false);
             refresh();
-            showNotification({
-                message: "Order created successfully.",
-                color: "green",
-                title: "Order created",
-            });
+            // showNotification({
+            //     message: "Order created successfully.",
+            //     color: "green",
+            //     title: "Order created",
+            // });
+            let addOrderMsg = "";
+            let idx = 0;
+            //
+            addOrderMsg = addOrderMsg + "List and amount of item to be taken:\n"
+            addOrderMsg += "---------------\n";
+            //
+            for (idx=0; idx<data.data.length; idx++){
+                const tmpItem = data.data[idx];
+                addOrderMsg = addOrderMsg + tmpItem.ID.toString() + ". Take " + tmpItem.quantity.toString() +" of "+ tmpItem.itemSKUName + " from location " + tmpItem.locationName + "\n"
+            }
+            alert(addOrderMsg);
             setOrderItems([]);
-            return;
+            console.log(data.data);
+            return (
+            <AddOrderResponseModal
+                opened={showAddOrderResponseModal}
+                setOpened={setShowAddOrderResponseModal}
+                //refresh={CreateOrderModal}
+                takenItems={data.data}
+            />
+            );
+           
         }
 
         showNotification({
@@ -368,13 +439,9 @@ const OrderComponent = ({
     refresh: () => Promise<void>;
 }) => {
 
-    const [preparerUsername, setPreparerUsername] = useState<string>("");
     const [clientName, setClientName] = useState<string>("");
-
-
     const [showItemModal, setShowItemModal] = useState(false);
     const [items, setItems] = useState<OrderItem[]>([]);
-
     const [showConfirmationModal, setShowConfirmationModal] =
         useState<boolean>(false);
 
@@ -426,23 +493,23 @@ const OrderComponent = ({
         }
     };
 
-    const getPreparerUsername = async () => {
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/info/username?id=${order.signerId}`,
-            {
-                credentials: "include",
-            }
-        );
+    // const getPreparerUsername = async () => {
+    //     const response = await fetch(
+    //         `${process.env.REACT_APP_API_URL}/info/username?id=${order.signerId}`,
+    //         {
+    //             credentials: "include",
+    //         }
+    //     );
 
-        const data: {
-            success: boolean;
-            data: string;
-        } = await response.json();
+    //     const data: {
+    //         success: boolean;
+    //         data: string;
+    //     } = await response.json();
 
-        if (data.success) {
-            setPreparerUsername(data.data);
-        }
-    };
+    //     if (data.success) {
+    //         setPreparerUsername(data.data);
+    //     }
+    // };
 
     useEffect(() => {
         init();
@@ -450,7 +517,7 @@ const OrderComponent = ({
 
     const init = async () => {
         //await getOrderItems();
-        await getPreparerUsername();
+        //await getPreparerUsername();
         await getClientName();
         await getItems();
     };
