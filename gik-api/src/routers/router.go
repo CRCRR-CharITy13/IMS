@@ -252,9 +252,9 @@ func InitRouter() *gin.Engine {
 		donationsApi.Use(middleware.AuthMiddleware())
 		donationsApi.Use(middleware.AdvancedLoggingMiddleware())
 		donationsApi.GET("/list", transaction.ListDonations)
-		donationsApi.PUT("/add", transaction.AddOrder)
-		donationsApi.DELETE("/delete", transaction.DeleteOrder)
-		// ordersApi.GET("/items", transaction.GetOrderItems)
+		donationsApi.PUT("/add", transaction.AddDonation)
+		donationsApi.DELETE("/delete", transaction.DeleteDonation)
+		donationsApi.GET("/items", transaction.GetDonationItems)
 	}
 	return r
 }

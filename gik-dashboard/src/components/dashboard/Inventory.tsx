@@ -2,13 +2,7 @@ import { Divider, Space } from "@mantine/core";
 import { ItemsManager } from "./inventory/Items";
 import { LocationsManager } from "./inventory/Locations";
 
-// const Inventory = () => {
-//     return (
-//         <>
-//             <ItemsManager/>
-//         </>
-//     );
-// };
+
 
 
 

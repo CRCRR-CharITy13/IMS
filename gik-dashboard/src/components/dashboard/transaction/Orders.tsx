@@ -591,14 +591,14 @@ const OrderComponent = ({
                             </ActionIcon>
                         </Tooltip>
 
-                        <Tooltip label = "Generate Invoice">
+                        {/* <Tooltip label = "Generate Invoice">
                             <ActionIcon
                                 onClick={generateInvoice}
                                 variant="default"
                             >
                                 <FileInvoice />
                             </ActionIcon>
-                        </Tooltip>
+                        </Tooltip> */}
                     </Group>
                 </td>
             </tr>

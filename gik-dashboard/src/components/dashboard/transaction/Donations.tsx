@@ -174,40 +174,18 @@ const CreateDonationModal = ({
         const data: {
             success: boolean;
             message: string;
-            data : AddDonationResponse[];
         } = await response.json();
 
         if (data.success) {
             setShowAddDonationResponseModal(true);
             setOpened(false);
             refresh();
-            // showNotification({
-            //     message: "Donation created successfully.",
-            //     color: "green",
-            //     title: "Donation created",
-            // });
-            let addDonationMsg = "";
-            let idx = 0;
-            //
-            addDonationMsg = addDonationMsg + "List and amount of item to be taken:\n"
-            addDonationMsg += "---------------\n";
-            //
-            for (idx=0; idx<data.data.length; idx++){
-                const tmpItem = data.data[idx];
-                addDonationMsg = addDonationMsg + tmpItem.ID.toString() + ". Take " + tmpItem.quantity.toString() +" of "+ tmpItem.itemSKUName + " from location " + tmpItem.locationName + "\n"
-            }
-            alert(addDonationMsg);
-            setDonationItems([]);
-            console.log(data.data);
-            return (
-            <AddDonationResponseModal
-                opened={showAddDonationResponseModal}
-                setOpened={setShowAddDonationResponseModal}
-                //refresh={CreateDonationModal}
-                takenItems={data.data}
-            />
-            );
-           
+            showNotification({
+                message: "Donation created successfully.",
+                color: "green",
+                title: "Donation created",
+            });
+            return
         }
 
         showNotification({
@@ -475,23 +453,23 @@ const DonationComponent = ({
         window.open(url);
     };
 
-    const getDonorName = async () => {
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/info/donor?id=${donation.donorId}`,
-            {
-                credentials: "include",
-            }
-        );
+    // const getDonorName = async () => {
+    //     const response = await fetch(
+    //         `${process.env.REACT_APP_API_URL}/info/donor?id=${donation.donorId}`,
+    //         {
+    //             credentials: "include",
+    //         }
+    //     );
 
-        const data: {
-            success: boolean;
-            data: string;
-        } = await response.json();
+    //     const data: {
+    //         success: boolean;
+    //         data: string;
+    //     } = await response.json();
 
-        if (data.success) {
-            setDonorName(data.data);
-        }
-    };
+    //     if (data.success) {
+    //         setDonorName(data.data);
+    //     }
+    // };
 
 
     useEffect(() => {
@@ -501,7 +479,7 @@ const DonationComponent = ({
     const init = async () => {
         //await getDonationItems();
         //await getPreparerUsername();
-        await getDonorName();
+        //await getDonorName();
         await getItems();
     };
 
@@ -559,11 +537,11 @@ const DonationComponent = ({
                 <td>{donation.totalValue}</td>
                 <td>
                     <Group>
-                        <Tooltip label="Delete">
+                        {/* <Tooltip label="Delete">
                             <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                                 <Trash />
                             </ActionIcon>
-                        </Tooltip>
+                        </Tooltip> */}
 
                         <Tooltip label="List Items">
                             <ActionIcon
@@ -574,14 +552,14 @@ const DonationComponent = ({
                             </ActionIcon>
                         </Tooltip>
 
-                        <Tooltip label = "Generate Invoice">
+                        {/* <Tooltip label = "Generate Invoice">
                             <ActionIcon
                                 onClick={generateInvoice}
                                 variant="default"
                             >
                                 <FileInvoice />
                             </ActionIcon>
-                        </Tooltip>
+                        </Tooltip> */}
                     </Group>
                 </td>
             </tr>
@@ -746,7 +724,7 @@ export const DonationManager = () => {
                         <tr>
                             <th>Time</th>
                             <th>Signed By</th>
-                            <th>Donor</th>
+                            <th>Donated By</th>
                             <th>Total Cost</th>
                             <th>Actions</th>
                         </tr>
