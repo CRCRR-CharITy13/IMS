@@ -196,19 +196,9 @@ func AddClient(c *gin.Context) {
 		"data":    json,
 	})
 
-	utils.CreateSimpleLog(c, "Created client")
+	utils.CreateSimpleLog(c, "Client created")
 
 }
-
-/*
-	ID      string  `json:"id"`
-	Name    string  `json:"name"`
-	Contact string  `json:"contact"`
-	Phone   string  `json:"phone"`
-	Email   string  `json:"email"`
-	Address string  `json:"address"`
-	Balance float32 `json:"balance"`
-*/
 
 // Take an ID query and delete that client.
 func DeleteClient(c *gin.Context) {
@@ -241,7 +231,7 @@ func DeleteClient(c *gin.Context) {
 		return
 	}
 
-	utils.CreateSimpleLog(c, "Deleted client")
+	utils.CreateSimpleLog(c, "Client deleted")
 
 	c.JSON(200, gin.H{
 		"success": true,

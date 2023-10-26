@@ -6,27 +6,18 @@ import {
     Button,
     TextInput,
     Modal,
-    ActionIcon, Text, CheckIcon, CheckboxIcon,
-
+    ActionIcon, 
+    Text
 } from "@mantine/core";
-import { openConfirmModal } from '@mantine/modals';
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import {Checklist, CirclePlus, ColorFilter, Command, Id, Refresh, TableExport, TableImport, Trash} from "tabler-icons-react";
+import { CirclePlus, TableExport, TableImport, Trash} from "tabler-icons-react";
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
-import {Dropzone, MIME_TYPES} from "@mantine/dropzone";
+import { Dropzone, MIME_TYPES } from "@mantine/dropzone";
 import { ConfirmationModal } from "../confirmation";
-import { SquareCheck } from 'tabler-icons-react';
 import { Checkbox } from '@mantine/core';
-import { BsDatabase } from "react-icons/bs";
-import { ALL } from "dns";
-import { randomId, useListState } from "@mantine/hooks";
-
-
-
-
 
 const  UploadCSVModal = (
     {
@@ -420,9 +411,9 @@ export const ClientManager = () => {
                     >
                         Filter
                     </Button>
-                    <Button color="red" onClick={() => ConfirmationModal}>
+                    {/* <Button color="red" onClick={() => ConfirmationModal}>
                     Delete Clients
-                    </Button>
+                    </Button> */}
                     </Group>
 
                 <Space h="md" />
@@ -430,7 +421,7 @@ export const ClientManager = () => {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Organization name</th>
+                            <th>Organization Name</th>
                             <th>Contact</th>
                             <th>Phone</th>
                             <th>Email</th>
@@ -438,10 +429,10 @@ export const ClientManager = () => {
                             <th>Balance</th>
                             <th>Actions</th>
                             <th>
-                                <Checkbox size="md" 
+                                {/* <Checkbox size="md" 
                                     onClick={() => getSelection()} >
                              
-                                </Checkbox>
+                                </Checkbox> */}
                             </th>
                         </tr>
                     </thead>

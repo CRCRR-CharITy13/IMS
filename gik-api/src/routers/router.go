@@ -15,6 +15,7 @@ import (
 	"GIK_Web/src/routers/analytics"
 	"GIK_Web/src/routers/auth"
 	"GIK_Web/src/routers/client"
+	"GIK_Web/src/routers/donor"
 	"GIK_Web/src/routers/info"
 	"GIK_Web/src/routers/invoice"
 	"GIK_Web/src/routers/items"
@@ -118,6 +119,17 @@ func InitRouter() *gin.Engine {
 		clientsApi.PUT("/add", client.AddClient)
 		clientsApi.DELETE("/delete", client.DeleteClient)
 		clientsApi.PATCH("/update", client.UpdateClient)
+	}
+
+	// Set up donor router
+	donorsApi := r.Group("/donor")
+	{
+		donorsApi.Use(middleware.AuthMiddleware())
+		donorsApi.Use(middleware.AdvancedLoggingMiddleware())
+		donorsApi.GET("/list", donor.ListDonor)
+		donorsApi.PUT("/add", donor.AddDonor)
+		donorsApi.DELETE("/delete", donor.DeleteDonor)
+		// donorsApi.PATCH("/update", client.UpdateClient)
 	}
 
 	// Set up location router
