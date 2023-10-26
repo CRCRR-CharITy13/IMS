@@ -137,7 +137,6 @@ const ClientComponent = ({
     return (
         <>
             <tr>
-                <td>{client.ID}</td>
                 <td>{client.name}</td>
                 <td>{client.contact}</td>
                 <td>{client.phone}</td>
@@ -420,7 +419,6 @@ export const ClientManager = () => {
                 <Table>
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Organization Name</th>
                             <th>Contact</th>
                             <th>Phone</th>

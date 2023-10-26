@@ -56,7 +56,6 @@ const DonorComponent = ({
     return (
     <>
         <tr>
-            <td>{donor.ID}</td>
             <td>{donor.name}</td>
             <td>{donor.phone}</td>
             <td>{donor.email}</td>
@@ -67,7 +66,7 @@ const DonorComponent = ({
                 </ActionIcon>
             </td>         
         </tr>
-        <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the donor beyond recovery."}/>
+        <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the client beyond recovery."}/>
     </>
     );
 }
@@ -274,7 +273,6 @@ export const DonorManager = () => {
                 <Table>
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Name</th>
                             <th>Phone</th>
                             <th>Email</th>

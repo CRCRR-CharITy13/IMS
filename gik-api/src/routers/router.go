@@ -246,5 +246,15 @@ func InitRouter() *gin.Engine {
 		ordersApi.DELETE("/delete", transaction.DeleteOrder)
 		ordersApi.GET("/items", transaction.GetOrderItems)
 	}
+
+	donationsApi := r.Group("/donations")
+	{
+		donationsApi.Use(middleware.AuthMiddleware())
+		donationsApi.Use(middleware.AdvancedLoggingMiddleware())
+		donationsApi.GET("/list", transaction.ListDonations)
+		donationsApi.PUT("/add", transaction.AddOrder)
+		donationsApi.DELETE("/delete", transaction.DeleteOrder)
+		// ordersApi.GET("/items", transaction.GetOrderItems)
+	}
 	return r
 }
