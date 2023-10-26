@@ -436,7 +436,7 @@ const Analytics = () => {
                     gap: "1.5rem",
                 }}
             >
-                <Box
+                {/* <Box
                     sx={{
                         width: "25rem",
                         height: "20rem",
@@ -470,9 +470,9 @@ const Analytics = () => {
                             />
                         )}
                     </Skeleton>
-                </Box>
+                </Box> */}
 
-                <Box
+                {/* <Box
                     sx={{
                         width: "30rem",
                         height: "20rem",
@@ -509,8 +509,8 @@ const Analytics = () => {
                             />
                         )}
                     </Skeleton>
-                </Box>
-                <Box
+                </Box> */}
+                {/* <Box
                     sx={{
                         width: "30rem",
                         height: "20rem",
@@ -547,12 +547,13 @@ const Analytics = () => {
                             />
                         )}
                     </Skeleton>
-                </Box>
+                </Box> */}
                 
                 <div
                 style={containerStyles}>
                 <LoadingOverlay visible={visible} />
                 <Box sx={containerStyles}>
+                    <h2>Attentions</h2>
                     <SegmentedControl
                         data={[
                                 { label: "Items", value: "Items" },

@@ -29,22 +29,22 @@ func ListDonor(c *gin.Context) {
 	// Filter the query based on the field.
 	name := c.Query("name")
 	if name != "" {
-		baseQuery = baseQuery.Where("org_name LIKE ?", name)
+		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
 	}
 
 	phone := c.Query("phone")
 	if phone != "" {
-		baseQuery = baseQuery.Where("phone_number LIKE ?", phone)
+		baseQuery = baseQuery.Where("phone_number LIKE ?", "%"+phone+"%")
 	}
 
 	email := c.Query("email")
 	if email != "" {
-		baseQuery = baseQuery.Where("email LIKE ?", email)
+		baseQuery = baseQuery.Where("email LIKE ?", "%"+email+"%")
 	}
 
 	address := c.Query("address")
 	if address != "" {
-		baseQuery = baseQuery.Where("address LIKE ?", address)
+		baseQuery = baseQuery.Where("address LIKE ?", "%"+address+"%")
 	}
 
 	// Get and store the donors into the array.
