@@ -2,73 +2,103 @@ package client
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/types"
+	"GIK_Web/type_news"
+
 	"GIK_Web/utils"
-	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type company struct {
-	Name    string `json:"name" binding:"required"`
-	Contact string `json:"contact" binding:"required"`
-	Phone   string `json:"phone" binding:"required"`
-	Email   string `json:"email" binding:"required"`
-	Address string `json:"address" binding:"required"`
-	Balance int    `json:"balance" binding:"required"`
+	Name    string  `json:"name" binding:"required"`
+	Contact string  `json:"contact" binding:"required"`
+	Phone   string  `json:"phone" binding:"required"`
+	Email   string  `json:"email" binding:"required"`
+	Address string  `json:"address" binding:"required"`
+	Balance float32 `json:"balance" binding:"required"`
 }
 
+type ListClientResponse struct {
+	Id      int     `json:"ID" binding:"required"`
+	Name    string  `json:"name" binding:"required"`
+	Contact string  `json:"contact" binding:"required"`
+	Phone   string  `json:"phone" binding:"required"`
+	Email   string  `json:"email" binding:"required"`
+	Address string  `json:"address" binding:"required"`
+	Balance float32 `json:"balance" binding:"required"`
+}
+
+// Takes in a few queries of name, contact, address, phone, email and returns a list of clients who match these requests.
 func ListClient(c *gin.Context) {
+	// Create an empty array to store the list of clients.
+	listClient := []type_news.Client{}
 
-	client := []types.Client{}
+	// Creating the initial query for the model client
+	baseQuery := database.Database.Model(&listClient)
 
-	baseQuery := database.Database.Model(&client)
-
+	// Filter the query based on the field.
 	name := c.Query("name")
 	if name != "" {
-		baseQuery = baseQuery.Where("name LIKE ?", fmt.Sprintf("%%%s%%", name))
+		baseQuery = baseQuery.Where("org_name LIKE ?", "%"+name+"%")
 	}
 
 	contact := c.Query("contact")
 	if contact != "" {
-		baseQuery = baseQuery.Where("contact LIKE ?", fmt.Sprintf("%%%s%%", contact))
+		baseQuery = baseQuery.Where("contact LIKE ?", "%"+contact+"%")
 	}
 
 	phone := c.Query("phone")
 	if phone != "" {
-		baseQuery = baseQuery.Where("phone LIKE ?", fmt.Sprintf("%%%s%%", phone))
+		baseQuery = baseQuery.Where("phone_number LIKE ?", "%"+phone+"%")
 	}
 
 	email := c.Query("email")
 	if email != "" {
-		baseQuery = baseQuery.Where("email LIKE ?", fmt.Sprintf("%%%s%%", email))
+		baseQuery = baseQuery.Where("email LIKE ?", "%"+email+"%")
 	}
 
 	address := c.Query("address")
 	if address != "" {
-		baseQuery = baseQuery.Where("address LIKE ?", fmt.Sprintf("%%%s%%", address))
+		baseQuery = baseQuery.Where("address LIKE ?", "%"+address+"%")
 	}
 
-	err := baseQuery.Find(&client).Error
+	// Get and store the clients into the array.
+	err := baseQuery.Find(&listClient).Error
 	if err != nil {
+		// If failed, return message and quit
 		c.JSON(500, gin.H{
 			"success": false,
 			"message": "Unable to query clients",
 		})
+
 		return
 	}
 
+	clientResponse := make([]ListClientResponse, len(listClient))
+	for i, client := range listClient {
+		clientResponse[i] = ListClientResponse{
+			Id:      int(client.ID),
+			Name:    client.OrgName,
+			Contact: client.Contact,
+			Phone:   client.PhoneNumber,
+			Email:   client.Email,
+			Address: client.Address,
+			Balance: client.Balance,
+		}
+	}
+	// Send message with the results.
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "Client data retrieved",
-		"data":    client,
+		"data":    clientResponse,
 	})
 
 }
 
+// Take an ID query and a JSON body of values and update the item.
 func UpdateClient(c *gin.Context) {
-
+	// Get the ID
 	id := c.Query("id")
 	if id == "" {
 		c.JSON(400, gin.H{
@@ -78,6 +108,7 @@ func UpdateClient(c *gin.Context) {
 		return
 	}
 
+	// Check that the ID is an integer
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -87,6 +118,7 @@ func UpdateClient(c *gin.Context) {
 		return
 	}
 
+	// Get the JSON body.
 	json := company{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
@@ -96,7 +128,7 @@ func UpdateClient(c *gin.Context) {
 		return
 	}
 
-	client := types.Client{}
+	client := type_news.Client{}
 	if err := database.Database.Where("id = ?", idInt).First(&client).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -105,9 +137,9 @@ func UpdateClient(c *gin.Context) {
 		return
 	}
 
-	client.Name = json.Name
+	client.OrgName = json.Name
 	client.Contact = json.Contact
-	client.Phone = json.Phone
+	client.PhoneNumber = json.Phone
 	client.Email = json.Email
 	client.Address = json.Address
 	client.Balance = float32(json.Balance)
@@ -140,16 +172,16 @@ func AddClient(c *gin.Context) {
 		return
 	}
 
-	newClient := types.Client{
-		Name:    json.Name,
-		Contact: json.Contact,
-		Phone:   json.Phone,
-		Email:   json.Email,
-		Address: json.Address,
-		Balance: float32(json.Balance),
+	newClient := type_news.Client{
+		OrgName:     json.Name,
+		Contact:     json.Contact,
+		PhoneNumber: json.Phone,
+		Email:       json.Email,
+		Address:     json.Address,
+		Balance:     float32(json.Balance),
 	}
 
-	if err := database.Database.Model(&types.Client{}).Create(&newClient).Error; err != nil {
+	if err := database.Database.Model(&type_news.Client{}).Create(&newClient).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
 			"message": "Unable to create donor",
@@ -164,22 +196,13 @@ func AddClient(c *gin.Context) {
 		"data":    json,
 	})
 
-	utils.CreateSimpleLog(c, "Created client")
+	utils.CreateSimpleLog(c, "Client created")
 
 }
 
-/*
-	ID      string  `json:"id"`
-	Name    string  `json:"name"`
-	Contact string  `json:"contact"`
-	Phone   string  `json:"phone"`
-	Email   string  `json:"email"`
-	Address string  `json:"address"`
-	Balance float32 `json:"balance"`
-*/
-
+// Take an ID query and delete that client.
 func DeleteClient(c *gin.Context) {
-
+	// Gets the ID
 	id := c.Query("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -190,25 +213,25 @@ func DeleteClient(c *gin.Context) {
 		return
 	}
 
-	client := types.Client{}
-	if err := database.Database.Model(&types.Client{}).Where("id = ?", idInt).First(&client).Error; err != nil {
+	client := type_news.Client{}
+	if err := database.Database.Model(&type_news.Client{}).Where("id = ?", idInt).First(&client).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid donor",
+			"message": "Invalid client",
 		})
 		return
 	}
 
-	if err := database.Database.Model(&types.Client{}).Delete(&client).Error; err != nil {
+	if err := database.Database.Model(&type_news.Client{}).Delete(&client).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
-			"message": "Unable to delete donor",
+			"message": "Unable to delete client",
 			"error":   err.Error(),
 		})
 		return
 	}
 
-	utils.CreateSimpleLog(c, "Deleted client")
+	utils.CreateSimpleLog(c, "Client deleted")
 
 	c.JSON(200, gin.H{
 		"success": true,
