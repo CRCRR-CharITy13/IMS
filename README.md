@@ -19,7 +19,7 @@ The goal of this application is to replace the currently used Google Spreadsheet
     │  ├─ assets                         semi-permenant data files
     │  ├─ database                       code to run the database
     │  ├─ env                            code to manage the environment variables
-    │  ├─ src                            source code
+    │  ├─ src/                           source code
     │  │  ├─ middleware                      middleware code
     │  │  ├─ routers                         router + endpoints
     │  ├─ type_news                      data structure
@@ -27,7 +27,7 @@ The goal of this application is to replace the currently used Google Spreadsheet
     │  ├─ utils                          collection of functions
     ├─ gik-dashboard/                 the front-end
     │  ├─ public                         images and files for the front-end
-    │  ├─ src                            source code
+    │  ├─ src/                           source code
     │  │  ├─ assets                        additional images and files
     │  │  ├─ components                    individual panes of the dashboard
     │  │  ├─ routes                        the primary routes of the front-end
