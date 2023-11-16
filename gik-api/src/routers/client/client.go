@@ -96,7 +96,7 @@ func ListClient(c *gin.Context) {
 
 }
 
-// Take an ID query and a JSON body of values and update the item.
+// Take an ID query and a JSON body of values and update the client.
 func UpdateClient(c *gin.Context) {
 	// Get the ID
 	id := c.Query("id")
@@ -132,7 +132,7 @@ func UpdateClient(c *gin.Context) {
 	if err := database.Database.Where("id = ?", idInt).First(&client).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid donor",
+			"message": "Invalid client",
 		})
 		return
 	}

@@ -121,6 +121,70 @@ func AddDonor(c *gin.Context) {
 
 }
 
+// Take an ID query and a JSON body of values and update the donor.
+func UpdateDonor(c *gin.Context) {
+	// Get the ID
+	id := c.Query("id")
+	if id == "" {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	// Check that the ID is an integer
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	// Get the JSON body.
+	json := donorInfo{}
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	donor := type_news.Donor{}
+	if err := database.Database.Where("id = ?", idInt).First(&donor).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid donor",
+		})
+		return
+	}
+
+	donor.Name = json.Name
+	donor.Address = json.Address
+	donor.Email = json.Email
+	donor.PhoneNumber = json.Phone
+
+	if err := database.Database.Save(donor).Error; err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to update donor",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    donor,
+	})
+
+	utils.CreateSimpleLog(c, "Updated donor")
+
+}
+
 // Take an ID query and delete that donor.
 func DeleteDonor(c *gin.Context) {
 	// Gets the ID
