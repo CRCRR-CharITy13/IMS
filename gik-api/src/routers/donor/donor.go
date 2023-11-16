@@ -53,7 +53,7 @@ func ListDonor(c *gin.Context) {
 		// If failed, return message and quit
 		c.JSON(500, gin.H{
 			"success": false,
-			"message": "Unable to query donors",
+			"message": "Unable to retrieve donors",
 		})
 
 		return
