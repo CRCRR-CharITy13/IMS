@@ -129,7 +129,7 @@ func InitRouter() *gin.Engine {
 		donorsApi.GET("/list", donor.ListDonor)
 		donorsApi.PUT("/add", donor.AddDonor)
 		donorsApi.DELETE("/delete", donor.DeleteDonor)
-		// donorsApi.PATCH("/update", client.UpdateClient)
+		donorsApi.PATCH("/update", donor.UpdateDonor)
 	}
 
 	// Set up location router

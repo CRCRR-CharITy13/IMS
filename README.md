@@ -4,9 +4,9 @@ A web-based Inventory Management System for the Gifts in Kind Program built by C
 The goal of this application is to replace the currently used Google Spreadsheet system with an easier to use and less error prone system that is intuiative and can be used going forward.
 
 ## Features
-**Inventory Management System**: Manage stocks and items on an on-going basis.
+**Item Management System**: Manage stocks and items on an on-going basis.
 
-**Warehouse Management System**: Have multiple locations and manage where individual items are.
+**Location Management System**: Have multiple locations and manage where individual items are.
 
 **Transaction Management System**: Create and keep track of transactions, making the required changes to the stock and locations. Create and keep track of clients and donors and their balances.
 
@@ -37,3 +37,10 @@ The goal of this application is to replace the currently used Google Spreadsheet
 ## How to install
 
 Please see [Getting Set Up](../../wiki/Getting-Set-Up).
+
+## For developer: Getting start
+Please see [Getting Start](../../wiki/Getting-Start).
+
+## Full Documentation
+
+Plase visit the project's [wikipage](../../wiki) for more information

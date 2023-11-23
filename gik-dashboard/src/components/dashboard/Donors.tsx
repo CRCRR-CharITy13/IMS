@@ -13,9 +13,71 @@ import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { Donor } from "../../types/donor";
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
-import { CirclePlus, TableExport, TableImport, Trash} from "tabler-icons-react";
+import { CirclePlus, TableExport, TableImport, Trash, Edit} from "tabler-icons-react";
 import { ConfirmationModal } from "../confirmation";
 import { containerStyles } from "../../styles/container";
+
+export const UpdateDonorModal = (
+    {
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (name : string, phone : string, email : string, address : string)=>void;
+    }) => {
+
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [address, setAddress] = useState('');
+    
+    return (
+        <>
+            <Modal
+                title={"Update Donor"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <TextInput
+                    required
+                    label={"Name"}
+                    placeholder="Left blank to use the current name"
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"Phone"}
+                    placeholder="Left blank to use the current description"
+                    onChange={(e) => setPhone(e.target.value)}
+                />
+                <TextInput
+                    required
+                    label={"Email"}
+                    placeholder="Left blank to use the current name"
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"Address"}
+                    placeholder="Left blank to use the current description"
+                    onChange={(e) => setAddress(e.target.value)}
+                />
+
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(name, phone, email, address); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}
 
 const DonorComponent = ({
     donor,
@@ -53,6 +115,56 @@ const DonorComponent = ({
             title: "Error",
         });
     };
+
+    const doUpdate = async(name: string, phone : string, email : string, address : string) => {
+        if(name == ""){
+            name = donor.name;
+        }
+        if(phone == ""){
+            phone = donor.phone;
+        }
+        if(email == ""){
+            email = donor.email;
+        }
+        if(address == ""){
+            address = donor.address;
+        }
+        const id = donor.ID.toString();
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/donor/update?id=${donor.ID}`,
+            {
+                credentials: "include",
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name,
+                    phone,
+                    email,
+                    address,
+                }),
+            }
+        );
+        if (response.ok) {
+            showNotification({
+                message: "Donor updated",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to update the donor",
+            color: "red",
+            title: "Error",
+        });
+    }
+
+    const [updateDonorModal, setUpdateDonorModal] = useState<boolean>(false);
+
     return (
     <>
         <tr>
@@ -61,11 +173,17 @@ const DonorComponent = ({
             <td>{donor.email}</td>
             <td>{donor.address}</td>
             <td>
+                <Group>
                 <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                     <Trash />
                 </ActionIcon>
+                <ActionIcon variant="default" onClick={() => setUpdateDonorModal(true)}>
+                    <Edit />
+                </ActionIcon>
+                </Group>
             </td>         
         </tr>
+        <UpdateDonorModal opened={updateDonorModal} setOpened={setUpdateDonorModal} command={doUpdate}/>
         <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the client beyond recovery."}/>
     </>
     );
