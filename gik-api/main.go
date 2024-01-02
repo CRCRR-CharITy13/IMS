@@ -47,20 +47,14 @@ func main() {
 
 	fmt.Printf("\nServer running at %s:%s\n", env.WebserverHost, env.WebserverPort)
 
-	// Try to run the server
-
-	// if env.HTTPS {
-	// 	endless.ListenAndServeTLS(":"+env.WebserverPort, ".cert/server.crt", ".cert/server.key", routersInit)
-	// } else {
-	// 	endless.ListenAndServe(env.WebserverHost+":"+env.WebserverPort, routersInit)
-	// }
+	//routersInit.Run(":" + env.WebserverPort)
 
 	server := &http.Server{
 		Handler: routersInit,
-		Addr:    env.WebserverHost + ":" + env.WebserverPort,
+		Addr:    ":" + env.WebserverPort,
 	}
 
-	fmt.Printf("\n Server running at %s:%s\n", env.WebserverHost, env.WebserverPort)
+	fmt.Printf("\n Server running at port %s\n", env.WebserverPort)
 
 	if env.HTTPS {
 		server.ListenAndServeTLS(".cert/server.crt", ".cert/server.key")
