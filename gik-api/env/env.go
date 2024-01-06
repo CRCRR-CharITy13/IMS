@@ -17,7 +17,7 @@ var SkipMigrations bool
 
 var HTTPS bool
 
-var CookieDomain string
+//var CookieDomain string
 
 var JWTSigningPassword string
 
@@ -47,10 +47,10 @@ func SetEnv() {
 		panic("MYSQL_URI is not set")
 	}
 
-	CookieDomain = os.Getenv("COOKIE_DOMAIN")
-	if CookieDomain == "" {
-		panic("COOKIE_DOMAIN is not set")
-	}
+	// CookieDomain = os.Getenv("COOKIE_DOMAIN")
+	// if CookieDomain == "" {
+	// 	panic("COOKIE_DOMAIN is not set")
+	// }
 
 	JWTSigningPassword = os.Getenv("JWT_SIGNING_PASSWORD")
 	if JWTSigningPassword == "" {
