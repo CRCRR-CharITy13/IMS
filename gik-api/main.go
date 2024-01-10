@@ -45,8 +45,6 @@ func main() {
 	// Connect to the database
 	database.ConnectDatabase()
 
-	fmt.Printf("\nServer running at %s:%s\n", env.WebserverHost, env.WebserverPort)
-
 	// Try to run the server
 
 	// if env.HTTPS {
@@ -57,10 +55,10 @@ func main() {
 
 	server := &http.Server{
 		Handler: routersInit,
-		Addr:    env.WebserverHost + ":" + env.WebserverPort,
+		Addr:    ":" + env.WebserverPort,
 	}
 
-	fmt.Printf("\n Server running at %s:%s\n", env.WebserverHost, env.WebserverPort)
+	fmt.Printf("\n Server running at port %s \n", env.WebserverPort)
 
 	if env.HTTPS {
 		server.ListenAndServeTLS(".cert/server.crt", ".cert/server.key")

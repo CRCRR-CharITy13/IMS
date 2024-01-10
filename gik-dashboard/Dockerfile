@@ -1,29 +1,27 @@
-# pull official base image
-FROM node:16-alpine
+# Use an official Node.js runtime as the base image
+FROM node:19.6.0-alpine as build
+# Set the working directory within the container
+WORKDIR /gik-dashboard
 
-# set working directory
-WORKDIR /app
+# Copy package.json and package-lock.json to the container
+COPY package*.json ./
 
-# add `/app/node_modules/.bin` to $PATH
-ENV PATH /app/node_modules/.bin:$PATH
+# Install dependencies
+RUN npm install --force
 
-# install app dependencies
-COPY package.json ./
-COPY yarn.lock ./
-RUN yarn install 
-
-RUN yarn add global serve
-
-EXPOSE 3000
-
-# add app
+# Copy the rest of the application code to the container
 COPY . .
 
-ARG REACT_APP_API_URL
+# Build the React app
+RUN npm run build 
 
-RUN sh .docker/create_env_file.sh REACT_APP_API_URL=$REACT_APP_API_URL
+# Use Nginx as the production server
+FROM nginx:alpine
 
-RUN yarn build
+# Copy the build React app to Nginx's web server directory
+COPY --from=build /gik-dashboard/build /usr/share/nginx/html
+# Expose port 80 for the Nginx server
+EXPOSE 80
 
-# start app
-CMD serve -s build
+# Start Nginx when the container runs
+CMD ["nginx", "-g", "daemon off;"]

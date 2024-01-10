@@ -6,7 +6,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var WebserverHost string
 var WebserverPort string
 
 var DebugMode bool
@@ -16,8 +15,6 @@ var MysqlURi string
 var SkipMigrations bool
 
 var HTTPS bool
-
-var CookieDomain string
 
 var JWTSigningPassword string
 
@@ -30,9 +27,8 @@ func SetEnv() {
 	//
 	godotenv.Load(".env")
 
-	WebserverHost = os.Getenv("HOST")
 	WebserverPort = os.Getenv("PORT")
-	if WebserverHost == "" || WebserverPort == "" {
+	if WebserverPort == "" {
 		panic("HOST and PORT are not set")
 	}
 
@@ -45,11 +41,6 @@ func SetEnv() {
 	MysqlURi = os.Getenv("MYSQL_URI")
 	if MysqlURi == "" {
 		panic("MYSQL_URI is not set")
-	}
-
-	CookieDomain = os.Getenv("COOKIE_DOMAIN")
-	if CookieDomain == "" {
-		panic("COOKIE_DOMAIN is not set")
 	}
 
 	JWTSigningPassword = os.Getenv("JWT_SIGNING_PASSWORD")
