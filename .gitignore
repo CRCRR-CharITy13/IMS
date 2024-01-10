@@ -7,7 +7,7 @@
 .DS_Store
 GIK_Web
 docker-compose.yml
-
+/gik-api/*.pem
 /gik-dashboard/node_modules
 /.pnp
 .pnp.js
