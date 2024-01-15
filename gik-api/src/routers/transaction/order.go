@@ -126,7 +126,7 @@ func AddOrder(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid request",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -278,7 +278,7 @@ func DeleteOrder(c *gin.Context) {
 	if id == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid ID",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -287,7 +287,7 @@ func DeleteOrder(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid ID",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -337,7 +337,7 @@ func GetOrderItems(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid ID",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}

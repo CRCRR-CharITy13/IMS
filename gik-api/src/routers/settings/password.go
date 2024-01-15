@@ -19,7 +19,7 @@ func ChangePassword(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}

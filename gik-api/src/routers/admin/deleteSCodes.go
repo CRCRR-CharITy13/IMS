@@ -14,7 +14,7 @@ func DeleteSignupCodes(c *gin.Context) {
 	if codeID == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid user id",
+			"message": "Invalid user ID",
 		})
 		return
 	}
@@ -24,7 +24,7 @@ func DeleteSignupCodes(c *gin.Context) {
 	if err != nil || codeIdInt < 1 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid user id",
+			"message": "Invalid user ID",
 		})
 		return
 	}
@@ -34,7 +34,7 @@ func DeleteSignupCodes(c *gin.Context) {
 	if err := database.Database.Where("id = ?", codeIdInt).First(&types.SignupCode{}).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid code ID",
+			"message": "No signup code found for the given user ID",
 		})
 		return
 	}
@@ -44,13 +44,13 @@ func DeleteSignupCodes(c *gin.Context) {
 	if err := database.Database.Where("id = ?", codeIdInt).Delete(&types.SignupCode{}).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Error deleting user",
+			"message": "Error in deleting user",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
 		"success": true,
-		"message": "User Deleted",
+		"message": "User deleted",
 	})
 }

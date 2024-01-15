@@ -90,7 +90,7 @@ func AddDonor(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -128,7 +128,7 @@ func UpdateDonor(c *gin.Context) {
 	if id == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -138,7 +138,7 @@ func UpdateDonor(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -148,7 +148,7 @@ func UpdateDonor(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -157,7 +157,7 @@ func UpdateDonor(c *gin.Context) {
 	if err := database.Database.Where("id = ?", idInt).First(&donor).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid donor",
+			"message": "Cannot find donor",
 		})
 		return
 	}
@@ -193,7 +193,7 @@ func DeleteDonor(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -202,7 +202,7 @@ func DeleteDonor(c *gin.Context) {
 	if err := database.Database.Model(&type_news.Donor{}).Where("id = ?", idInt).First(&donor).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid donor",
+			"message": "Cannot find donor",
 		})
 		return
 	}

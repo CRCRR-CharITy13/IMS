@@ -13,7 +13,7 @@ func GetSignupCodeInfo(c *gin.Context) {
 	if code == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid sign up code",
+			"message": "Invalid signup code",
 		})
 		return
 	}
@@ -25,7 +25,7 @@ func GetSignupCodeInfo(c *gin.Context) {
 	}).First(&signupCode).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid sign up code",
+			"message": "Cannot find signup code",
 		})
 		return
 	}

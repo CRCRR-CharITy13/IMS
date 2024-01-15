@@ -20,7 +20,7 @@ func ToggleUser(c *gin.Context) {
 	if userId == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid user id",
+			"message": "Invalid user ID",
 		})
 		return
 	}
@@ -30,7 +30,7 @@ func ToggleUser(c *gin.Context) {
 	if err != nil || userIdInt < 1 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid user id",
+			"message": "Invalid user ID",
 		})
 		return
 	}
@@ -40,7 +40,7 @@ func ToggleUser(c *gin.Context) {
 	if err := database.Database.Where("id = ?", userIdInt).First(&user).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid user id",
+			"message": "Cannot find user",
 		})
 		return
 	}

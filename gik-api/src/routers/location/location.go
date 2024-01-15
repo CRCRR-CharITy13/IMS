@@ -28,7 +28,7 @@ func AddLocation(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -152,7 +152,7 @@ func DeleteLocation(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid ID",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -162,7 +162,7 @@ func DeleteLocation(c *gin.Context) {
 	if err := database.Database.Model(&type_news.Location{}).Where("id = ?", idInt).First(&location).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid Location",
+			"message": "Cannot find location",
 		})
 		return
 	}
@@ -203,7 +203,7 @@ func AddItemToLocation(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -242,7 +242,7 @@ func AddItemToLocation(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"success": true,
-		"message": "Successfully add an item to location",
+		"message": "Successfully added an item to location",
 	})
 
 	utils.CreateSimpleLog(c, fmt.Sprintf("Added %d pieces of item with sku = %s to location id = %d", json.Stock, json.ItemSKU, json.LocationID))
@@ -263,7 +263,7 @@ func ListItemInLocation(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid ID",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -302,7 +302,7 @@ func RemoveItemFromLocation(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -321,7 +321,7 @@ func RemoveItemFromLocation(c *gin.Context) {
 		fmt.Println(msg)
 		c.JSON(200, gin.H{
 			"success": false,
-			"message": "record not found",
+			"message": "Record not found",
 		})
 		return
 	} else {
@@ -379,7 +379,7 @@ func UpdateLocation(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid ID",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -388,7 +388,7 @@ func UpdateLocation(c *gin.Context) {
 	if err := database.Database.Model(&type_news.Location{}).Where("ID = ?", jsonIdInt).First(&location).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid location ID",
+			"message": "Cannot find location",
 		})
 		return
 	}
@@ -397,7 +397,7 @@ func UpdateLocation(c *gin.Context) {
 	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid name",
+			"message": "Invalid fields - Name",
 		})
 		return
 	}
@@ -406,7 +406,7 @@ func UpdateLocation(c *gin.Context) {
 	if json.Description == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid description",
+			"message": "Invalid fields - Description",
 		})
 		return
 	}

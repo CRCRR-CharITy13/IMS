@@ -103,7 +103,7 @@ func UpdateClient(c *gin.Context) {
 	if id == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -113,7 +113,7 @@ func UpdateClient(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -123,7 +123,7 @@ func UpdateClient(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -132,7 +132,7 @@ func UpdateClient(c *gin.Context) {
 	if err := database.Database.Where("id = ?", idInt).First(&client).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid donor",
+			"message": "Cannot find client",
 		})
 		return
 	}
@@ -147,7 +147,7 @@ func UpdateClient(c *gin.Context) {
 	if err := database.Database.Save(client).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
-			"message": "Unable to update donor",
+			"message": "Unable to update client",
 			"error":   err.Error(),
 		})
 		return
@@ -167,7 +167,7 @@ func AddClient(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -184,7 +184,7 @@ func AddClient(c *gin.Context) {
 	if err := database.Database.Model(&type_news.Client{}).Create(&newClient).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
-			"message": "Unable to create donor",
+			"message": "Unable to create client",
 			"error":   err.Error(),
 		})
 		return
@@ -208,7 +208,7 @@ func DeleteClient(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -217,7 +217,7 @@ func DeleteClient(c *gin.Context) {
 	if err := database.Database.Model(&type_news.Client{}).Where("id = ?", idInt).First(&client).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid client",
+			"message": "Cannot find client",
 		})
 		return
 	}

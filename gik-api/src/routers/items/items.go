@@ -29,7 +29,7 @@ func AddItem(c *gin.Context) {
 		fmt.Println("error in AddItem: ", err)
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -39,7 +39,7 @@ func AddItem(c *gin.Context) {
 	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid item name",
+			"message": "Invalid fields - Name",
 		})
 		return
 	}
@@ -48,7 +48,7 @@ func AddItem(c *gin.Context) {
 	if json.SKU == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid item SKU",
+			"message": "Invalid fields - SKU",
 		})
 		return
 	}
@@ -57,7 +57,7 @@ func AddItem(c *gin.Context) {
 	if json.Size == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid item size",
+			"message": "Invalid fields - Size",
 		})
 		return
 
@@ -68,7 +68,7 @@ func AddItem(c *gin.Context) {
 	if json.Price < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid item price",
+			"message": "Invalid fields - Credits",
 		})
 		return
 	}
@@ -77,7 +77,7 @@ func AddItem(c *gin.Context) {
 	if json.StockTotal < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid item stock total",
+			"message": "Invalid fields - Quantity",
 		})
 		return
 	}
@@ -96,7 +96,7 @@ func AddItem(c *gin.Context) {
 	// in case of success
 	c.JSON(200, gin.H{
 		"success": true,
-		"message": "new item added to the database",
+		"message": "Item added to the database",
 	})
 	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
 }
@@ -191,7 +191,7 @@ func UpdateItem(c *gin.Context) {
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Missing values",
 		})
 		return
 	}
@@ -200,7 +200,7 @@ func UpdateItem(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid ID",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -218,7 +218,7 @@ func UpdateItem(c *gin.Context) {
 	if json.Name == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Name",
 		})
 		return
 	}
@@ -227,7 +227,7 @@ func UpdateItem(c *gin.Context) {
 	if json.SKU == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - SKU",
 		})
 		return
 	}
@@ -236,7 +236,7 @@ func UpdateItem(c *gin.Context) {
 	if json.Size == "" {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Size",
 		})
 		return
 
@@ -247,7 +247,7 @@ func UpdateItem(c *gin.Context) {
 	if json.Price < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Credits",
 		})
 		return
 	}
@@ -256,7 +256,7 @@ func UpdateItem(c *gin.Context) {
 	if json.StockTotal < 0 {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - Quantity",
 		})
 		return
 	}
@@ -282,7 +282,7 @@ func DeleteItem(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -291,7 +291,7 @@ func DeleteItem(c *gin.Context) {
 	if err := database.Database.Model(&type_news.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid Item",
+			"message": "No such item found",
 		})
 		return
 	}
@@ -302,7 +302,7 @@ func DeleteItem(c *gin.Context) {
 	if err := database.Database.Model(&types.Item{}).Delete(&item).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
-			"message": "Unable to delete Item",
+			"message": "Unable to delete item",
 			"error":   err.Error(),
 		})
 		return
@@ -388,7 +388,7 @@ func EditItem(c *gin.Context) {
 	if (err != nil) || (ID < 0) {
 		c.JSON(400, gin.H{
 			"success": false,
-			"message": "Invalid fields",
+			"message": "Invalid fields - ID",
 		})
 		return
 	}
@@ -418,7 +418,7 @@ func EditItem(c *gin.Context) {
 		if err != nil || Stock < 0 {
 			c.JSON(400, gin.H{
 				"success": false,
-				"message": "Invalid fields",
+				"message": "Invalid fields - Quantity",
 			})
 			return
 		}
@@ -432,7 +432,7 @@ func EditItem(c *gin.Context) {
 		if err != nil || Price < 0 {
 			c.JSON(400, gin.H{
 				"success": false,
-				"message": "Invalid fields",
+				"message": "Invalid fields - Credits",
 			})
 			return
 		}
