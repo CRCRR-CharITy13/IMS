@@ -379,6 +379,7 @@ const CreateItemModal = ({
     const [price, setPrice] = useState(0);
     const [quantity, setQuantity] = useState(0);
     const [size, setSize] = useState("");
+    const [disabled, setDisabled] = useState(false);
 
 
     const doCreate = async () => {
@@ -419,6 +420,7 @@ const CreateItemModal = ({
             title: "Error",
             message: data.message,
         });
+        setDisabled(false);
     };
 
     return (
@@ -428,12 +430,14 @@ const CreateItemModal = ({
                 onClose={() => {
                     refresh();
                     setOpened(false);
+                    setDisabled(false);
                 }}
                 title="Create Item"
             >
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
+                        setDisabled(true);
                         doCreate();
                     }}
                 >
@@ -479,7 +483,7 @@ const CreateItemModal = ({
                     />
                     <Space h="md" />
                     <Group position="right">
-                        <Button color="green" type="submit">
+                        <Button type="submit" loading={disabled}>
                             Submit
                         </Button>
                     </Group>

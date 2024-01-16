@@ -556,6 +556,8 @@ const CreateLocationModal = ({
 }) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
+    const [disabled, setDisabled] = useState(false);
+
     const doCreate = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/location/add`,
@@ -591,6 +593,7 @@ const CreateLocationModal = ({
             title: "Error",
             message: data.message,
         });
+        setDisabled(false);
     };
 
     return (
@@ -600,12 +603,14 @@ const CreateLocationModal = ({
                 onClose={() => {
                     refresh();
                     setOpened(false);
+                    setDisabled(false);
                 }}
                 title="Create Location"
             >
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
+                        setDisabled(true);
                         doCreate();
                     }}
                 >
@@ -624,7 +629,7 @@ const CreateLocationModal = ({
                     />
                     <Space h="md" />
                     <Group position="right">
-                        <Button color="green" type="submit">
+                        <Button type="submit" loading={disabled}>
                             Submit
                         </Button>
                     </Group>
@@ -698,7 +703,6 @@ export const LocationsManager = () => {
                 refresh={fetchLocations}
             />
             <Box sx={containerStyles}>
-                <Group>
                 <Group position="apart">
                     <h3>Locations</h3>
                     <Group spacing={0}>
@@ -746,7 +750,6 @@ export const LocationsManager = () => {
                     Search
                     </Button>
                 </Group>
-            </Group>
             <Space h="md" />
             <Table striped highlightOnHover>
                 <thead>
