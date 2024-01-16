@@ -172,6 +172,8 @@ const CreateClientModal = ({
     setOpened: Dispatch<SetStateAction<boolean>>;
     refresh: () => Promise<void>;
 }) => {
+    const [disabled, setDisabled] = useState(false);
+
     const form = useForm({
         initialValues: {
             name: "",
@@ -220,7 +222,14 @@ const CreateClientModal = ({
             title: "Unable to add client",
             message: data.message,
         });
+        setDisabled(false);
     };
+
+    useEffect(() => {
+        if (opened) {
+            setDisabled(false);
+        }
+    }, [opened]);
 
     return (
         <>
@@ -228,6 +237,7 @@ const CreateClientModal = ({
                 opened={opened}
                 onClose={() => {
                     refresh();
+                    setDisabled(false);
                     setOpened(false);
                 }}
                 title="Create Client"
@@ -235,6 +245,7 @@ const CreateClientModal = ({
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
+                        setDisabled(true);
                         doCreate();
                     }}
                 >
@@ -285,7 +296,7 @@ const CreateClientModal = ({
                     />
                     <Space h="md" />
                     <Group position="right">
-                        <Button type="submit">
+                        <Button type="submit" loading={disabled}>
                             Create
                         </Button>
                     </Group>
@@ -380,7 +391,7 @@ export const ClientManager = () => {
                     </ActionIcon>
                 </Group>
                 <Space h="md" />
-                <Group position="apart">
+                <Group>
                     <TextInput
                         placeholder="Organization name"
                         onChange={(e) => setNameQuery(e.target.value)}
@@ -400,10 +411,7 @@ export const ClientManager = () => {
                     <TextInput
                         placeholder="Address"
                         onChange={(e) => setAddressQuery(e.target.value)}
-                    />   
-                </Group>
-                <Space h="md"/>
-                <Group position="apart">
+                    />  
                     <Button
                         disabled={loading}
                         onClick={() => fetchClients()}

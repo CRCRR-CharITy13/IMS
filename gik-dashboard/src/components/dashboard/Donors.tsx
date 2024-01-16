@@ -199,6 +199,8 @@ const CreateDonorModal = ({
     setOpened: Dispatch<SetStateAction<boolean>>;
     refresh: () => Promise<void>;
 }) => {
+    const [disabled, setDisabled] = useState(false);
+
     const form = useForm({
         initialValues: {
             name: "",
@@ -243,7 +245,14 @@ const CreateDonorModal = ({
             title: "Unable to add donor",
             message: data.message,
         });
+        setDisabled(false);
     };
+
+    useEffect(() => {
+        if (opened) {
+            setDisabled(false);
+        }
+    }, [opened]);
 
     return (
         <>
@@ -252,12 +261,14 @@ const CreateDonorModal = ({
                 onClose={() => {
                     refresh();
                     setOpened(false);
+                    setDisabled(false);
                 }}
                 title="Create Donor"
             >
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
+                        setDisabled(true);
                         doCreate();
                     }}
                 >
@@ -294,7 +305,7 @@ const CreateDonorModal = ({
                     />
                     
                     <Group position="right">
-                        <Button type="submit">
+                        <Button type="submit" loading={disabled}>
                             Create
                         </Button>
                     </Group>
@@ -359,7 +370,7 @@ export const DonorManager = () => {
                         </ActionIcon>
                     </Group>
                     <Space h="md" />
-                    <Group position="apart">
+                    <Group>
                         <TextInput
                             placeholder="Name"
                             onChange={(e) => setNameQuery(e.target.value)}
@@ -375,10 +386,7 @@ export const DonorManager = () => {
                         <TextInput
                             placeholder="Address"
                             onChange={(e) => setAddressQuery(e.target.value)}
-                        />   
-                    </Group>
-                    <Space h="md"/>
-                    <Group position="apart">
+                        /> 
                         <Button
                             disabled={loading}
                             onClick={() => fetchDonors()}

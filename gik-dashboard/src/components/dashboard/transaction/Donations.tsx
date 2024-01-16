@@ -155,6 +155,8 @@ const CreateDonationModal = ({
     const [itemSKUName, setItemSKUName] = useState('');
     const [showAddDonationResponseModal, setShowAddDonationResponseModal] = useState(false);
 
+    const [disabled, setDisabled] = useState(false);
+
     const doSubmit = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/donations/add`,
@@ -193,6 +195,7 @@ const CreateDonationModal = ({
             color: "red",
             title: "Donation creation failed",
         });
+        setDisabled(false);
     };
 
     const fetchDonors = async () => {
@@ -258,7 +261,12 @@ const CreateDonationModal = ({
             console.log(data.data.data);
         }
     };
-    
+
+    useEffect(() => {
+        if (opened) {
+            setDisabled(false);
+        }
+    }, [opened]);
     
     useEffect(() => {
         fetchItems();
@@ -280,6 +288,7 @@ const CreateDonationModal = ({
                 opened={opened}
                 onClose={() => {
                     setOpened(false);
+                    setDisabled(false);
                     refresh();
                 }}
                 title="Create Donation"
@@ -287,6 +296,7 @@ const CreateDonationModal = ({
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
+                        setDisabled(true);
                         doSubmit();
                     }}
                 >
@@ -391,7 +401,7 @@ const CreateDonationModal = ({
                     </Table>
                     <Space h="md" />
                     <Group position="right">
-                        <Button type="submit">
+                        <Button type="submit" loading={disabled}>
                             Submit
                         </Button>
                     </Group>

@@ -596,6 +596,12 @@ const CreateLocationModal = ({
         setDisabled(false);
     };
 
+    useEffect(() => {
+        if (opened) {
+            setDisabled(false);
+        }
+    }, [opened]);
+
     return (
         <>
             <Modal

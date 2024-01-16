@@ -423,11 +423,18 @@ const CreateItemModal = ({
         setDisabled(false);
     };
 
+    useEffect(() => {
+        if (opened) {
+            setDisabled(false);
+        }
+    }, [opened]);
+
     return (
         <>
             <Modal
                 opened={opened}
                 onClose={() => {
+                    console.log("CLOSING MODAL")
                     refresh();
                     setOpened(false);
                     setDisabled(false);
@@ -435,7 +442,7 @@ const CreateItemModal = ({
                 title="Create Item"
             >
                 <form
-                    onSubmit={(e) => {
+                    onSubmit={e => {
                         e.preventDefault();
                         setDisabled(true);
                         doCreate();

@@ -155,6 +155,8 @@ const CreateOrderModal = ({
     const [itemSKUName, setItemSKUName] = useState('');
     const [showAddOrderResponseModal, setShowAddOrderResponseModal] = useState(false);
 
+    const [disabled, setDisabled] = useState(false);
+
     const doSubmit = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/orders/add`,
@@ -215,6 +217,7 @@ const CreateOrderModal = ({
             color: "red",
             title: "Order creation failed",
         });
+        setDisabled(false);
     };
 
     const fetchClients = async () => {
@@ -281,6 +284,11 @@ const CreateOrderModal = ({
         }
     };
     
+    useEffect(() => {
+        if (opened) {
+            setDisabled(false);
+        }
+    }, [opened]);
     
     useEffect(() => {
         fetchItems();
@@ -302,6 +310,7 @@ const CreateOrderModal = ({
                 opened={opened}
                 onClose={() => {
                     setOpened(false);
+                    setDisabled(false);
                     refresh();
                 }}
                 title="Create Order"
@@ -309,6 +318,7 @@ const CreateOrderModal = ({
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
+                        setDisabled(true);
                         doSubmit();
                     }}
                 >
@@ -413,7 +423,7 @@ const CreateOrderModal = ({
                     </Table>
                     <Space h="md" />
                     <Group position="right">
-                        <Button type="submit">
+                        <Button type="submit" loading={disabled}>
                             Submit
                         </Button>
                     </Group>
