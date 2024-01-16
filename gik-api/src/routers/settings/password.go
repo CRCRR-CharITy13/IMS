@@ -2,7 +2,7 @@ package settings
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/types"
+	"GIK_Web/type_news"
 	"GIK_Web/utils"
 
 	"github.com/alexedwards/argon2id"
@@ -27,8 +27,8 @@ func ChangePassword(c *gin.Context) {
 	userId := c.MustGet("userId").(uint)
 
 	// check if old password is correct
-	user := types.User{}
-	if err := database.Database.Model(&types.User{}).Where("id = ?", userId).First(&user).Error; err != nil {
+	user := type_news.User{}
+	if err := database.Database.Model(&type_news.User{}).Where("id = ?", userId).First(&user).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Error finding user",

@@ -61,9 +61,9 @@ func migrations() {
 		Database.AutoMigrate(&types.Transaction{})
 		Database.AutoMigrate(&types.TransactionItem{})
 		Database.AutoMigrate(&types.Session{})
+		Database.AutoMigrate(&types.SignupCode{})
 		Database.AutoMigrate(&types.AdvancedLog{})
 		Database.AutoMigrate(&types.SimpleLog{})
-		Database.AutoMigrate(&types.SignupCode{})
 		Database.AutoMigrate(&types.Location{})
 	} else {
 		Database.AutoMigrate(&type_news.Item{})
@@ -77,6 +77,7 @@ func migrations() {
 		Database.AutoMigrate(&type_news.Order{})
 		Database.AutoMigrate(&type_news.OrderItem{})
 		Database.AutoMigrate(&type_news.Session{})
+		Database.AutoMigrate(&type_news.SignupCode{})
 		Database.AutoMigrate(&type_news.AdvancedLog{})
 		Database.AutoMigrate(&type_news.SimpleLog{})
 	}

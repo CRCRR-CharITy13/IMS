@@ -134,7 +134,7 @@ const Login = () => {
             showNotification({
                 color: "green",
                 title: "Logged in",
-                message: "Registration successful. Redirecting to dashboard...",
+                message: "Login successful. Redirecting to dashboard...",
             });
 
             setTimeout(() => {
