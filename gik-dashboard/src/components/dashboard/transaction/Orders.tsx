@@ -110,7 +110,7 @@ const OrderItemModal =
                                 <th>Size</th>
                                 <th>Price</th>
                                 <th>Quantity</th>
-                                <th>Total Cost</th>
+                                <th>Total Credits</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -764,7 +764,7 @@ export const OrderManager = () => {
                             <th>Time</th>
                             <th>Signed By</th>
                             <th>Client</th>
-                            <th>Total Cost</th>
+                            <th>Total Credits</th>
                             <th>Actions</th>
                         </tr>
                     </thead>

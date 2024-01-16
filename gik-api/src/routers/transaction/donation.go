@@ -7,6 +7,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,9 +55,29 @@ func ListDonations(c *gin.Context) {
 		dateStartInt -= 1
 		dateEndInt, err := strconv.Atoi(date[1])
 		dateEndInt += 86400 // To make sure the filter is inclusive of the entire end date
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Invalid fields - Time",
+			})
+			return
+		}
+
+		dateStart := time.Unix(int64(dateStartInt), 0)
+		dateEnd := time.Unix(int64(dateEndInt), 0)
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Invalid fields - Time",
+			})
+			return
+		}
+
 		if err == nil {
-			baseQuery = baseQuery.Where("created_at > ?", dateStartInt)
-			baseQuery = baseQuery.Where("created_at < ?", dateEndInt)
+			baseQuery = baseQuery.Where("created_at > ?", dateStart)
+			baseQuery = baseQuery.Where("created_at < ?", dateEnd)
 		}
 	}
 
