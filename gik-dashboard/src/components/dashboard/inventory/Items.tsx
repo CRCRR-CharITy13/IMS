@@ -434,7 +434,6 @@ const CreateItemModal = ({
             <Modal
                 opened={opened}
                 onClose={() => {
-                    console.log("CLOSING MODAL")
                     refresh();
                     setOpened(false);
                     setDisabled(false);
