@@ -566,7 +566,7 @@ const Analytics = () => {
                     />
 
                     <h3>
-                        {viewMode === "Items" ? "Items" : "Locations"} Requeried
+                        {viewMode === "Items" ? "Items" : "Locations"} Required
                     </h3>
                     
                     {viewMode === "Items" ? (
