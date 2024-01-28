@@ -447,3 +447,70 @@ func EditItem(c *gin.Context) {
 		"message": "Item successfully edited.",
 	})
 }
+
+func AddSize(c *gin.Context) {
+	id := c.Query("id")
+	ID, err := strconv.Atoi(id)
+	if (err != nil) || (ID < 0) {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields - ID",
+		})
+		return
+	}
+
+	size := c.Query("size")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields - Size",
+		})
+		return
+	}
+
+	sku := c.Query("sku")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields - SKU",
+		})
+		return
+	}
+
+	item := type_news.Item{}
+
+	item.SKU = sku
+	item.Size = size
+	item.StockTotal = 0
+
+	// Fetch from old version
+	itemOld := type_news.Item{}
+	if err := database.Database.Model(&type_news.Item{}).Where("id = ?", ID).First(&itemOld).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "No such item found",
+		})
+		return
+	}
+
+	item.Price = itemOld.Price
+	item.Name = itemOld.Name
+
+	err = database.Database.Create(&item).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to create item",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// in case of success
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Item added to the database",
+	})
+	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
+
+}

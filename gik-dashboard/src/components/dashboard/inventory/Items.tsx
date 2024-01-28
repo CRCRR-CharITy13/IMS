@@ -101,7 +101,7 @@ export const ItemRow = (
         );
         if (response.ok) {
             showNotification({
-                message: "Itemu updated",
+                message: "Item updated",
                 color: "green",
                 title: "Success",
             });
@@ -111,6 +111,32 @@ export const ItemRow = (
 
         showNotification({
             message: "Failed to update the location",
+            color: "red",
+            title: "Error",
+        });
+    }
+    
+    const addSize = async(sku: string, size: string) => {
+        const id = item.ID.toString();
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/addsize?id=${item.ID}&sku=${sku}&size=${size}`,
+            {
+                credentials: "include",
+                method: "PUT",
+            }
+        );
+        if (response.ok) {
+            showNotification({
+                message: "New size added",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to add another size",
             color: "red",
             title: "Error",
         });
@@ -178,6 +204,8 @@ export const ItemRow = (
         useState<boolean>(false);
     const [editItemModal, setEditItemModal] =
         useState<boolean>(false);
+    const [addSizeModal, setAddSizeModal] =
+        useState<boolean>(false);
 
     return (
         <>
@@ -218,11 +246,25 @@ export const ItemRow = (
                             </Text>
                         </HoverCard.Dropdown>
                     </HoverCard>    
+
+                    <HoverCard>
+                        <HoverCard.Target>
+                            <ActionIcon variant="default" onClick={() => setAddSizeModal(true)}>
+                                <CirclePlus />
+                            </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown>
+                            <Text size="sm">
+                                Add a new size of this item
+                            </Text>
+                        </HoverCard.Dropdown>
+                    </HoverCard>    
                         
                     </Group>
                 </td>
             </tr>
             <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={editItem}/>
+            <NewSizeModal opened={addSizeModal} setOpened={setAddSizeModal} command={addSize}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
         </>
     );
@@ -282,6 +324,56 @@ const  UploadCSVModal = (
                         </div>
                     </Group>
                 </Dropzone>
+            </Modal>
+        </>
+    );
+}
+
+export const NewSizeModal = (
+    {
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (sku: string, size: string)=>void;
+    }) => {
+
+    const [sku, setSku] = useState('');
+    const [size, setSize] = useState('');
+
+    return (
+        <>
+            <Modal
+                title={"New Size"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <TextInput
+                    required
+                    label={"SKU"}
+                    placeholder="Left blank to use the curent SKU"
+                    onChange={(e) =>
+                        setSku(e.target.value)
+                    }
+                />
+                <Space h="md" />
+                <TextInput
+                    required
+                    label={"Size"}
+                    placeholder="Left blank to use the curent size"
+                    onChange={(e) => setSize(e.target.value)}
+                />
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button onClick={() => {command(sku, size); setOpened(false);}}>
+                        Confirm
+                    </Button>
+                </Group>
             </Modal>
         </>
     );

@@ -90,6 +90,7 @@ func InitRouter() *gin.Engine {
 		itemsApi.GET("/suggest", items.GetAutoSuggest)
 		itemsApi.PUT("/add", items.AddItem)
 		itemsApi.PATCH("/update", items.UpdateItem)
+		itemsApi.PUT("/addsize", items.AddSize)
 		itemsApi.DELETE("/delete", items.DeleteItem)
 		itemsApi.GET("/list-location-for-item", items.ListLocationForItem)
 		itemsApi.GET("/get-unstored-quantity", items.GetUnstoredQuantity)
