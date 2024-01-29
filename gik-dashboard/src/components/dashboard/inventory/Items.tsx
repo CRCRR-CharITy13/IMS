@@ -263,7 +263,7 @@ export const ItemRow = (
                     </Group>
                 </td>
             </tr>
-            <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={editItem}/>
+            <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={editItem} oldName={item.name} oldPrice={item.price} oldQuantity={item.quantity} oldSize={item.size} oldSku={item.sku} />
             <NewSizeModal opened={addSizeModal} setOpened={setAddSizeModal} command={addSize}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
         </>
@@ -384,18 +384,27 @@ export const EditItemModal = (
         opened,
         setOpened,
         command,
-
+        oldName,
+        oldSku,
+        oldPrice,
+        oldSize,
+        oldQuantity,
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
         command: (name: string, sku: string, price: number, size: string, quantity: number)=>void;
+        oldName: string;
+        oldSku: string;
+        oldPrice: number;
+        oldSize: string;
+        oldQuantity: number;
     }) => {
 
-    const [name, setName] = useState('');
-    const [sku, setSku] = useState('');
-    const [price, setPrice] = useState(-1);
-    const [size, setSize] = useState('');
-    const [quantity, setQuantity] = useState(-1);
+    const [name, setName] = useState(oldName);
+    const [sku, setSku] = useState(oldSku);
+    const [price, setPrice] = useState(oldPrice);
+    const [size, setSize] = useState(oldSize);
+    const [quantity, setQuantity] = useState(oldQuantity);
 
 
     return (
@@ -410,20 +419,24 @@ export const EditItemModal = (
                 <TextInput
                     required
                     label={"Name"}
+                    value={name}
                     placeholder="Left blank to use the curent name"
-                    onChange={(e) => setSize(e.target.value)}
+                    onChange={(e) => setName(e.target.value)}
                 />
                 <Space h="md" />
                 <TextInput
                     required
                     label={"SKU"}
+                    value={sku}
                     placeholder="Left blank to use the curent SKU"
                     onChange={(e) =>
                         setSku(e.target.value)
                     }
                 />
+                <Space h="md" />
                 <TextInput
                     label="Price"
+                    value={price}
                     required
                     placeholder="Left blank to use the curent price"
                     type="number"
@@ -431,8 +444,10 @@ export const EditItemModal = (
                         setPrice(Number(e.target.value))
                     }
                 />
+                <Space h="md" />
                 <TextInput
                     required
+                    value={size}
                     label={"Size"}
                     placeholder="Left blank to use the curent size"
                     onChange={(e) => setSize(e.target.value)}
@@ -440,6 +455,7 @@ export const EditItemModal = (
                 <Space h="md" />
                 <TextInput
                     required
+                    value={quantity}
                     label={"Quantity"}
                     placeholder="Left blank to use the curent quantity"
                     type="number"
@@ -449,7 +465,7 @@ export const EditItemModal = (
                 />
                 <Space h="md" />
                 <Group position={"right"}>
-                    <Button color="green" onClick={() => {command(name, sku, price, size, quantity); setOpened(false);}}>Confirm</Button>
+                    <Button onClick={() => {command(name, sku, price, size, quantity); setOpened(false);}}>Confirm</Button>
                 </Group>
             </Modal>
         </>

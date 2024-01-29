@@ -31,15 +31,19 @@ export const EditLocationModal = (
         opened,
         setOpened,
         command,
+        oldName,
+        oldDescription,
 
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
         command: (name : string, description : string)=>void;
+        oldName: string;
+        oldDescription: string;
     }) => {
 
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
+    const [name, setName] = useState(oldName);
+    const [description, setDescription] = useState(oldDescription);
     
     return (
         <>
@@ -53,6 +57,7 @@ export const EditLocationModal = (
                 <TextInput
                     required
                     label={"Name"}
+                    value={oldName}
                     placeholder="Left blank to use the current name"
                     onChange={(e) => setName(e.target.value)}
                 />
@@ -60,6 +65,7 @@ export const EditLocationModal = (
                 <TextInput
                     required
                     label={"Description"}
+                    value={oldDescription}
                     placeholder="Left blank to use the current description"
                     onChange={(e) =>
                         setDescription(e.target.value)}
@@ -536,7 +542,7 @@ export const LocationRow = (
                     </Group>
                 </td>
             </tr>
-            <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} command={editLocation}/>
+            <EditLocationModal opened={editLocationModal} setOpened={setEditLocationModal} command={editLocation} oldName={location.name} oldDescription={location.description} />
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Location beyond recovery."}/>
             <AddItemToLocationModal  opened={addItemToLocationModal} setOpened={setAddItemToLocationModal} command={addItemToLocation}/>
             <RemoveItemFromLocationModal locationID = {location.ID} opened={removeItemFromLocationModal} setOpened={setRemoveItemFromLocationModal} command={removeItemFromLocation}/>
