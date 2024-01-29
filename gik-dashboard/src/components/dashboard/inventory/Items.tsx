@@ -419,7 +419,7 @@ export const EditItemModal = (
                     label={"SKU"}
                     placeholder="Left blank to use the curent SKU"
                     onChange={(e) =>
-                        setQuantity(Number(e.target.value))
+                        setSku(e.target.value)
                     }
                 />
                 <TextInput

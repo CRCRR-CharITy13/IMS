@@ -2,7 +2,7 @@ package client
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 
 	"GIK_Web/utils"
 	"strconv"
@@ -32,7 +32,7 @@ type ListClientResponse struct {
 // Takes in a few queries of name, contact, address, phone, email and returns a list of clients who match these requests.
 func ListClient(c *gin.Context) {
 	// Create an empty array to store the list of clients.
-	listClient := []type_news.Client{}
+	listClient := []types.Client{}
 
 	// Creating the initial query for the model client
 	baseQuery := database.Database.Model(&listClient)
@@ -128,7 +128,7 @@ func UpdateClient(c *gin.Context) {
 		return
 	}
 
-	client := type_news.Client{}
+	client := types.Client{}
 	if err := database.Database.Where("id = ?", idInt).First(&client).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -172,7 +172,7 @@ func AddClient(c *gin.Context) {
 		return
 	}
 
-	newClient := type_news.Client{
+	newClient := types.Client{
 		OrgName:     json.Name,
 		Contact:     json.Contact,
 		PhoneNumber: json.Phone,
@@ -181,7 +181,7 @@ func AddClient(c *gin.Context) {
 		Balance:     float32(json.Balance),
 	}
 
-	if err := database.Database.Model(&type_news.Client{}).Create(&newClient).Error; err != nil {
+	if err := database.Database.Model(&types.Client{}).Create(&newClient).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
 			"message": "Unable to create client",
@@ -213,8 +213,8 @@ func DeleteClient(c *gin.Context) {
 		return
 	}
 
-	client := type_news.Client{}
-	if err := database.Database.Model(&type_news.Client{}).Where("id = ?", idInt).First(&client).Error; err != nil {
+	client := types.Client{}
+	if err := database.Database.Model(&types.Client{}).Where("id = ?", idInt).First(&client).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Cannot find client",
@@ -222,7 +222,7 @@ func DeleteClient(c *gin.Context) {
 		return
 	}
 
-	if err := database.Database.Model(&type_news.Client{}).Delete(&client).Error; err != nil {
+	if err := database.Database.Model(&types.Client{}).Delete(&client).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
 			"message": "Unable to delete client",

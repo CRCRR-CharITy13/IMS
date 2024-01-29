@@ -37,7 +37,7 @@ func GetClientInfo(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "Got username",
-		"data":    client.Name,
+		"data":    client.OrgName,
 	})
 
 }

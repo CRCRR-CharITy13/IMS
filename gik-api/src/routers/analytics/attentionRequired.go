@@ -1,7 +1,7 @@
 package analytics
 
 import (
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -19,8 +19,8 @@ type AttentionItem struct {
 
 func AttentionRequiredItem(c *gin.Context) {
 	// get all the items
-	items := []type_news.Item{}
-	baseQuery := database.Database.Model(&type_news.Item{})
+	items := []types.Item{}
+	baseQuery := database.Database.Model(&types.Item{})
 	baseQuery.Find(&items)
 
 	var attentionItems []AttentionItem
@@ -28,7 +28,7 @@ func AttentionRequiredItem(c *gin.Context) {
 	totalAttention := 0
 	idx := 0
 	for _, item := range items {
-		var tmpItem type_news.Item
+		var tmpItem types.Item
 		database.Database.Preload("Warehouses").Where("item_id=?", item.ID).Find(&tmpItem.Warehouses)
 		storedStock := 0
 		for _, warehouse := range tmpItem.Warehouses {
@@ -71,8 +71,8 @@ type AttentionLocation struct {
 
 func AttentionRequiredLocation(c *gin.Context) {
 	// get all the locations
-	locations := []type_news.Location{}
-	baseQuery := database.Database.Model(&type_news.Location{})
+	locations := []types.Location{}
+	baseQuery := database.Database.Model(&types.Location{})
 	baseQuery.Find(&locations)
 
 	var attentionLocations []AttentionLocation
@@ -80,7 +80,7 @@ func AttentionRequiredLocation(c *gin.Context) {
 	totalAttention := 0
 	idx := 0
 	for _, location := range locations {
-		// var tmpItem type_news.Item
+		// var tmpItem types.Item
 		database.Database.Preload("Warehouses").Where("location_id=?", location.ID).Find(&location.Warehouses)
 		if len(location.Warehouses) == 0 {
 			idx++

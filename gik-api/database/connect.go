@@ -2,7 +2,6 @@ package database
 
 import (
 	"GIK_Web/env"
-	"GIK_Web/type_news"
 	"GIK_Web/types"
 	"fmt"
 
@@ -53,32 +52,18 @@ func migrations() {
 	if env.SkipMigrations {
 		return
 	}
-	if !env.IsLocalDB {
-		Database.AutoMigrate(&types.Item{})
-		Database.AutoMigrate(&types.Tag{})
-		Database.AutoMigrate(&types.User{})
-		Database.AutoMigrate(&types.Client{})
-		Database.AutoMigrate(&types.Transaction{})
-		Database.AutoMigrate(&types.TransactionItem{})
-		Database.AutoMigrate(&types.Session{})
-		Database.AutoMigrate(&types.SignupCode{})
-		Database.AutoMigrate(&types.AdvancedLog{})
-		Database.AutoMigrate(&types.SimpleLog{})
-		Database.AutoMigrate(&types.Location{})
-	} else {
-		Database.AutoMigrate(&type_news.Item{})
-		Database.AutoMigrate(&type_news.Location{})
-		Database.AutoMigrate(&type_news.Warehouse{})
-		Database.AutoMigrate(&type_news.User{})
-		Database.AutoMigrate(&type_news.Donor{})
-		Database.AutoMigrate(&type_news.Client{})
-		Database.AutoMigrate(&type_news.Donation{})
-		Database.AutoMigrate(&type_news.DonationItem{})
-		Database.AutoMigrate(&type_news.Order{})
-		Database.AutoMigrate(&type_news.OrderItem{})
-		Database.AutoMigrate(&type_news.Session{})
-		Database.AutoMigrate(&type_news.SignupCode{})
-		Database.AutoMigrate(&type_news.AdvancedLog{})
-		Database.AutoMigrate(&type_news.SimpleLog{})
-	}
+	Database.AutoMigrate(&types.Item{})
+	Database.AutoMigrate(&types.Location{})
+	Database.AutoMigrate(&types.Warehouse{})
+	Database.AutoMigrate(&types.User{})
+	Database.AutoMigrate(&types.Donor{})
+	Database.AutoMigrate(&types.Client{})
+	Database.AutoMigrate(&types.Donation{})
+	Database.AutoMigrate(&types.DonationItem{})
+	Database.AutoMigrate(&types.Order{})
+	Database.AutoMigrate(&types.OrderItem{})
+	Database.AutoMigrate(&types.Session{})
+	Database.AutoMigrate(&types.SignupCode{})
+	Database.AutoMigrate(&types.AdvancedLog{})
+	Database.AutoMigrate(&types.SimpleLog{})
 }

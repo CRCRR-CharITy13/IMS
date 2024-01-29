@@ -1,13 +1,15 @@
 package types
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Client struct {
 	gorm.Model
-	Name    string  `json:"name"`
-	Contact string  `json:"contact"`
-	Phone   string  `json:"phone"`
-	Email   string  `json:"email"`
-	Address string  `json:"address"`
-	Balance float32 `json:"balance"`
+	OrgName     string
+	Address     string
+	PhoneNumber string
+	Email       string
+	Contact     string
+	Balance     float32
 }

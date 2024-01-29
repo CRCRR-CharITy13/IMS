@@ -2,7 +2,7 @@ package location
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 	"GIK_Web/utils"
 	"fmt"
 	"math"
@@ -33,7 +33,7 @@ func AddLocation(c *gin.Context) {
 		return
 	}
 
-	newLocation := type_news.Location{
+	newLocation := types.Location{
 		Name:        json.Name,
 		Description: json.Description,
 	}
@@ -86,7 +86,7 @@ func ListLocation(c *gin.Context) {
 	limit := 10 // Number of entries shown per page
 	offset := (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&type_news.Location{})
+	baseQuery := database.Database.Model(&types.Location{})
 
 	if name != "" {
 		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
@@ -101,7 +101,7 @@ func ListLocation(c *gin.Context) {
 
 	baseQuery = baseQuery.Limit(limit).Offset(offset)
 
-	locations := []type_news.Location{}
+	locations := []types.Location{}
 
 	err = baseQuery.Find(&locations).Error
 	if err != nil {
@@ -118,7 +118,7 @@ func ListLocation(c *gin.Context) {
 
 	for i, location := range locations {
 		itemCount := 0
-		var tmpLocation type_news.Location
+		var tmpLocation types.Location
 		database.Database.Preload("Warehouses").Where("location_id = ?", location.ID).Find(&tmpLocation.Warehouses)
 		for _, warehouse := range tmpLocation.Warehouses {
 			itemCount += warehouse.Stock
@@ -157,9 +157,9 @@ func DeleteLocation(c *gin.Context) {
 		return
 	}
 
-	location := type_news.Location{}
+	location := types.Location{}
 
-	if err := database.Database.Model(&type_news.Location{}).Where("id = ?", idInt).First(&location).Error; err != nil {
+	if err := database.Database.Model(&types.Location{}).Where("id = ?", idInt).First(&location).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Cannot find location",
@@ -208,10 +208,10 @@ func AddItemToLocation(c *gin.Context) {
 		return
 	}
 	fmt.Println(json)
-	var item type_news.Item
+	var item types.Item
 
 	database.Database.First(&item, "sku=?", json.ItemSKU)
-	var warehouse type_news.Warehouse
+	var warehouse types.Warehouse
 
 	// look-up the record with foreign key pair = (item_id, location_id)
 	result := database.Database.Where("item_id = ? AND location_id = ?", item.ID, json.LocationID).First(&warehouse)
@@ -219,7 +219,7 @@ func AddItemToLocation(c *gin.Context) {
 	if result.Error == gorm.ErrRecordNotFound {
 		// create a new record and add to the database
 		fmt.Print("Not found, create new and add")
-		newWarehouse := type_news.Warehouse{
+		newWarehouse := types.Warehouse{
 			ItemID:     item.ID,
 			LocationID: json.LocationID,
 			Stock:      json.Stock,
@@ -267,12 +267,12 @@ func ListItemInLocation(c *gin.Context) {
 		})
 		return
 	}
-	var location type_news.Location
-	database.Database.Model(&type_news.Location{}).Preload("Warehouses").Where("id = ?", idInt).Find(&location)
+	var location types.Location
+	database.Database.Model(&types.Location{}).Preload("Warehouses").Where("id = ?", idInt).Find(&location)
 	// fmt.Print(location)
 	itemsInLocation := make([]ListItemInLocationResponse, len(location.Warehouses))
 	for i, warehouse := range location.Warehouses {
-		var item type_news.Item
+		var item types.Item
 		database.Database.First(&item, warehouse.ItemID)
 		itemsInLocation[i] = ListItemInLocationResponse{
 			ItemSKU:  item.SKU,
@@ -307,10 +307,10 @@ func RemoveItemFromLocation(c *gin.Context) {
 		return
 	}
 	fmt.Println(json)
-	var item type_news.Item
+	var item types.Item
 
 	database.Database.First(&item, "sku=?", json.ItemSKU)
-	var warehouse type_news.Warehouse
+	var warehouse types.Warehouse
 
 	// look-up the record with foreign key pair = (item_id, location_id)
 	result := database.Database.Where("item_id = ? AND location_id = ?", item.ID, json.LocationID).First(&warehouse)
@@ -384,8 +384,8 @@ func UpdateLocation(c *gin.Context) {
 		return
 	}
 
-	location := type_news.Location{}
-	if err := database.Database.Model(&type_news.Location{}).Where("ID = ?", jsonIdInt).First(&location).Error; err != nil {
+	location := types.Location{}
+	if err := database.Database.Model(&types.Location{}).Where("ID = ?", jsonIdInt).First(&location).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Cannot find location",

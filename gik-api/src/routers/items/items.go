@@ -2,13 +2,12 @@ package items
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/types"
 	"GIK_Web/utils"
 	"fmt"
 	"math"
 	"strconv"
 
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +33,7 @@ func AddItem(c *gin.Context) {
 		return
 	}
 
-	item := type_news.Item{}
+	item := types.Item{}
 
 	if json.Name == "" {
 		c.JSON(400, gin.H{
@@ -133,7 +132,7 @@ func ListItem(c *gin.Context) {
 	limit := 10 // Number of entries shown per page
 	offset := (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&type_news.Item{})
+	baseQuery := database.Database.Model(&types.Item{})
 
 	if name != "" {
 		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
@@ -147,7 +146,7 @@ func ListItem(c *gin.Context) {
 
 	baseQuery = baseQuery.Limit(limit).Offset(offset)
 
-	items := []type_news.Item{}
+	items := []types.Item{}
 
 	baseQuery.Find(&items)
 
@@ -205,8 +204,8 @@ func UpdateItem(c *gin.Context) {
 		return
 	}
 
-	item := type_news.Item{}
-	if err := database.Database.Model(&type_news.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
+	item := types.Item{}
+	if err := database.Database.Model(&types.Item{}).Where("ID = ?", jsonIdInt).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid item ID",
@@ -287,8 +286,8 @@ func DeleteItem(c *gin.Context) {
 		return
 	}
 
-	item := type_news.Item{}
-	if err := database.Database.Model(&type_news.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
+	item := types.Item{}
+	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "No such item found",
@@ -337,12 +336,12 @@ func ListLocationForItem(c *gin.Context) {
 		return
 	}
 
-	var item type_news.Item
+	var item types.Item
 	database.Database.Preload("Warehouses").Where("item_id = ?", idInt).Find(&item.Warehouses)
 	// fmt.Print(location)
 	locationsForItem := make([]ListLocationForItemResponse, len(item.Warehouses))
 	for i, warehouse := range item.Warehouses {
-		var location type_news.Location
+		var location types.Location
 		database.Database.First(&location, warehouse.LocationID)
 		locationsForItem[i] = ListLocationForItemResponse{
 			LocationName: location.Name,
@@ -360,8 +359,8 @@ func ListLocationForItem(c *gin.Context) {
 func GetUnstoredQuantity(c *gin.Context) {
 	sku := c.Query("sku")
 
-	var item type_news.Item
-	baseQuery := database.Database.Model(&type_news.Item{})
+	var item types.Item
+	baseQuery := database.Database.Model(&types.Item{})
 	baseQuery.Find(&item, "sku=?", sku)
 	database.Database.Preload("Warehouses").Where("item_id = ?", item.ID).Find(&item.Warehouses)
 	// fmt.Print(location)
@@ -477,15 +476,15 @@ func AddSize(c *gin.Context) {
 		return
 	}
 
-	item := type_news.Item{}
+	item := types.Item{}
 
 	item.SKU = sku
 	item.Size = size
 	item.StockTotal = 0
 
 	// Fetch from old version
-	itemOld := type_news.Item{}
-	if err := database.Database.Model(&type_news.Item{}).Where("id = ?", ID).First(&itemOld).Error; err != nil {
+	itemOld := types.Item{}
+	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&itemOld).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "No such item found",

@@ -39,17 +39,17 @@ func ImportClients(c *gin.Context) {
 
 		var count int64
 
-		database.Database.Model(&types.Client{}).Where(types.Client{Name: client.Name}).Count(&count)
+		database.Database.Model(&types.Client{}).Where(types.Client{OrgName: client.Name}).Count(&count)
 
 		if count == 0 {
 
 			newClient := types.Client{
-				Name:    client.Name,
-				Contact: client.Contact,
-				Phone:   client.Phone,
-				Email:   client.Email,
-				Address: client.Address,
-				Balance: float32(client.Balance),
+				OrgName:     client.Name,
+				Contact:     client.Contact,
+				PhoneNumber: client.Phone,
+				Email:       client.Email,
+				Address:     client.Address,
+				Balance:     float32(client.Balance),
 			}
 
 			err := database.Database.Model(&types.Client{}).Create(&newClient).Error

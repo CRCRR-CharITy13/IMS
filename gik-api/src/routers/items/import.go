@@ -64,10 +64,9 @@ func ImportItems(c *gin.Context) {
 
 			data.Name = item.Name
 			data.SKU = item.SKU
-			data.Category = item.Category
 			data.Size = item.Size
 			data.Price = item.Price
-			data.Quantity = item.Quantity
+			data.StockTotal = item.Quantity
 
 			err := database.Database.Model(&types.Item{}).Create(&data).Error
 			if err != nil {

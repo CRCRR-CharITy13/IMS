@@ -29,7 +29,7 @@ func GetTrendingItems(c *gin.Context) {
 	for i := 1; i < samplePoints+1; i++ {
 		var week []transaction
 
-		database.Database.Model(&types.Transaction{}).Where("timestamp BETWEEN ? AND ?", times[i], times[i-1]).Where("type = ?", false).Find(&week)
+		database.Database.Model(&types.Order{}).Where("timestamp BETWEEN ? AND ?", times[i], times[i-1]).Where("type = ?", false).Find(&week)
 		var quantity int
 
 		for _, k := range week {

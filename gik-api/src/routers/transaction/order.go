@@ -2,7 +2,7 @@ package transaction
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 	"fmt"
 	"math"
 	"strconv"
@@ -21,7 +21,7 @@ type ListOrderResponse struct {
 }
 
 func ListOrders(c *gin.Context) {
-	orders := []type_news.Order{}
+	orders := []types.Order{}
 
 	page := c.Query("page")
 
@@ -51,7 +51,7 @@ func ListOrders(c *gin.Context) {
 	// pagination
 	offset = (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&type_news.Order{})
+	baseQuery := database.Database.Model(&types.Order{})
 	baseQuery = baseQuery.Order("created_at desc")
 
 	if len(date) == 2 && date[0] != "" && date[1] != "" {
@@ -155,26 +155,26 @@ func AddOrder(c *gin.Context) {
 	fmt.Println("Start to create order")
 	fmt.Println(json.Items)
 
-	order := type_news.Order{
+	order := types.Order{
 		ClientID: uint(json.ClientID),
 		UserID:   c.MustGet("userId").(uint),
 	}
 
 	// Look-up Client balance
-	client := type_news.Client{}
+	client := types.Client{}
 	database.Database.First(&client, uint(json.ClientID))
 	totalCost := float32(0)
 	isSuccess := true
 	msgResponse := "Order created"
 	lstAddOrderResponse := []AddOrderResponse{}
-	lstOrderItem := []type_news.OrderItem{}
+	lstOrderItem := []types.OrderItem{}
 
 	for _, inputOrderItem := range json.Items {
 		// SKUName: SKU : Name
 		// The length of the SKU is 8 character, thus, extract it as follows:
 		orderItemSKU := inputOrderItem.SKUName[0:9]
-		item := type_news.Item{}
-		baseQuery := database.Database.Model(&type_news.Item{}).Where("sku = ?", orderItemSKU)
+		item := types.Item{}
+		baseQuery := database.Database.Model(&types.Item{}).Where("sku = ?", orderItemSKU)
 		baseQuery.First(&item)
 
 		if item.StockTotal < inputOrderItem.Quantity {
@@ -196,7 +196,7 @@ func AddOrder(c *gin.Context) {
 
 		// create order item
 
-		orderItem := type_news.OrderItem{
+		orderItem := types.OrderItem{
 			OrderID: 0, //dummy value, will be replace after creating the order
 			ItemID:  uint(item.ID),
 			Count:   inputOrderItem.Quantity,
@@ -242,7 +242,7 @@ func AddOrder(c *gin.Context) {
 				} else {
 					removeQtt = remainQtt
 				}
-				var location type_news.Location
+				var location types.Location
 				database.Database.First(&location, warehouse.LocationID)
 				idx++
 				tmpAddOrderResponse := AddOrderResponse{
@@ -314,7 +314,7 @@ func DeleteOrder(c *gin.Context) {
 	}
 
 	// get order
-	order := type_news.Order{}
+	order := types.Order{}
 	database.Database.Where("id = ?", idInt).First(&order)
 
 	if order.ID == 0 {
@@ -326,7 +326,7 @@ func DeleteOrder(c *gin.Context) {
 	}
 
 	// delete all order items
-	orderItems := []type_news.OrderItem{}
+	orderItems := []types.OrderItem{}
 	database.Database.Where("order_id = ?", order.ID).Delete(&orderItems)
 
 	// delete transaction
@@ -364,7 +364,7 @@ func GetOrderItems(c *gin.Context) {
 	}
 
 	// Get the order
-	order := type_news.Order{}
+	order := types.Order{}
 	err = database.Database.Where("id = ?", idInt).First(&order).Error
 
 	if err != nil {
@@ -376,7 +376,7 @@ func GetOrderItems(c *gin.Context) {
 	}
 
 	// Get the order items
-	orderItems := []type_news.OrderItem{}
+	orderItems := []types.OrderItem{}
 	database.Database.Where("order_id = ?", order.ID).Find(&orderItems)
 
 	orderItemsPost := []orderItemTotalInfo{}

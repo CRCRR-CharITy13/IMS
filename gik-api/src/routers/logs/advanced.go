@@ -2,7 +2,7 @@ package logs
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 	"fmt"
 	"math"
 	"strconv"
@@ -12,7 +12,7 @@ import (
 )
 
 func GetAdvancedLogs(c *gin.Context) {
-	logs := []type_news.AdvancedLog{}
+	logs := []types.AdvancedLog{}
 
 	actionFilter := c.Query("action")
 	dateFilter := c.Query("date")
@@ -33,7 +33,7 @@ func GetAdvancedLogs(c *gin.Context) {
 		_, err := strconv.Atoi(userFilter)
 		if err != nil {
 			// not an int, try to find user id by name
-			user := type_news.User{}
+			user := types.User{}
 			err = database.Database.Where("username = ?", userFilter).Find(&user).Error
 			if err != nil {
 				c.JSON(400, gin.H{
@@ -66,7 +66,7 @@ func GetAdvancedLogs(c *gin.Context) {
 	limit := 10
 	offset := (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&type_news.AdvancedLog{})
+	baseQuery := database.Database.Model(&types.AdvancedLog{})
 
 	if actionFilter != "" {
 		baseQuery = baseQuery.Where("path like ?", fmt.Sprintf("%%%s%%", actionFilter))

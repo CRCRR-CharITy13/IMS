@@ -28,7 +28,7 @@ func GraphTotalTransactions(c *gin.Context) {
 
 		var week []transaction
 
-		database.Database.Model(&types.Transaction{}).Where("Timestamp BETWEEN ? AND ?", times[i], times[i-1]).Where("type = ?", false).Scan(&week)
+		database.Database.Model(&types.Order{}).Where("Timestamp BETWEEN ? AND ?", times[i], times[i-1]).Where("type = ?", false).Scan(&week)
 		var quantity int
 
 		for _, k := range week {
@@ -44,7 +44,7 @@ func GraphTotalTransactions(c *gin.Context) {
 
 		var week []transaction
 
-		database.Database.Model(&types.Transaction{}).Where("Timestamp BETWEEN ? AND ?", times[i], times[i-1]).Where("type = ?", true).Scan(&week)
+		database.Database.Model(&types.Order{}).Where("Timestamp BETWEEN ? AND ?", times[i], times[i-1]).Where("type = ?", true).Scan(&week)
 		var quantity int
 
 		for _, k := range week {

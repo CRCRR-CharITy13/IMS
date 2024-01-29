@@ -1,10 +1,12 @@
 package types
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Location struct {
 	gorm.Model
-	Name   string `gorm:"name" json:"name"`
-	Letter string `gorm:"type:char(1)" json:"letter"`
-	SKU    string `gorm:"sku" json:"sku"`
+	Name        string
+	Description string
+	Warehouses  []Warehouse //`gorm:"many2many:warehouses;"`
 }

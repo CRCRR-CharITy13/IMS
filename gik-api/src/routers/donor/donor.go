@@ -2,7 +2,7 @@ package donor
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 
 	"github.com/gin-gonic/gin"
 
@@ -21,7 +21,7 @@ type ListDonorResponse struct {
 // Takes in a few queries of name, contact, address, phone, email and returns a list of donors who match these requests.
 func ListDonor(c *gin.Context) {
 	// Create an empty array to store the list of donors.
-	listDonor := []type_news.Donor{}
+	listDonor := []types.Donor{}
 
 	// Creating the initial query for the model donor
 	baseQuery := database.Database.Model(&listDonor)
@@ -95,14 +95,14 @@ func AddDonor(c *gin.Context) {
 		return
 	}
 
-	newDonor := type_news.Donor{
+	newDonor := types.Donor{
 		Name:        json.Name,
 		PhoneNumber: json.Phone,
 		Email:       json.Email,
 		Address:     json.Address,
 	}
 
-	if err := database.Database.Model(&type_news.Donor{}).Create(&newDonor).Error; err != nil {
+	if err := database.Database.Model(&types.Donor{}).Create(&newDonor).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
 			"message": "Unable to create donor",
@@ -153,7 +153,7 @@ func UpdateDonor(c *gin.Context) {
 		return
 	}
 
-	donor := type_news.Donor{}
+	donor := types.Donor{}
 	if err := database.Database.Where("id = ?", idInt).First(&donor).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -198,8 +198,8 @@ func DeleteDonor(c *gin.Context) {
 		return
 	}
 
-	donor := type_news.Donor{}
-	if err := database.Database.Model(&type_news.Donor{}).Where("id = ?", idInt).First(&donor).Error; err != nil {
+	donor := types.Donor{}
+	if err := database.Database.Model(&types.Donor{}).Where("id = ?", idInt).First(&donor).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Cannot find donor",
@@ -207,7 +207,7 @@ func DeleteDonor(c *gin.Context) {
 		return
 	}
 
-	if err := database.Database.Model(&type_news.Donor{}).Delete(&donor).Error; err != nil {
+	if err := database.Database.Model(&types.Donor{}).Delete(&donor).Error; err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
 			"message": "Unable to delete donor",

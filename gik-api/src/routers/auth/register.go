@@ -2,7 +2,7 @@ package auth
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 	"time"
 
 	"github.com/alexedwards/argon2id"
@@ -27,8 +27,8 @@ func Register(c *gin.Context) {
 	}
 
 	// check signup code
-	signupCode := type_news.SignupCode{}
-	if err := database.Database.Where(type_news.SignupCode{
+	signupCode := types.SignupCode{}
+	if err := database.Database.Where(types.SignupCode{
 		Code:    json.SignupCode,
 		Expired: false,
 	}).First(&signupCode).Error; err != nil {
@@ -53,7 +53,7 @@ func Register(c *gin.Context) {
 	}
 
 	// create new user
-	newUser := type_news.User{
+	newUser := types.User{
 		Username:     signupCode.DesignatedUsername,
 		Password:     hash,
 		RegisteredAt: time.Now().Unix(),

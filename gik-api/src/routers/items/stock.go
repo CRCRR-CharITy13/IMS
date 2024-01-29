@@ -35,7 +35,7 @@ func JumpStock(c *gin.Context) {
 		return
 	}
 
-	err = database.Database.Model(&types.Item{}).Where("ID = ?", productId).Update("quantity", item.Quantity+(differenceInt)).Error
+	err = database.Database.Model(&types.Item{}).Where("ID = ?", productId).Update("quantity", item.StockTotal+(differenceInt)).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
@@ -47,10 +47,10 @@ func JumpStock(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "Stock updated",
-		"data":    float32(item.Quantity) + float32(differenceInt),
+		"data":    float32(item.StockTotal) + float32(differenceInt),
 	})
 
-	utils.CreateSimpleLog(c, fmt.Sprintf("Jumped stock for product ID: %s by %d to %d", productId, differenceInt, item.Quantity+(differenceInt)))
+	utils.CreateSimpleLog(c, fmt.Sprintf("Jumped stock for product ID: %s by %d to %d", productId, differenceInt, item.StockTotal+(differenceInt)))
 }
 
 func AddStock(c *gin.Context) {
@@ -74,7 +74,7 @@ func AddStock(c *gin.Context) {
 		return
 	}
 
-	err = database.Database.Model(&types.Item{}).Where("ID = ?", productId).Update("quantity", item.Quantity+1).Error
+	err = database.Database.Model(&types.Item{}).Where("ID = ?", productId).Update("quantity", item.StockTotal+1).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
@@ -114,7 +114,7 @@ func RemoveStock(c *gin.Context) {
 	}
 
 	// update
-	err = database.Database.Model(&types.Item{}).Where("ID = ?", productId).Update("quantity", item.Quantity-1).Error
+	err = database.Database.Model(&types.Item{}).Where("ID = ?", productId).Update("quantity", item.StockTotal-1).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,

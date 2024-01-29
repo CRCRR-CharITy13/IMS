@@ -2,7 +2,7 @@ package transaction
 
 import (
 	"GIK_Web/database"
-	"GIK_Web/type_news"
+	"GIK_Web/types"
 	"fmt"
 	"math"
 	"strconv"
@@ -21,7 +21,7 @@ type ListDonationResponse struct {
 }
 
 func ListDonations(c *gin.Context) {
-	donations := []type_news.Donation{}
+	donations := []types.Donation{}
 
 	page := c.Query("page")
 
@@ -47,7 +47,7 @@ func ListDonations(c *gin.Context) {
 	// pagination
 	offset = (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&type_news.Donation{})
+	baseQuery := database.Database.Model(&types.Donation{})
 	baseQuery = baseQuery.Order("created_at desc")
 
 	if len(date) == 2 && date[0] != "" && date[1] != "" {
@@ -144,30 +144,30 @@ func AddDonation(c *gin.Context) {
 	fmt.Println("Start to create donation")
 	fmt.Println(json.Items)
 
-	donation := type_news.Donation{
+	donation := types.Donation{
 		DonorID: uint(json.DonorID),
 		UserID:  c.MustGet("userId").(uint),
 	}
 
 	// Look-up Donor balance
-	donor := type_news.Donor{}
+	donor := types.Donor{}
 	database.Database.First(&donor, uint(json.DonorID))
 	totalValue := float32(0)
 	isSuccess := true
 	msgResponse := "Donation created"
-	lstDonationItem := []type_news.DonationItem{}
+	lstDonationItem := []types.DonationItem{}
 
 	for _, inputDonationItem := range json.Items {
 		// SKUName: SKU : Name
 		// The length of the SKU is 8 character, thus, extract it as follows:
 		donationItemSKU := inputDonationItem.SKUName[0:9]
-		item := type_news.Item{}
-		baseQuery := database.Database.Model(&type_news.Item{}).Where("sku = ?", donationItemSKU)
+		item := types.Item{}
+		baseQuery := database.Database.Model(&types.Item{}).Where("sku = ?", donationItemSKU)
 		baseQuery.First(&item)
 
 		totalValue += float32(inputDonationItem.Quantity) * item.Price
 
-		donationItem := type_news.DonationItem{
+		donationItem := types.DonationItem{
 			DonationID: 0, //dummy value, will be replace after creating the donation
 			ItemID:     uint(item.ID),
 			Count:      uint(inputDonationItem.Quantity),
@@ -231,7 +231,7 @@ func DeleteDonation(c *gin.Context) {
 	// }
 
 	// // get donation
-	// donation := type_news.Donation{}
+	// donation := types.Donation{}
 	// database.Database.Where("id = ?", idInt).First(&donation)
 
 	// if donation.ID == 0 {
@@ -243,7 +243,7 @@ func DeleteDonation(c *gin.Context) {
 	// }
 
 	// // delete all donation items
-	// donationItems := []type_news.DonationItem{}
+	// donationItems := []types.DonationItem{}
 	// database.Database.Where("donation_id = ?", donation.ID).Delete(&donationItems)
 
 	// // delete transaction
@@ -281,7 +281,7 @@ func GetDonationItems(c *gin.Context) {
 	}
 
 	// Get the donation
-	donation := type_news.Donation{}
+	donation := types.Donation{}
 	err = database.Database.Where("id = ?", idInt).First(&donation).Error
 
 	if err != nil {
@@ -293,7 +293,7 @@ func GetDonationItems(c *gin.Context) {
 	}
 
 	// Get the donation items
-	donationItems := []type_news.DonationItem{}
+	donationItems := []types.DonationItem{}
 	database.Database.Where("donation_id = ?", donation.ID).Find(&donationItems)
 
 	donationItemsPost := []donationItemTotalInfo{}

@@ -24,7 +24,6 @@ import (
 	"GIK_Web/src/routers/qr"
 	"GIK_Web/src/routers/settings"
 	"GIK_Web/src/routers/status"
-	"GIK_Web/src/routers/tags"
 	"GIK_Web/src/routers/transaction"
 
 	"github.com/gin-contrib/sessions"
@@ -70,7 +69,6 @@ func InitRouter() *gin.Engine {
 	{
 		authApi.POST("/login", auth.Login)
 		authApi.POST("/prelogin", auth.CheckPasswordForLogin)
-		authApi.GET("/tfa", auth.CheckTfaStatusBeforeLogin)
 		authApi.POST("/register", auth.Register)
 		authApi.GET("/first_admin", auth.CreateFirstAdmin)
 		authApi.GET("/scode", auth.GetSignupCodeInfo)
@@ -94,18 +92,6 @@ func InitRouter() *gin.Engine {
 		itemsApi.DELETE("/delete", items.DeleteItem)
 		itemsApi.GET("/list-location-for-item", items.ListLocationForItem)
 		itemsApi.GET("/get-unstored-quantity", items.GetUnstoredQuantity)
-	}
-
-	// Set up tags router
-	tagsApi := r.Group("/tags")
-	{
-		tagsApi.Use(middleware.AuthMiddleware())
-		tagsApi.Use(middleware.AdvancedLoggingMiddleware())
-		tagsApi.GET("/list", tags.ListTags)
-		tagsApi.PUT("/add", tags.AddTags)
-		tagsApi.PATCH("/update", tags.UpdateTags)
-		tagsApi.DELETE("/delete", tags.DeleteTags)
-
 	}
 
 	// Set up client router
@@ -149,21 +135,6 @@ func InitRouter() *gin.Engine {
 		locationsApi.GET("/list-item-in-location", location.ListItemInLocation)
 	}
 
-	// Set up transactions router
-	transactionApi := r.Group("/transaction")
-	{
-		transactionApi.Use(middleware.AuthMiddleware())
-		transactionApi.Use(middleware.AdvancedLoggingMiddleware())
-		transactionApi.GET("/list", transaction.ListTransactions)
-		// transactionApi.GET("/listItem", transaction.ListTransactionItem)
-		// transactionApi.PATCH("/updateItem", transaction.UpdateTransactionItem)
-		transactionApi.PUT("/add", transaction.AddTransaction)
-		// transactionApi.PUT("/addItem", transaction.AddTransactionItem)
-		transactionApi.DELETE("/delete", transaction.DeleteTransaction)
-		// transactionApi.DELETE("/deleteItem", transaction.DeleteTransactionItem)
-		transactionApi.GET("/items", transaction.GetTransactionItems)
-	}
-
 	// Set up logs
 	logsApi := r.Group("/logs")
 	{
@@ -204,12 +175,6 @@ func InitRouter() *gin.Engine {
 		settingsApi.Use(middleware.AuthMiddleware())
 		settingsApi.Use(middleware.AdvancedLoggingMiddleware())
 		settingsApi.PATCH("/password", settings.ChangePassword)
-		tfaApi := settingsApi.Group("/tfa")
-		{
-			tfaApi.GET("/status", settings.GetTfaStatus)
-			tfaApi.GET("/generate", settings.GenerateTwoFactorSecret)
-			tfaApi.PATCH("/setup", settings.ValidateAndSetupTwoFactor)
-		}
 	}
 
 	// Set up QR code

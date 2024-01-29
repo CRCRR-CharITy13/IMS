@@ -1,4 +1,4 @@
-package type_news
+package types
 
 import (
 	"gorm.io/gorm"

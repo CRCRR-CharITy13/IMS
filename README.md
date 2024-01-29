@@ -22,8 +22,7 @@ The goal of this application is to replace the currently used Google Spreadsheet
     │  ├─ src/                           source code
     │  │  ├─ middleware                      middleware code
     │  │  ├─ routers                         router + endpoints
-    │  ├─ type_news                      data structure
-    │  ├─ types                          data structures (old)
+    │  ├─ types                          data structure
     │  ├─ utils                          collection of functions
     ├─ gik-dashboard/                 the front-end
     │  ├─ public                         images and files for the front-end
