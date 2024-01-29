@@ -456,7 +456,6 @@ export const EditItemModal = (
     );
 }
 
-
 const CreateItemModal = ({
     opened,
     setOpened,
@@ -590,7 +589,6 @@ const CreateItemModal = ({
         </>
     );
 };
-
 
 
 export const ItemsManager = () => {

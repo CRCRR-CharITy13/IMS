@@ -268,7 +268,7 @@ func ListItemInLocation(c *gin.Context) {
 		return
 	}
 	var location type_news.Location
-	database.Database.Preload("Warehouses").Where("location_id = ?", idInt).Find(&location.Warehouses)
+	database.Database.Model(&type_news.Location{}).Preload("Warehouses").Where("id = ?", idInt).Find(&location)
 	// fmt.Print(location)
 	itemsInLocation := make([]ListItemInLocationResponse, len(location.Warehouses))
 	for i, warehouse := range location.Warehouses {
