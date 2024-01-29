@@ -323,7 +323,6 @@ const CreateOrderModal = ({
                     }}
                 >
                     
-                    <Space h="md" />
                     <Select
                         label="Client"
                         required
@@ -354,6 +353,7 @@ const CreateOrderModal = ({
                         value = {quantity}
                         onChange={setQuantity}
                         />
+                        <Space h="md" />
                         <Button
                             onClick={() => {
                                 

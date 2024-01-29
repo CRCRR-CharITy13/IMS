@@ -301,7 +301,6 @@ const CreateDonationModal = ({
                     }}
                 >
                     
-                    <Space h="md" />
                     <Select
                         label="Donor"
                         required
@@ -332,6 +331,7 @@ const CreateDonationModal = ({
                         value = {quantity}
                         onChange={setQuantity}
                         />
+                        <Space h="md" />
                         <Button
                             onClick={() => {
                                 
