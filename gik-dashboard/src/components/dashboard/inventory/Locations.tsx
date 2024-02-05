@@ -96,6 +96,8 @@ export const AddItemToLocationModal = (
     const [quantity, setQuantity] = useState<number | "">('');
     const [items, setItems] = useState<Item[]>([]);
 
+    const [lstItemNameSKU, setLstItemNameSKU] = useState<string[]>([]);
+
     const fetchItems = async () => {
 
         const response = await fetch(
@@ -123,16 +125,16 @@ export const AddItemToLocationModal = (
             console.log(data.data.data);
         }
     };
+
     useEffect(() => {
         fetchItems();
-    },[]);
 
-    const lstItemNameSKU : string[] = [];
-    for(let idx = 0; idx<items.length; idx++){
-        lstItemNameSKU.push(items[idx].sku + " : " + items[idx].name);
-    }
-    console.log("---- lstItemSKU ---------");
-    console.log(lstItemNameSKU);
+        setLstItemNameSKU([]);
+        for(let idx = 0; idx<items.length; idx++){
+            setLstItemNameSKU(lstItemNameSKU => [...lstItemNameSKU, items[idx].sku + " : " + items[idx].name]);
+        }
+    },[opened]);
+    
     return (
         <>
             <Modal
@@ -248,6 +250,8 @@ export const RemoveItemFromLocationModal = (
         </>
     );
 }
+
+
 export const LocationRow = (
     {
         location,

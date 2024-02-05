@@ -116,22 +116,6 @@ func ListItem(c *gin.Context) {
 	name := c.Query("name")
 	sku := c.Query("sku")
 
-	if page == "" {
-		page = "1"
-	}
-
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid page number",
-		})
-		return
-	}
-
-	limit := 10 // Number of entries shown per page
-	offset := (pageInt - 1) * limit
-
 	baseQuery := database.Database.Model(&types.Item{})
 
 	if name != "" {
@@ -144,7 +128,24 @@ func ListItem(c *gin.Context) {
 	var totalCount int64
 	baseQuery.Count(&totalCount)
 
-	baseQuery = baseQuery.Limit(limit).Offset(offset)
+	limit := 10 // Number of entries shown per page
+
+	pageInt := 0
+
+	if page != "" {
+		pageInt, err := strconv.Atoi(page)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Invalid page number",
+			})
+			return
+		}
+
+		offset := (pageInt - 1) * limit
+
+		baseQuery = baseQuery.Limit(limit).Offset(offset)
+	}
 
 	items := []types.Item{}
 
