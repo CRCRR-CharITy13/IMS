@@ -256,13 +256,11 @@ export const ShowLocations = (
         const [notStored, setNotStored] = useState<number>(0);
 
         useEffect(() => {
-            console.log("HELLO");
             (async function() {
                 const temp = await command();
                 setNotStored(temp[1] as number);
                 setLocations(temp[0] as unknown as Location_Item[]);
             })();
-            console.log(locations);
         }, []);
         
         return (
