@@ -7,6 +7,6 @@ export interface User {
 }
 
 export interface SimpleUser {
-    ID: number;
+    ID: string;
     username: string;
 }

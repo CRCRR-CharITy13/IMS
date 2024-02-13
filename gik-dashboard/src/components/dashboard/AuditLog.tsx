@@ -330,7 +330,7 @@ const AuditLog = () => {
         const dict = new Map();
 
         [...data.data[0], ...data.data[1]].map((username) => {
-            dict.set(Number(username.ID), username.username);
+            dict.set(username.ID, username.username);
         })
 
         setUsernames(dict);
