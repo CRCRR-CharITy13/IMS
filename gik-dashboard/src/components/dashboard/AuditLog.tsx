@@ -19,6 +19,7 @@ import { AdvancedLog } from "../../types/logs";
 
 import styles from "../../styles/AuditLog.module.scss";
 import { containerStyles } from "../../styles/container";
+import { SimpleUser } from "../../types/user";
 
 interface DisplayAdvanceLog {
     ID: number;
@@ -36,18 +37,21 @@ const AdvancedLogs = ({
     dateFilter,
     userFilter,
     setVisible,
+    usernames,
+    getUsernames,
 }: {
     actionFilter: string;
     dateFilter: [Date | null, Date | null] | undefined;
     setVisible: Dispatch<SetStateAction<boolean>>;
     userFilter: string;
+    usernames: Map<number, string>;
+    getUsernames: () => Promise<void>;
 }) => {
     const [data, setData] = useState<AdvancedLog[]>([]);
 
     const [currentPage, setCurrentPage] = useState<number>(1);
 
     const [totalPages, setTotalPages] = useState<number>(1);
-    const [username, setUsername] = useState<string>("");
 
 
     const getData = async () => {
@@ -87,37 +91,19 @@ const AdvancedLogs = ({
     };
 
     useEffect(() => {
+        getUsernames();
         getData();
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
+        getUsernames();
         getData();
     }, [actionFilter, dateFilter, userFilter]);
 
-    const getUsername = async (userId : number) => {
-        
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/info/username?id=${userId}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            data: string;
-        } = await response.json();
-
-        if (data.success) {
-            setUsername(data.data);
-        }
-    };
-
     const displayAdvanceLogs : DisplayAdvanceLog[] = [];
     for(let idx = 0; idx<data.length; idx++){
-        getUsername(data[idx].userId);
-        const strUserId = "User name: " + username; //.toString();
+        const strUserId = "User name: " + usernames.get(data[idx].userId); //.toString();
         const strIpAddress = "IpAddress: " + data[idx].ipAddress;
         const strUserAgent = "User Agent: " + data[idx].userAgent;
         const strMethod = "Method: " + data[idx].method;
@@ -141,8 +127,6 @@ const AdvancedLogs = ({
         }
         displayAdvanceLogs.push(newDisplayAdvanceLog);
     }
-
-    console.log(displayAdvanceLogs)
 
     const advancedLogItems = displayAdvanceLogs.map((log) => (
         <Accordion.Item key={log.ID} value={log.ID.toString()}>
@@ -184,36 +168,18 @@ const AdvancedLogs = ({
     );
 };
 
-const SimpleLogRow = ({ log }: { log: AdvancedLog }) => {
-    const [username, setUsername] = useState<string>("");
-
-    const getUsername = async () => {
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/info/username?id=${log.userId}`,
-            {
-                credentials: "include",
-            }
-        );
-
-        const data: {
-            success: boolean;
-            data: string;
-        } = await response.json();
-
-        if (data.success) {
-            setUsername(data.data);
-        }
-    };
-
-    useEffect(() => {
-        getUsername();
-    }, []);
-
+const SimpleLogRow = ({
+    log,
+    usernames,
+}: { 
+    log: AdvancedLog;
+    usernames: Map<number, string>;
+}) => {
     return (
         <>
             <tr>
                 <td>{log.ID}</td>
-                <td>{username}</td>
+                <td>{usernames.get(log.userId)}</td>
                 <td>{log.ipAddress}</td>
                 <td>{log.action}</td>
             </tr>
@@ -226,11 +192,15 @@ const SimpleLogs = ({
     dateFilter,
     userFilter,
     setVisible,
+    usernames,
+    getUsernames,
 }: {
     actionFilter: string;
     dateFilter: [Date | null, Date | null] | undefined;
     setVisible: Dispatch<SetStateAction<boolean>>;
     userFilter: string;
+    usernames: Map<number, string>;
+    getUsernames: () => Promise<void>;
 }) => {
     const [data, setData] = useState<AdvancedLog[]>([]);
 
@@ -269,19 +239,19 @@ const SimpleLogs = ({
         } = await response.json();
 
         if (data.success) {
-            console.log("Simple log, success")
             setData(data.data.data);
-            console.log(data)
             setTotalPages(data.data.totalPages);
         }
     };
 
     useEffect(() => {
+        getUsernames();
         getData();
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
+        getUsernames();
         getData();
     }, [actionFilter, dateFilter, userFilter]);
 
@@ -298,7 +268,7 @@ const SimpleLogs = ({
                 </thead>
                 <tbody>
                     {data.map((log) => (
-                        <SimpleLogRow key={log.ID} log={log} />
+                        <SimpleLogRow key={log.ID} log={log} usernames={usernames} />
                     ))}
                 </tbody>
             </Table>
@@ -319,7 +289,9 @@ const SimpleLogs = ({
 
 const AuditLog = () => {
     const [viewMode, setViewMode] = useState<"smp" | "adv">("smp");
+    const [visible, setVisible] = useState<boolean>(false);
 
+    // Initialize filtering
     const [actionFilter, setActionFilter] = useState<string>("");
     const [actionFilterEditing, setActionFilterEditing] = useState<string>("");
 
@@ -333,12 +305,35 @@ const AuditLog = () => {
     const [userFilter, setUserFilter] = useState<string>("");
     const [userFilterEditing, setUserFilterEditing] = useState<string>("");
 
-    const [visible, setVisible] = useState<boolean>(false);
-
     const doFilter = async () => { 
         setActionFilter(actionFilterEditing);
         setDateFilter(dateFilterEditing);
         setUserFilter(userFilterEditing);
+    };
+
+    // Get usernames
+    const [usernames, setUsernames] = useState<Map<number, string>>(new Map());
+
+    const getUsernames = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/admin/lists`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: [SimpleUser[], SimpleUser[]];
+        } = await response.json();
+
+        const dict = new Map();
+
+        [...data.data[0], ...data.data[1]].map((username) => {
+            dict.set(Number(username.ID), username.username);
+        })
+
+        setUsernames(dict);
     };
 
     return (
@@ -408,6 +403,8 @@ const AuditLog = () => {
                             dateFilter={dateFilter}
                             setVisible={setVisible}
                             userFilter={userFilter}
+                            usernames={usernames}
+                            getUsernames={getUsernames}
                         />
                     ) : (
                         <AdvancedLogs
@@ -415,6 +412,8 @@ const AuditLog = () => {
                             dateFilter={dateFilter}
                             setVisible={setVisible}
                             userFilter={userFilter}
+                            usernames={usernames}
+                            getUsernames={getUsernames}
                         />
                     )}
                 </Box>

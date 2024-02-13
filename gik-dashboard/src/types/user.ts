@@ -5,3 +5,8 @@ export interface User {
     admin: boolean;
     disabled: boolean;
 }
+
+export interface SimpleUser {
+    ID: number;
+    username: string;
+}
