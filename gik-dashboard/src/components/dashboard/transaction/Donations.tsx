@@ -318,6 +318,7 @@ const CreateDonationModal = ({
                     > */}
                         <Autocomplete
                             label="Items"
+
                             placeholder="Name or SKU (type any word to search)"
                             data={lstItemSKUName}
                             value={itemSKUName}
@@ -717,6 +718,7 @@ export const DonationManager = () => {
                     />
                     <Select
                         //label="Donor"
+                        clearable
                         placeholder="Donor"
                         data={suggestData}
                         onChange={(value) => {

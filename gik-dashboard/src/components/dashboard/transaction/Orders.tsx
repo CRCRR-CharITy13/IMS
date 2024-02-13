@@ -757,6 +757,7 @@ export const OrderManager = () => {
                     <Select
                         //label="Client"
                         placeholder="Client"
+                        clearable
                         data={suggestData}
                         onChange={(value) => {
                             setUserFilterEditing(Number(value));
