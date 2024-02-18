@@ -18,7 +18,7 @@ type addNewItemRequest struct {
 	Name       string  `json:"name" binding:"required"`
 	Size       string  `json:"size" binding:"required"`
 	Price      float32 `json:"price" binding:"required"`
-	StockTotal int     `json:"quantity" binding:"required"`
+	StockTotal int     `json:"quantity"`
 }
 
 func AddItem(c *gin.Context) {

@@ -812,7 +812,7 @@ export const ItemsManager = () => {
                 <Space h="md" />
                 <Group position="apart">
                     <Group spacing={0}>
-                        <ActionIcon
+                        {/* <ActionIcon
                             sx={{
                                 height: "2.5rem",
                                 width: "2.5rem",
@@ -829,7 +829,7 @@ export const ItemsManager = () => {
                             onClick={() => {setShowImportModal(true)}}
                         >
                             <TableImport size={"1.5rem"}/>
-                        </ActionIcon>
+                        </ActionIcon> */}
                     </Group>
                     <Button
                         onClick={fetchItems}
