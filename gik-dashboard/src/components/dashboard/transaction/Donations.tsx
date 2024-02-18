@@ -330,47 +330,54 @@ const CreateDonationModal = ({
                             
                         />
                         <Space h="md" />
-                        <NumberInput
-                            label= "Quantity"
-                            placeholder= "10"
-                            min = {0}
-                            value = {quantity}
-                            onChange={setQuantity}
-                        />
-                        <Space h="md" />
-                        <Button
-                            onClick={() => {
-                                
-                                const existingItem = donationItems.find(
-                                    (item) => item.SKUName === itemSKUName
-                                );
-
-                                if (existingItem) {
-                                    showNotification({
-                                        color: "red",
-                                        title: "Item already exists",
-                                        message:
-                                            "Please remove the item first.",
-                                    });
-
-                                    return;
-                                }
-
-                                if(quantity != "") {
-                                    setDonationItems([
-                                        {
-                                            SKUName: itemSKUName,
-                                            quantity,
-                                        },
-                                        ...donationItems,
-                                    ]);
-                                }
-                                setItemSKUName("");
-                                setQuantity(0);
+                        <Group 
+                            sx={{
+                                alignItems: "flex-end",
                             }}
                         >
-                            Add
-                        </Button>
+                            <NumberInput
+                                w="75%"
+                                label= "Quantity"
+                                placeholder= "10"
+                                min = {0}
+                                value = {quantity}
+                                onChange={setQuantity}
+                            />
+                            <Button
+                                w="20%"
+                                onClick={() => {
+                                    
+                                    const existingItem = donationItems.find(
+                                        (item) => item.SKUName === itemSKUName
+                                    );
+
+                                    if (existingItem) {
+                                        showNotification({
+                                            color: "red",
+                                            title: "Item already exists",
+                                            message:
+                                                "Please remove the item first.",
+                                        });
+
+                                        return;
+                                    }
+
+                                    if(quantity != "") {
+                                        setDonationItems([
+                                            {
+                                                SKUName: itemSKUName,
+                                                quantity,
+                                            },
+                                            ...donationItems,
+                                        ]);
+                                    }
+                                    setItemSKUName("");
+                                    setQuantity(0);
+                                }}
+                            >
+                                Add
+                            </Button>
+                        </Group>
                     {/* </Group> */}
                     <Space h="md" />
                     <Table>
