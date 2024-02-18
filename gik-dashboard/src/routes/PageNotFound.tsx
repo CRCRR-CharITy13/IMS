@@ -1,5 +1,4 @@
-import { Container, Title, Text, Button, Group, Space } from '@mantine/core';
-import {Error404} from "tabler-icons-react";
+import { Title, Text, Button, Group, Space } from '@mantine/core';
 
 const style = {marginTop: "18%",
                marginLeft: "25%",
