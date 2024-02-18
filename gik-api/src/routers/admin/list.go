@@ -32,8 +32,8 @@ func ListUsers(c *gin.Context) {
 }
 
 type formattedUser struct {
-	ID   string `json:"value"`
-	Name string `json:"label"`
+	ID   string `json:"ID"`
+	Name string `json:"username"`
 }
 
 func ListAdminsAndNonAdmins(c *gin.Context) {

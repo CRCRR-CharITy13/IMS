@@ -14,11 +14,11 @@ import {
     TextInput,
 } from "@mantine/core";
 
-import { TransferList, TransferListData } from "@mantine/core";
+import { TransferList, TransferListData, TransferListItem } from "@mantine/core";
 import { hideNotification, showNotification } from "@mantine/notifications";
 import { SyntheticEvent, useEffect, useState } from "react";
 import { SignupCode } from "../../types/signupCode";
-import { User } from "../../types/user";
+import { SimpleUser, User } from "../../types/user";
 
 import { containerStyles } from "../../styles/container";
 import {Trash} from "tabler-icons-react";
@@ -391,11 +391,21 @@ const AdminManager = () => {
 
         const data: {
             success: boolean;
-            data: TransferListData;
+            data: [SimpleUser[], SimpleUser[]];
         } = await response.json();
 
         if (data.success) {
-            setValues(data.data);
+            // Convert SimpleUser to "value, label"
+            const temp = [[], []] as TransferListData;
+            data.data[0].map((entry) => {
+                const val: TransferListItem = {value: entry.ID.toString(), label: entry.username};
+                temp[0].push(val);
+            })
+            data.data[1].map((entry) => {
+                const val: TransferListItem = {value: entry.ID.toString(), label: entry.username};
+                temp[1].push(val);
+            })
+            setValues(temp);
         }
     };
 
@@ -407,6 +417,17 @@ const AdminManager = () => {
             message: "Please wait while we process your changes.",
         });
 
+        // Convert values back to SimpleUser data
+        const temp = [[], []] as [SimpleUser[], SimpleUser[]];
+        values[0].map((entry) => {
+            const val: SimpleUser = {ID: entry.value, username: entry.label};
+            temp[0].push(val);
+        })
+        values[1].map((entry) => {
+            const val: SimpleUser = {ID: entry.value, username: entry.label};
+            temp[1].push(val);
+        })
+
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/admin/admins`,
             {
@@ -415,7 +436,7 @@ const AdminManager = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(values),
+                body: JSON.stringify(temp),
             }
         );
 
@@ -445,7 +466,9 @@ const AdminManager = () => {
                 <h3>Admin Management</h3>
                 <Space h="xl" />
                 {values.length > 0 ? (
+
                     <TransferList
+                        
                         value={values}
                         onChange={setValues}
                         searchPlaceholder="Search Users"
