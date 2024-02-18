@@ -16,7 +16,7 @@ import {
 import { DatePickerInput } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
+import { CirclePlus, Trash, ListDetails, FileInvoice, CurrencyDollar } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
 import { Donation, DonationItem, AddDonationResponse } from "../../../types/donation";
@@ -151,6 +151,8 @@ const CreateDonationModal = ({
     const [suggestData, setSuggestData] = useState<any[]>([]);
 
     const [donorId, setDonorId] = useState<number>(0);
+    const [value, setValue] = useState<number>(0);
+
     const [items, setItems] = useState<Item[]>([]);
     const [itemSKUName, setItemSKUName] = useState('');
     const [showAddDonationResponseModal, setShowAddDonationResponseModal] = useState(false);
@@ -169,6 +171,7 @@ const CreateDonationModal = ({
                 body: JSON.stringify({
                     donorId,
                     Items: donationItems,
+                    value,
                 }),
             }
         );
@@ -309,6 +312,7 @@ const CreateDonationModal = ({
                             setDonorId(Number(value));
                         }}
                     />
+                    <Space h="md" />
                     {/* <Space h="md" />
                     <Group
                         grow
@@ -325,12 +329,13 @@ const CreateDonationModal = ({
                             onChange={setItemSKUName}
                             
                         />
+                        <Space h="md" />
                         <NumberInput
-                        label= "Quantity"
-                        placeholder= "10"
-                        min = {0}
-                        value = {quantity}
-                        onChange={setQuantity}
+                            label= "Quantity"
+                            placeholder= "10"
+                            min = {0}
+                            value = {quantity}
+                            onChange={setQuantity}
                         />
                         <Space h="md" />
                         <Button
@@ -400,6 +405,18 @@ const CreateDonationModal = ({
                             ))}
                         </tbody>
                     </Table>
+                    <Space h="md" />
+                    <NumberInput
+                        label= "Total Value"
+                        placeholder= "10.00"
+                        precision={2}
+                        icon={<CurrencyDollar size="1rem" />}
+                        min = {0}
+                        value = {value}
+                        onChange={(e) => {
+                            setValue(Number(e));
+                        }}
+                    />
                     <Space h="md" />
                     <Group position="right">
                         <Button type="submit" loading={disabled}>
@@ -545,7 +562,7 @@ const DonationComponent = ({
                 <td>{donation.createdTime}</td>
                 <td>{donation.signedBy}</td>
                 <td>{donation.donorBy}</td>
-                <td>{donation.totalValue}</td>
+                <td>{"$" + Number(donation.totalValue).toFixed(2)}</td>
                 <td>
                     <Group>
                         {/* <Tooltip label="Delete">
@@ -737,7 +754,7 @@ export const DonationManager = () => {
                             <th>Time</th>
                             <th>Signed By</th>
                             <th>Donated By</th>
-                            <th>Total Credits</th>
+                            <th>Total Value</th>
                             <th>Actions</th>
                         </tr>
                     </thead>

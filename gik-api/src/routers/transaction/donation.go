@@ -122,8 +122,9 @@ func ListDonations(c *gin.Context) {
 }
 
 type AddDonationRequest struct {
-	DonorID int            `json:"donorId" binding:"required"`
-	Items   []DonationItem `json:"items" binding:"required"`
+	DonorID    int            `json:"donorId" binding:"required"`
+	Items      []DonationItem `json:"items" binding:"required"`
+	TotalValue float32        `json:"value" binding:"required"`
 }
 
 type DonationItem struct {
@@ -152,7 +153,6 @@ func AddDonation(c *gin.Context) {
 	// Look-up Donor balance
 	donor := types.Donor{}
 	database.Database.First(&donor, uint(json.DonorID))
-	totalValue := float32(0)
 	isSuccess := true
 	msgResponse := "Donation created"
 	lstDonationItem := []types.DonationItem{}
@@ -164,8 +164,6 @@ func AddDonation(c *gin.Context) {
 		item := types.Item{}
 		baseQuery := database.Database.Model(&types.Item{}).Where("sku = ?", donationItemSKU)
 		baseQuery.First(&item)
-
-		totalValue += float32(inputDonationItem.Quantity) * item.Price
 
 		donationItem := types.DonationItem{
 			DonationID: 0, //dummy value, will be replace after creating the donation
@@ -180,7 +178,7 @@ func AddDonation(c *gin.Context) {
 
 	}
 
-	donation.TotalValue = totalValue
+	donation.TotalValue = json.TotalValue
 
 	//TODO: check if this line requried: database.Database.Save(&donation)
 	if isSuccess {
