@@ -1,4 +1,4 @@
-import {Container, PasswordInput, Text} from "@mantine/core";
+import {Anchor, Container, Paper, PasswordInput, Text, Title} from "@mantine/core";
 
 import styles from "../styles/Auth.module.scss";
 
@@ -107,23 +107,26 @@ const Register = () => {
     };
 
     return (
+        
         <>
-            <div className={`${styles.wrapper} ${styles.register}`}>
-                <Container
-                    sx={{
-                        backgroundColor: "var(--inverted-text)",
-                        padding: "2rem",
-                        borderRadius: "5px",
-                        width: "40rem",
-                    }}
+            <div>
+                <Container size={420} my={40}>
+                <Title
+                    align="center"
+                    sx={(theme) => ({ fontFamily: `Greycliff CF, ${theme.fontFamily}`, fontWeight: 900 })}
                 >
-                    <h1
-                        style={{
-                            marginTop: 0,
-                        }}
-                    >
-                        Register
-                    </h1>
+                    Register
+                    
+                </Title>
+                <Text color="red" size="sm" align="center" mt={5}>
+                    Do have an account?{' '}
+                    <Anchor size="sm" component="button">
+                        {/* Link to Register */}
+                    <Link to ="/login">Login</Link>
+                    </Anchor>
+                </Text>
+
+                    <Paper withBorder shadow="md" p={30} mt={30} radius="md">
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
@@ -142,15 +145,18 @@ const Register = () => {
                         <PasswordInput
                             required
                             label="Password"
+                            mt="md" 
                             {...form.getInputProps("password")}
                         />
                         <PasswordInput
                             required
+                            mt="md" 
                             label="Confirm Password"
                             {...form.getInputProps("confPassword")}
                         />
                         <TextInput
                             required
+                            mt="md" 
                             label="Authorization Code"
                             placeholder="xxx"
                             {...form.getInputProps("authCode")}
@@ -162,10 +168,7 @@ const Register = () => {
                             }}
                             {...form.getInputProps("agree")}
                         />
-                        <Group position="apart" mt="md">
-                            <Button component={Link} to="/login" compact variant="white">
-                                <Text color="blue" size={"xs"}>Already Registered?</Text>
-                            </Button>
+                        <Group position="right" mt="md">
                             <Button
                                 type="submit"
                                 color="green"
@@ -175,6 +178,7 @@ const Register = () => {
                             </Button>
                         </Group>
                     </form>
+                    </Paper>
 
                 </Container>
             </div>

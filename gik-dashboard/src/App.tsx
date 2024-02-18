@@ -40,7 +40,7 @@ function App() {
                 <Notifications />
                 <BrowserRouter>
                     <Routes>
-                        <Route path="/" element={<Landing />} />
+                        <Route path="/" element={<Login />} />
                         <Route
                             path="/dashboard"
                             element={<DashboardRedirect />}
