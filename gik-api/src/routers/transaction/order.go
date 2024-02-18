@@ -184,11 +184,12 @@ func AddOrder(c *gin.Context) {
 		}
 
 		totalCost += float32(inputOrderItem.Quantity) * item.Price
-		if totalCost > client.Balance {
-			isSuccess = false
-			msgResponse = fmt.Sprintf("Current balance (%f) is not enough", client.Balance)
-			break
-		}
+		// if totalCost > client.Balance {
+		// 	isSuccess = false
+		// 	msgResponse = fmt.Sprintf("Current balance (%f) is not enough", client.Balance)
+		// 	break
+		// }
+
 		// TODO: update the current item.StockTotal
 		//item.StockTotal -= product.Quantity
 
@@ -279,9 +280,9 @@ func AddOrder(c *gin.Context) {
 			orderItem.Item.StockTotal -= orderItem.Count
 		}
 
-		//update Client.Balance
-		client.Balance -= totalCost
-		database.Database.Save(client)
+		// update Client.Balance
+		// client.Balance -= totalCost
+		// database.Database.Save(client)
 	}
 
 	c.JSON(200, gin.H{
