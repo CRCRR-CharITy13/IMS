@@ -49,7 +49,7 @@ func ImportClients(c *gin.Context) {
 				PhoneNumber: client.Phone,
 				Email:       client.Email,
 				Address:     client.Address,
-				Balance:     float32(client.Balance),
+				Balance:     float32(client.Credit),
 			}
 
 			err := database.Database.Model(&types.Client{}).Create(&newClient).Error

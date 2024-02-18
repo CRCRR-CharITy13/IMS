@@ -12,4 +12,5 @@ type Client struct {
 	Email       string
 	Contact     string
 	Balance     float32
+	Credit      float32
 }

@@ -142,21 +142,12 @@ const ClientComponent = ({
                 <td>{client.phone}</td>
                 <td>{client.email}</td>
                 <td>{client.address}</td>
-                <td>{client.balance}</td>
+                <td>{client.credit}</td>
                 <td>
                     <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                         <Trash />
                     </ActionIcon>
-                </td>
-                <td>
-                    <Checkbox defaultValue="disabled"
-                        // labelPosition="left"
-                        color="teal"
-                        size="md"
-                        onClick={() => showConfirmationModal}
-                    >
-                    </Checkbox>
-                </td>                
+                </td>              
             </tr>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the client beyond recovery."}/>
         </>
@@ -181,12 +172,12 @@ const CreateClientModal = ({
             phone: "",
             email: "",
             address: "",
-            balance: 0,
+            credit: 0,
         },
     });
 
     const doCreate = async () => {
-        form.values.balance = Number(form.values.balance);
+        form.values.credit = Number(form.values.credit);
 
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/client/add`,
@@ -288,11 +279,11 @@ const CreateClientModal = ({
                     />
                     <Space h="md" />
                     <TextInput
-                        label="Balance"
+                        label="Credit"
                         required
                         placeholder="50"
                         type="number"
-                        {...form.getInputProps("balance")}
+                        {...form.getInputProps("credit")}
                     />
                     <Space h="md" />
                     <Group position="right">
@@ -432,14 +423,8 @@ export const ClientManager = () => {
                             <th>Phone</th>
                             <th>Email</th>
                             <th>Address</th>
-                            <th>Balance</th>
+                            <th>Credit</th>
                             <th>Actions</th>
-                            <th>
-                                {/* <Checkbox size="md" 
-                                    onClick={() => getSelection()} >
-                             
-                                </Checkbox> */}
-                            </th>
                         </tr>
                     </thead>
                     <tbody>

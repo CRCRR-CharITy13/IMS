@@ -16,17 +16,18 @@ type company struct {
 	Phone   string  `json:"phone" binding:"required"`
 	Email   string  `json:"email" binding:"required"`
 	Address string  `json:"address" binding:"required"`
-	Balance float32 `json:"balance" binding:"required"`
+	Credit  float32 `json:"credit" binding:"required"`
 }
 
 type ListClientResponse struct {
-	Id      int     `json:"ID" binding:"required"`
-	Name    string  `json:"name" binding:"required"`
-	Contact string  `json:"contact" binding:"required"`
-	Phone   string  `json:"phone" binding:"required"`
-	Email   string  `json:"email" binding:"required"`
-	Address string  `json:"address" binding:"required"`
-	Balance float32 `json:"balance" binding:"required"`
+	Id      int    `json:"ID" binding:"required"`
+	Name    string `json:"name" binding:"required"`
+	Contact string `json:"contact" binding:"required"`
+	Phone   string `json:"phone" binding:"required"`
+	Email   string `json:"email" binding:"required"`
+	Address string `json:"address" binding:"required"`
+	// Balance float32 `json:"balance" binding:"required"`
+	Credit float32 `json:"credit" binding:"required"`
 }
 
 // Takes in a few queries of name, contact, address, phone, email and returns a list of clients who match these requests.
@@ -84,7 +85,8 @@ func ListClient(c *gin.Context) {
 			Phone:   client.PhoneNumber,
 			Email:   client.Email,
 			Address: client.Address,
-			Balance: client.Balance,
+			// Balance: client.Balance,
+			Credit: client.Credit,
 		}
 	}
 	// Send message with the results.
@@ -142,7 +144,8 @@ func UpdateClient(c *gin.Context) {
 	client.PhoneNumber = json.Phone
 	client.Email = json.Email
 	client.Address = json.Address
-	client.Balance = float32(json.Balance)
+	client.Balance = float32(json.Credit)
+	client.Credit = float32(json.Credit)
 
 	if err := database.Database.Save(client).Error; err != nil {
 		c.JSON(500, gin.H{
@@ -178,7 +181,8 @@ func AddClient(c *gin.Context) {
 		PhoneNumber: json.Phone,
 		Email:       json.Email,
 		Address:     json.Address,
-		Balance:     float32(json.Balance),
+		Balance:     float32(json.Credit),
+		Credit:      float32(json.Credit),
 	}
 
 	if err := database.Database.Model(&types.Client{}).Create(&newClient).Error; err != nil {

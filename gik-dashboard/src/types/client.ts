@@ -5,5 +5,6 @@ export interface Client {
     phone: string;
     email: string;
     address: string;
-    balance: number;
+    // balance: number;
+    credit: number;
 }
