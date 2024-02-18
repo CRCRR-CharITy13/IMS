@@ -25,6 +25,7 @@ import { CirclePlus, Edit, Tags, Trash, TableExport, TableImport, Settings, Phot
 import { containerStyles } from "../../../styles/container";
 import { Item, Location_Item } from "../../../types/item";
 import {ConfirmationModal} from "../../confirmation";
+import { Item_Location } from "../../../types/location";
 
 export const ItemRow = (
     {
@@ -155,49 +156,16 @@ export const ItemRow = (
             success: boolean;
             data: Location_Item[];
         } = await response.json();
-        
-        
-        console.log(data.data);
-        let locationItemMessage = "";
+    
         let totalStored = 0;
-        locationItemMessage = locationItemMessage + "List of locations which store: " + item.name + "\n";
-        locationItemMessage += "----------\n";
-        let idx = 0;
-        for (idx=0; idx<data.data.length; idx++){
-            locationItemMessage = locationItemMessage + (idx+1) + "." + data.data[idx].location_name + ": " +  data.data[idx].stock + "\n";
+
+        for(let idx = 0; idx < data.data.length; idx++) {
             totalStored += data.data[idx].stock;
         }
-        const nonStored = item.quantity - totalStored;
-        locationItemMessage += "-----\nTotal Stored: ";
-        locationItemMessage += totalStored;
-        locationItemMessage += "/";
-        locationItemMessage += item.quantity;
-        locationItemMessage += "\nNot Stored: "
-        locationItemMessage += nonStored;
-        locationItemMessage += "/";
-        locationItemMessage += item.quantity;
 
-        alert(locationItemMessage);
+        const notStored = item.quantity - totalStored;
         
-        return (
-                <Table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.data?.map((location_item) => (
-                        <p>
-                            <span>{location_item.location_name}</span>
-                            <span>{location_item.stock}</span>
-                        </p>
-                    ))}
-                </tbody>
-            </Table>
-        )
-
+        return [data.data, notStored];
     }
 
     const [showConfirmationModal, setShowConfirmationModal] =
@@ -205,6 +173,8 @@ export const ItemRow = (
     const [editItemModal, setEditItemModal] =
         useState<boolean>(false);
     const [addSizeModal, setAddSizeModal] =
+        useState<boolean>(false);
+    const [showLocationsModal, setShowLocationsModal] =
         useState<boolean>(false);
 
     return (
@@ -214,7 +184,7 @@ export const ItemRow = (
                 <td>{item.sku || "None"}</td>
                 <td>{item.price || "0"}</td>
                 <td>
-                    <Button onClick = {handleItemLocationDetailClick}>
+                    <Button onClick = {() => setShowLocationsModal(true)}>
                         {item.quantity || "0"}
                     </Button>
                 </td>
@@ -266,10 +236,64 @@ export const ItemRow = (
             <EditItemModal opened={editItemModal} setOpened={setEditItemModal} command={editItem} oldName={item.name} oldPrice={item.price} oldQuantity={item.quantity} oldSize={item.size} oldSku={item.sku} />
             <NewSizeModal opened={addSizeModal} setOpened={setAddSizeModal} command={addSize}/>
             <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
+            <ShowLocations opened={showLocationsModal} setOpened={setShowLocationsModal} command={handleItemLocationDetailClick}></ShowLocations>
         </>
     );
 };
     
+export const ShowLocations = (
+    {
+        opened,
+        setOpened,
+        command,
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: ()=>Promise<(Location_Item[] | number)[]>;
+    }) => {
+
+        const [locations, setLocations] = useState<Location_Item[]>([]);
+        const [notStored, setNotStored] = useState<number>(0);
+
+        useEffect(() => {
+            (async function() {
+                const temp = await command();
+                setNotStored(temp[1] as number);
+                setLocations(temp[0] as unknown as Location_Item[]);
+            })();
+        }, []);
+        
+        return (
+            <Modal
+                title={"Locations of Items"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <Table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {locations?.map((location_item) => (
+                            <tr>
+                                <td>{location_item.location_name}</td>
+                                <td>{location_item.stock}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
+                <p>
+                    Amount not stored: {notStored}.
+                </p>
+            </Modal>
+        )
+}
+
 const  UploadCSVModal = (
 {
     opened,
