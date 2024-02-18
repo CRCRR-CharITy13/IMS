@@ -51,7 +51,7 @@ func AddItem(c *gin.Context) {
 		})
 		return
 	}
-	item.SKU = json.SKU
+	item.SKU = json.SKU + json.Size
 
 	if json.Size == "" {
 		c.JSON(400, gin.H{
@@ -59,7 +59,6 @@ func AddItem(c *gin.Context) {
 			"message": "Invalid fields - Size",
 		})
 		return
-
 	}
 
 	item.Size = json.Size
@@ -231,7 +230,7 @@ func UpdateItem(c *gin.Context) {
 		})
 		return
 	}
-	item.SKU = json.SKU
+	item.SKU = json.SKU + json.Size
 
 	if json.Size == "" {
 		c.JSON(400, gin.H{
@@ -468,18 +467,8 @@ func AddSize(c *gin.Context) {
 		return
 	}
 
-	sku := c.Query("sku")
-	if err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Invalid fields - SKU",
-		})
-		return
-	}
-
 	item := types.Item{}
 
-	item.SKU = sku
 	item.Size = size
 	item.StockTotal = 0
 
@@ -495,6 +484,7 @@ func AddSize(c *gin.Context) {
 
 	item.Price = itemOld.Price
 	item.Name = itemOld.Name
+	item.SKU = (itemOld.SKU[:len(itemOld.SKU)-len(itemOld.Size)] + size)
 
 	err = database.Database.Create(&item).Error
 	if err != nil {

@@ -117,10 +117,10 @@ export const ItemRow = (
         });
     }
     
-    const addSize = async(sku: string, size: string) => {
+    const addSize = async(size: string) => {
         const id = item.ID.toString();
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/addsize?id=${item.ID}&sku=${sku}&size=${size}`,
+            `${process.env.REACT_APP_API_URL}/items/addsize?id=${item.ID}&size=${size}`,
             {
                 credentials: "include",
                 method: "PUT",
@@ -362,10 +362,9 @@ export const NewSizeModal = (
     }: {
         opened: boolean;
         setOpened: Dispatch<SetStateAction<boolean>>;
-        command: (sku: string, size: string)=>void;
+        command: (size: string)=>void;
     }) => {
 
-    const [sku, setSku] = useState('');
     const [size, setSize] = useState('');
 
     return (
@@ -379,22 +378,13 @@ export const NewSizeModal = (
             >
                 <TextInput
                     required
-                    label={"SKU"}
-                    placeholder="Left blank to use the curent SKU"
-                    onChange={(e) =>
-                        setSku(e.target.value)
-                    }
-                />
-                <Space h="md" />
-                <TextInput
-                    required
                     label={"Size"}
-                    placeholder="Left blank to use the curent size"
+                    placeholder="XL"
                     onChange={(e) => setSize(e.target.value)}
                 />
                 <Space h="md" />
                 <Group position={"right"}>
-                    <Button onClick={() => {command(sku, size); setOpened(false);}}>
+                    <Button onClick={() => {command(size); setOpened(false);}}>
                         Confirm
                     </Button>
                 </Group>
