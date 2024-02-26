@@ -365,7 +365,7 @@ const CreateDonationModal = ({
                                     if(quantity != "") {
                                         setDonationItems([
                                             {
-                                                SKUName: itemSKUName,
+                                                SKUName: itemSKUName.split(" : ")[0],
                                                 quantity,
                                             },
                                             ...donationItems,

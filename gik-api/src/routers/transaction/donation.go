@@ -160,7 +160,7 @@ func AddDonation(c *gin.Context) {
 	for _, inputDonationItem := range json.Items {
 		// SKUName: SKU : Name
 		// The length of the SKU is 8 character, thus, extract it as follows:
-		donationItemSKU := inputDonationItem.SKUName[0:9]
+		donationItemSKU := inputDonationItem.SKUName
 		item := types.Item{}
 		baseQuery := database.Database.Model(&types.Item{}).Where("sku = ?", donationItemSKU)
 		baseQuery.First(&item)
