@@ -2,6 +2,7 @@
 .idea/
 
 /gik-api/.cert/
+/gik-api/assets/gik-ims-db.sqlite
 /gik-dashboard/.cert/
 .vscode/
 .DS_Store
