@@ -1,4 +1,4 @@
-package category
+package classification
 
 import (
 	"GIK_Web/database"
