@@ -1,6 +1,6 @@
 package types
 
 type Category struct {
-	Category_code string
-	Category_name string
+	CategoryCode string `json:"category_code"`
+	CategoryName string `json:"category_name"`
 }

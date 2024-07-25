@@ -19,8 +19,8 @@ func ListCategory(c *gin.Context) {
 	categories := []types.Category{}
 	for row.Next() {
 		thisCategory := types.Category{}
-		err = row.Scan(&thisCategory.Category_code, &thisCategory.Category_name)
-		fmt.Printf("Category_code: %s, Category_name: %s", thisCategory.Category_code, thisCategory.Category_name)
+		err = row.Scan(&thisCategory.CategoryCode, &thisCategory.CategoryName)
+		fmt.Printf("Category_code: %s, Category_name: %s", thisCategory.CategoryCode, thisCategory.CategoryName)
 		if err != nil {
 			log.Fatal(err)
 		}
