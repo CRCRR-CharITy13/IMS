@@ -25,6 +25,7 @@ func InitRouter() *gin.Engine {
 	categoryApis := r.Group("/classification")
 	{
 		categoryApis.GET("/list-category", classification.ListCategory)
+		categoryApis.GET("/list-subcategory1", classification.ListSubCategory1)
 	}
 
 	// createItemApis := r.Group("/items")

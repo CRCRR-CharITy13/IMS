@@ -32,3 +32,27 @@ func ListCategory(c *gin.Context) {
 		"total": totalCategory,
 	}})
 }
+
+func ListSubCategory1(c *gin.Context) {
+	row, err := database.Database.Query("SELECT * FROM SubCategories1")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer row.Close()
+	SubCategories1 := []types.SubCategory1{}
+	for row.Next() {
+		thisSubCategory1 := types.SubCategory1{}
+		err = row.Scan(&thisSubCategory1.SubCategory1Code, &thisSubCategory1.SubCategory1Name)
+		fmt.Printf("Category_code: %d, Category_name: %s", thisSubCategory1.SubCategory1Code, thisSubCategory1.SubCategory1Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		SubCategories1 = append(SubCategories1, thisSubCategory1)
+	}
+	totalSubCategory1 := len(SubCategories1)
+	c.JSON(200, gin.H{"success": true, "data": gin.H{
+		"data":  SubCategories1,
+		"total": totalSubCategory1,
+	}})
+}
