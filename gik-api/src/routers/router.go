@@ -11,6 +11,7 @@ package routers
 
 import (
 	"GIK_Web/src/routers/classification"
+	"GIK_Web/src/routers/items"
 	"GIK_Web/src/routers/status"
 
 	"github.com/gin-gonic/gin"
@@ -27,10 +28,10 @@ func InitRouter() *gin.Engine {
 		categoryApis.GET("/list-category", classification.ListCategory)
 	}
 
-	// createItemApis := r.Group("/items")
-	// {
-	// 	createItemApis.POST("/create-item", classification.CreateItem)
-	// }
+	createItemApis := r.Group("/items")
+	{
+		createItemApis.POST("/create-new-item", items.CreateItem)
+	}
 
 	return r
 }
