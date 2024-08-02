@@ -293,7 +293,7 @@ func Edititem(c *gin.Context) {
 
 		fmt.Printf("Update item total quantity: %d", UpdateItemInput.Quantity)
 		// update item total quantity
-		_, err = tx.Exec("UPDATE items SET item_total_quantity = ?, updated_at = ? WHERE item_family_id = ?", UpdateItemInput.Quantity, now, UpdateItemInput.ItemFamilyID)
+		_, err = tx.Exec("UPDATE items SET item_total_quantity = ?, updated_at = ? WHERE item_family_id = ? AND item_size = ?", UpdateItemInput.Quantity, now, UpdateItemInput.ItemFamilyID, UpdateItemInput.Size)
 		if err != nil {
 			tx.Rollback()
 			c.JSON(500, gin.H{
