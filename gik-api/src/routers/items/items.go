@@ -4,6 +4,7 @@ import (
 	"GIK_Web/database"
 	"GIK_Web/types"
 	"database/sql"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -17,16 +18,6 @@ import (
 // Function to create a new item
 // CreateItem is the function to create a new item
 type CreateItemInput struct {
-	Category     string  `json:"category_name" binding:"required"`
-	SubCategory1 string  `json:"subcategory1_name" binding:"required"`
-	SubCategory2 string  `json:"subcategory2_name" binding:"required"`
-	Description  string  `json:"description_name" binding:"required"`
-	Size         string  `json:"item_size" binding:"required"`
-	CreditValue  float64 `json:"current_credit_value"`
-	Quantity     int     `json:"item_total_quantity" binding:"required"`
-}
-
-type UpdateItemInput struct {
 	Category     string  `json:"category_name" binding:"required"`
 	SubCategory1 string  `json:"subcategory1_name" binding:"required"`
 	SubCategory2 string  `json:"subcategory2_name" binding:"required"`
@@ -217,6 +208,167 @@ func CreateItem(c *gin.Context) {
 	log.Println("Item created successfully")
 }
 
-func editItem(c *gin.Context) {
+type UpdateItemInput struct {
+	ItemFamilyID    int    `json:"item_family_id" binding:"required"`
+	Size            string `json:"item_size" binding:"required"`
+	CreditValue     int    `json:"current_credit_value"`
+	Quantity        int    `json:"item_total_quantity"`
+	JustifyQuantity string `json:"justify_quantity"`
+}
 
+func Edititem(c *gin.Context) {
+	var UpdateItemInput UpdateItemInput
+
+	if err := c.ShouldBindJSON(&UpdateItemInput); err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields - Missing values",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// get itemQuantity by id and size
+	var itemTotalQuantity int
+
+	err := database.Database.QueryRow("SELECT item_total_quantity FROM items WHERE item_family_id = ? AND item_size = ?", UpdateItemInput.ItemFamilyID, UpdateItemInput.Size).Scan(&itemTotalQuantity)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields - Item  doesn't exist",
+		})
+		return
+	}
+	fmt.Printf(" Item total quantity: %d", itemTotalQuantity)
+
+	// get credit value from item family by id
+	var creditValue int
+	err = database.Database.QueryRow("SELECT current_credit_value FROM items_families WHERE item_family_id = ?", UpdateItemInput.ItemFamilyID).Scan(&creditValue)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields - Item family doesn't exist",
+		})
+		return
+	}
+	fmt.Printf("Credit Value: %d", creditValue)
+
+	// check if creditValue ou quantity have not changed
+
+	if (UpdateItemInput.CreditValue == creditValue) && (UpdateItemInput.CreditValue > 0) && (UpdateItemInput.Quantity == itemTotalQuantity) {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Nothing to update",
+		})
+		return
+	}
+
+	// star transaction
+	tx, err := database.Database.Begin()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Failed to start transaction",
+		})
+		return
+	}
+
+	now := time.Now().Format(time.RFC3339)
+
+	fmt.Printf("Check if quantity changed: %d", UpdateItemInput.Quantity)
+	fmt.Printf("Quantity changed: %t", UpdateItemInput.Quantity != itemTotalQuantity)
+	// check if quantity changed
+	if UpdateItemInput.Quantity != itemTotalQuantity {
+		fmt.Print("Quantity changed")
+		fmt.Printf("Check if justify quantity exists: %s", UpdateItemInput.JustifyQuantity)
+		// check if justify quantity exists
+		if UpdateItemInput.JustifyQuantity == "" {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Invalid fields - Missing justify quantity",
+			})
+			return
+		}
+		fmt.Printf("Justify quantity exists: %s", UpdateItemInput.JustifyQuantity)
+
+		fmt.Printf("Update item total quantity: %d", UpdateItemInput.Quantity)
+		// update item total quantity
+		_, err = tx.Exec("UPDATE items SET item_total_quantity = ?, updated_at = ? WHERE item_family_id = ?", UpdateItemInput.Quantity, now, UpdateItemInput.ItemFamilyID)
+		if err != nil {
+			tx.Rollback()
+			c.JSON(500, gin.H{
+				"success": false,
+				"message": "Failed to update item total quantity",
+			})
+			return
+		}
+		fmt.Printf("Item total quantity updated: %d", UpdateItemInput.Quantity)
+
+		fmt.Printf("Create Item Quantity Log: %d ...", UpdateItemInput.Quantity)
+		// add log for quantity changed
+		timestamps := time.Now().Unix()
+		clientIP := c.ClientIP()
+		fmt.Printf("Client IP: %s", clientIP)
+
+		action := "Quantity changed form " + strconv.Itoa(itemTotalQuantity) + " to " + strconv.Itoa(UpdateItemInput.Quantity) + " on item " + strconv.Itoa(UpdateItemInput.ItemFamilyID) + " by user 1 " //+ strconv.Itoa(c.MustGet("userId").(uint))
+
+		_, err = tx.Exec("INSERT INTO simple_logs (action, timestamp, ip_address, user_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)", action, timestamps, clientIP, 1, now, now)
+		if err != nil {
+			tx.Rollback()
+			c.JSON(500, gin.H{
+				"success": false,
+				"message": "Failed to add log",
+				"error":   err,
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"success": true,
+			"message": "Item quantity updated successfully",
+		})
+	}
+
+	// check if credit value changed and if so, update credit value
+	if (UpdateItemInput.CreditValue != creditValue) && (UpdateItemInput.CreditValue > 0) {
+
+		// update credit value in item family
+		fmt.Printf("Update credit value: %d", UpdateItemInput.CreditValue)
+		_, err = tx.Exec("UPDATE items_families SET current_credit_value = ?, updated_at = ? WHERE item_family_id = ?", UpdateItemInput.CreditValue, now, UpdateItemInput.ItemFamilyID)
+		if err != nil {
+			tx.Rollback()
+			c.JSON(500, gin.H{
+				"success": false,
+				"message": "Failed to update credit value",
+				"error":   err,
+			})
+			return
+		}
+		fmt.Printf("Credit value updated: %d", UpdateItemInput.CreditValue)
+
+		fmt.Printf("Create Item Credit Value History: %d ...", UpdateItemInput.CreditValue)
+		// create credit value in item credit value history
+		_, err = tx.Exec("INSERT INTO items_credit_value_history (item_family_id, date, credit_value) VALUES (?, ?, ?)", UpdateItemInput.ItemFamilyID, now, UpdateItemInput.CreditValue)
+		if err != nil {
+			tx.Rollback()
+			c.JSON(500, gin.H{
+				"success": false,
+				"message": "Failed to insert credit value in item credit value history",
+			})
+			return
+		}
+		fmt.Printf("Item credit value history created: %d", UpdateItemInput.CreditValue)
+
+		// send notification to all users with credit value changed
+		fmt.Println("In construction - Notification epic part : Send notification to all users with credit value changed")
+
+		c.JSON(200, gin.H{
+			"success": true,
+			"message": "Credit value updated successfully",
+		})
+	}
+
+	tx.Commit()
+	c.JSON(200, gin.H{"success": true, "message": "Updated successfully"})
+	fmt.Printf("Item created successfully")
 }
