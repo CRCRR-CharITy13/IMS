@@ -105,6 +105,12 @@ func CreateItem(c *gin.Context) {
 	if errItemFamilyExist == nil {
 		log.Printf("Item family exists: %d", existingItemFamily.ItemFamilyID)
 
+		/* Get the credit value and send it to front.
+		* That need another module.
+		* Another route to get the credit value.
+
+		 */
+
 		// Item family exists, check if the size exists in items
 		var existingItemSize types.Item
 		query = "SELECT item_family_id FROM items WHERE item_family_id = ? AND item_size = ?"
@@ -371,4 +377,71 @@ func Edititem(c *gin.Context) {
 	tx.Commit()
 	c.JSON(200, gin.H{"success": true, "message": "Updated successfully"})
 	fmt.Printf("Item created successfully")
+}
+
+type GetItemFamily struct {
+	ItemFamilyID       int              `json:"item_family_id"`
+	ItemName           sql.NullString   `json:"item_name"`
+	ItemSKU            sql.NullString   `json:"item_sku"`
+	CurrentCreditValue int              `json:"current_credit_value"`
+	Items              []GetItemSummary `json:"items"`
+}
+
+type GetItemSummary struct {
+	ItemSize          string `json:"item_size"`
+	ItemTotalQuantity int    `json:"item_total_quantity"`
+}
+
+func GetItems(c *gin.Context) {
+	row, err := database.Database.Query(`
+    SELECT 
+        f.item_family_id,
+				f.item_sku,
+				f.item_name,
+				f.current_credit_value,
+        i.item_size,
+				i.item_total_quantity
+    FROM 
+        items_families f
+    INNER JOIN 
+        items i ON f.item_family_id = i.item_family_id
+`)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer row.Close()
+
+	// Map pour regrouper les familles avec leurs items
+	familiesMap := make(map[int]*GetItemFamily)
+	for row.Next() {
+		var family GetItemFamily
+		var item GetItemSummary
+
+		err = row.Scan(&family.ItemFamilyID, &family.ItemSKU, &family.ItemName, &family.CurrentCreditValue, &item.ItemSize, &item.ItemTotalQuantity)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		// Si la famille existe déjà dans la map, ajouter l'item à la liste
+		if existingFamily, exists := familiesMap[family.ItemFamilyID]; exists {
+			existingFamily.Items = append(existingFamily.Items, item)
+		} else {
+			// Sinon, créer une nouvelle famille et ajouter l'item
+			family.Items = []GetItemSummary{item}
+			familiesMap[family.ItemFamilyID] = &family
+		}
+	}
+
+	// Convertir la map en slice pour la réponse JSON
+	var families []GetItemFamily
+	for _, family := range familiesMap {
+		families = append(families, *family)
+	}
+
+	totalFamilies := len(families)
+	c.JSON(200, gin.H{"success": true, "data": gin.H{
+		"itemsFamilies": families,
+		"total":         totalFamilies,
+	}})
 }

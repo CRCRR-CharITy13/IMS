@@ -32,6 +32,7 @@ func InitRouter() *gin.Engine {
 	{
 		createItemApis.POST("/create-new-item", items.CreateItem)
 		createItemApis.PUT("/edit-item", items.Edititem)
+		createItemApis.GET("/get-items", items.GetItems)
 	}
 
 	return r
