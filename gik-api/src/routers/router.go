@@ -30,6 +30,8 @@ func InitRouter() *gin.Engine {
 
 	createItemApis := r.Group("/items")
 	{
+		createItemApis.POST("/check-item-family-exist", items.GetCreditValueIfExist)
+		createItemApis.POST("/create-new-item-family", items.CreateItemAndItemFamily)
 		createItemApis.POST("/create-new-item", items.CreateItem)
 		createItemApis.PUT("/edit-item", items.Edititem)
 		createItemApis.GET("/get-items", items.GetItems)

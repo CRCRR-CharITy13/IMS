@@ -17,6 +17,189 @@ import (
 
 // Function to create a new item
 // CreateItem is the function to create a new item
+
+// START CREATE ITEM PROD VERSION
+func GetCreditValueIfExist(c *gin.Context) {
+	var createNewItemRequest struct {
+		CategoryCode     string `json:"category_code" binding:"required"`
+		SubCategory1Code int    `json:"subcategory1_code" binding:"required"`
+		SubCategory2Code string `json:"subcategory2_code" binding:"required"`
+		DescriptionCode  int    `json:"description_code" binding:"required"`
+	}
+
+	// Bind JSON input to struct
+	if err := c.ShouldBindJSON(&createNewItemRequest); err != nil {
+		c.JSON(400, gin.H{"success": false, "message": "Invalid fields - Missing values"})
+		log.Printf("Error binding JSON: %v", err)
+		return
+	}
+
+	db := database.Database
+
+	// Verify the codes exist in the database
+	if err := CheckCode(db, createNewItemRequest.CategoryCode, createNewItemRequest.SubCategory1Code, createNewItemRequest.SubCategory2Code, createNewItemRequest.DescriptionCode); err != nil {
+		c.JSON(400, gin.H{"success": false, "message": "One or more codes are invalid"})
+		log.Printf("Error verifying codes: %v", err)
+		return
+	}
+
+	// Check if item family already exists
+	var itemFamilyID int
+	var creditValue float64
+	query := "SELECT item_family_id, current_credit_value FROM items_families WHERE category_code = ? AND subcategory1_code = ? AND subcategory2_code = ? AND description_code = ?"
+	err := db.QueryRow(query, createNewItemRequest.CategoryCode, createNewItemRequest.SubCategory1Code, createNewItemRequest.SubCategory2Code, createNewItemRequest.DescriptionCode).Scan(&itemFamilyID, &creditValue)
+
+	if err == nil {
+		// Item family exists, return the credit value and item family ID
+		c.JSON(200, gin.H{"success": true, "message": "Item family exists", "data": gin.H{
+			"item_family_id": itemFamilyID,
+			"credit_value":   creditValue,
+		}})
+		log.Printf("Item family exists: %d, credit value: %f", itemFamilyID, creditValue)
+		return
+	} else if err != sql.ErrNoRows {
+		// Some other error occurred
+		c.JSON(500, gin.H{"success": false, "message": "Database error checking item family"})
+		log.Printf("Error checking item family: %v", err)
+		return
+	}
+
+	// No item family exists, return a response to allow new item family creation
+	c.JSON(200, gin.H{"success": true, "message": "No item family exists", "data": gin.H{
+		"item_family_id": nil,
+	}})
+}
+
+func CreateItemAndItemFamily(c *gin.Context) {
+	var createNewItemRequest struct {
+		CategoryCode     string  `json:"category_code" binding:"required"`
+		SubCategory1Code int     `json:"subcategory1_code" binding:"required"`
+		SubCategory2Code string  `json:"subcategory2_code" binding:"required"`
+		DescriptionCode  int     `json:"description_code" binding:"required"`
+		Category         string  `json:"category_name,omitempty"`
+		SubCategory1     string  `json:"subcategory1_name,omitempty"`
+		SubCategory2     string  `json:"subcategory2_name,omitempty"`
+		Description      string  `json:"description_name,omitempty"`
+		Size             string  `json:"item_size" binding:"required"`
+		CreditValue      float64 `json:"current_credit_value"`
+		Quantity         int     `json:"item_total_quantity" binding:"required"`
+		ItemFamilyID     int     `json:"item_family_id"`
+	}
+
+	// Bind JSON input to struct
+	if err := c.ShouldBindJSON(&createNewItemRequest); err != nil {
+		c.JSON(400, gin.H{"success": false, "message": "Invalid fields - Missing values"})
+		log.Printf("Error binding JSON: %v", err)
+		return
+	}
+
+	db := database.Database
+
+	// Step 1: Verify that categoryCode, subCategory1Code, subCategory2Code, and descriptionCode exist
+	if err := CheckCode(db, createNewItemRequest.CategoryCode, createNewItemRequest.SubCategory1Code, createNewItemRequest.SubCategory2Code, createNewItemRequest.DescriptionCode); err != nil {
+		c.JSON(400, gin.H{"success": false, "message": "One or more codes are invalid"})
+		log.Printf("Code existence check failed: %v", err)
+		return
+	}
+
+	// Step 2: Fetch names if they are not provided
+	if createNewItemRequest.Category == "" || createNewItemRequest.SubCategory1 == "" || createNewItemRequest.SubCategory2 == "" || createNewItemRequest.Description == "" {
+		category, subCategory1Name, subCategory2Name, descriptionName, err := GetNamesByCodes(
+			db,
+			createNewItemRequest.CategoryCode,
+			createNewItemRequest.SubCategory1Code,
+			createNewItemRequest.SubCategory2Code,
+			createNewItemRequest.DescriptionCode,
+		)
+		if err != nil {
+			c.JSON(500, gin.H{"success": false, "message": "Failed to retrieve names based on codes"})
+			log.Printf("Error retrieving names: %v", err)
+			return
+		}
+
+		if createNewItemRequest.Category == "" {
+			createNewItemRequest.Category = category
+		}
+		if createNewItemRequest.SubCategory1 == "" {
+			createNewItemRequest.SubCategory1 = subCategory1Name
+		}
+		if createNewItemRequest.SubCategory2 == "" {
+			createNewItemRequest.SubCategory2 = subCategory2Name
+		}
+		if createNewItemRequest.Description == "" {
+			createNewItemRequest.Description = descriptionName
+		}
+	}
+
+	// Step 3: Check if the ItemFamily exists or create a new one
+	if createNewItemRequest.ItemFamilyID == 0 {
+		var itemFamilyID int
+		query := "SELECT item_family_id FROM items_families WHERE category_code = ? AND subcategory1_code = ? AND subcategory2_code = ? AND description_code = ?"
+		err := db.QueryRow(query, createNewItemRequest.CategoryCode, createNewItemRequest.SubCategory1Code, createNewItemRequest.SubCategory2Code, createNewItemRequest.DescriptionCode).Scan(&itemFamilyID)
+
+		if err == sql.ErrNoRows {
+			// No existing ItemFamily, create a new one
+			itemSKU := createNewItemRequest.CategoryCode + strconv.Itoa(createNewItemRequest.SubCategory1Code) + createNewItemRequest.SubCategory2Code + strconv.Itoa(createNewItemRequest.DescriptionCode)
+			itemName := createNewItemRequest.Category + " " + createNewItemRequest.SubCategory1 + " " + createNewItemRequest.SubCategory2 + " " + createNewItemRequest.Description
+			now := time.Now().Format(time.RFC3339)
+
+			result, err := db.Exec("INSERT INTO items_families (category_code, subcategory1_code, subcategory2_code, description_code, current_credit_value, item_name, item_sku, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+				createNewItemRequest.CategoryCode, createNewItemRequest.SubCategory1Code, createNewItemRequest.SubCategory2Code, createNewItemRequest.DescriptionCode, createNewItemRequest.CreditValue, itemName, itemSKU, now, now)
+			if err != nil {
+				c.JSON(500, gin.H{"success": false, "message": "Failed to create item family"})
+				log.Printf("Error creating item family: %v", err)
+				return
+			}
+
+			lastInsertID, err := result.LastInsertId()
+			if err != nil {
+				c.JSON(500, gin.H{"success": false, "message": "Failed to retrieve new item family ID"})
+				log.Printf("Error retrieving new item family ID: %v", err)
+				return
+			}
+			createNewItemRequest.ItemFamilyID = int(lastInsertID)
+		} else if err != nil {
+			// Some other error occurred
+			c.JSON(500, gin.H{"success": false, "message": "Error checking item family"})
+			log.Printf("Error checking item family: %v", err)
+			return
+		} else {
+			// ItemFamily exists, use the existing ID
+			createNewItemRequest.ItemFamilyID = itemFamilyID
+		}
+	}
+
+	// Step 4: Check if the item with the given size already exists for this ItemFamily
+	var existingItemID int
+	query := "SELECT item_family_id FROM items WHERE item_family_id = ? AND item_size = ?"
+	err := db.QueryRow(query, createNewItemRequest.ItemFamilyID, createNewItemRequest.Size).Scan(&existingItemID)
+	if err == nil {
+		// Item already exists, return an error
+		c.JSON(400, gin.H{"success": false, "message": "Item size already exists for this item family"})
+		return
+	} else if err != sql.ErrNoRows {
+		// Some other error occurred
+		c.JSON(500, gin.H{"success": false, "message": "Error checking existing item"})
+		log.Printf("Error checking existing item: %v", err)
+		return
+	}
+
+	// Step 5: Create the new item associated with the item family
+	now := time.Now().Format(time.RFC3339)
+	_, err = db.Exec("INSERT INTO items (item_family_id, item_size, item_total_quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+		createNewItemRequest.ItemFamilyID, createNewItemRequest.Size, createNewItemRequest.Quantity, now, now)
+	if err != nil {
+		c.JSON(500, gin.H{"success": false, "message": "Failed to create item"})
+		log.Printf("Error creating item: %v", err)
+		return
+	}
+
+	c.JSON(200, gin.H{"success": true, "message": "Item created successfully", "item_family_id": createNewItemRequest.ItemFamilyID})
+}
+
+// END CREATE ITEM PROD VERSION
+
+// START CREATE ITEM DEV VERSION
 type CreateItemInput struct {
 	Category     string  `json:"category_name" binding:"required"`
 	SubCategory1 string  `json:"subcategory1_name" binding:"required"`
@@ -213,6 +396,8 @@ func CreateItem(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "message": "Item, Item Family and Item Credit Value History created successfully"})
 	log.Println("Item created successfully")
 }
+
+// END CREATE ITEM DEV VERSION
 
 type UpdateItemInput struct {
 	ItemFamilyID    int    `json:"item_family_id" binding:"required"`
@@ -444,4 +629,70 @@ func GetItems(c *gin.Context) {
 		"itemsFamilies": families,
 		"total":         totalFamilies,
 	}})
+}
+
+// HELPERS PART
+
+// CheckCode checks if category, subcategory1, subcategory2 and description codes are valid
+func CheckCode(db *sql.DB, categoryCode string, subCategory1Code int, subCategory2Code string, descriptionCode int) error {
+	// Check if category exists
+	var temp string
+	err := db.QueryRow("SELECT category_code FROM categories WHERE category_code = ?", categoryCode).Scan(&temp)
+	if err != nil {
+		log.Printf("Error checking category code: %v", err)
+		return fmt.Errorf("invalid category code")
+	}
+
+	// Check if subcategory 1 exists
+	err = db.QueryRow("SELECT subcategory1_code FROM subcategories1 WHERE subcategory1_code = ?", subCategory1Code).Scan(&temp)
+	if err != nil {
+		log.Printf("Error checking subCategory1 code: %v", err)
+		return fmt.Errorf("invalid subCategory1 code")
+	}
+
+	// Check if subcategory 2 exists
+	err = db.QueryRow("SELECT subcategory2_code FROM subcategories2 WHERE subcategory2_code = ?", subCategory2Code).Scan(&temp)
+	if err != nil {
+		log.Printf("Error checking subCategory2 code: %v", err)
+		return fmt.Errorf("invalid subCategory2 code")
+	}
+
+	// Check if description exists
+	err = db.QueryRow("SELECT description_code FROM items_descriptions WHERE description_code = ?", descriptionCode).Scan(&temp)
+	if err != nil {
+		log.Printf("Error checking description code: %v", err)
+		return fmt.Errorf("invalid description code")
+	}
+
+	return nil
+}
+
+func GetNamesByCodes(db *sql.DB, categoryCode string, subCategory1Code int, subCategory2Code string, descriptionCode int) (string, string, string, string, error) {
+	var category, subCategory1Name, subCategory2Name, descriptionName string
+
+	// Fetch Category name by its code
+	err := db.QueryRow("SELECT category_name FROM categories WHERE category_code = ?", categoryCode).Scan(&category)
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("error fetching Category name: %v", err)
+	}
+
+	// Fetch SubCategory1 name by its code
+	err = db.QueryRow("SELECT subcategory1_name FROM subcategories1 WHERE subcategory1_code = ?", subCategory1Code).Scan(&subCategory1Name)
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("error fetching SubCategory1 name: %v", err)
+	}
+
+	// Fetch SubCategory2 name by its code
+	err = db.QueryRow("SELECT subcategory2_name FROM subcategories2 WHERE subcategory2_code = ?", subCategory2Code).Scan(&subCategory2Name)
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("error fetching SubCategory2 name: %v", err)
+	}
+
+	// Fetch Description name by its code
+	err = db.QueryRow("SELECT description_name FROM items_descriptions WHERE description_code = ?", descriptionCode).Scan(&descriptionName)
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("error fetching Description name: %v", err)
+	}
+
+	return category, subCategory1Name, subCategory2Name, descriptionName, nil
 }
