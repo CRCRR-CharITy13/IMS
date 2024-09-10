@@ -10,6 +10,8 @@ package routers
 // import "github.com/gin-gonic/gin"
 
 import (
+	"GIK_Web/src/middleware"
+	"GIK_Web/src/routers/auth"
 	"GIK_Web/src/routers/classification"
 	"GIK_Web/src/routers/status"
 
@@ -21,6 +23,16 @@ func InitRouter() *gin.Engine {
 	r := gin.New()
 
 	r.GET("/ping", status.Ping)
+
+	// Enable the cross-origin resource sharing middleware
+	r.Use(middleware.CORSMiddleware())
+
+	// Set up authentication router
+	authApi := r.Group("/auth")
+	{
+		authApi.GET("/first_admin", auth.CreateFirstAdmin)
+		authApi.GET("/status", middleware.AuthMiddleware(), auth.CheckAuthStatus)
+	}
 
 	categoryApis := r.Group("/classification")
 	{

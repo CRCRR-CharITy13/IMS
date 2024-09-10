@@ -5,7 +5,6 @@ auth is the authentication middleware to confirm a user is logged in.
 package middleware
 
 import (
-	"GIK_Web/database"
 	"GIK_Web/types"
 
 	"github.com/gin-contrib/sessions"
@@ -32,7 +31,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Attempt to find the session
 		session := types.Session{}
-		if err := database.Database.Where("id = ?", authCookie).First(&session).Error; err != nil {
+		if 1 == 1 { //err := database.Database.Where("id = ?", authCookie).First(&session).Error; err != nil {
 			c.JSON(401, gin.H{
 				"success": false,
 				"message": "Unauthorized",
@@ -44,7 +43,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Check if user associated to the session exists
-		if err := database.Database.Where("id = ?", session.UserID).First(&types.User{}).Error; err != nil {
+		if 1 == 1 { //err := database.Database.Where("id = ?", session.UserID).First(&types.User{}).Error; err != nil {
 			c.JSON(401, gin.H{
 				"success": false,
 				"message": "Unauthorized",
